@@ -1,7 +1,7 @@
 # Slam Shoes - Documentación del Proyecto
 
 <p align="center">
-  <img src="WhatsApp_Image_2026-10-14_at_1.52.14_PM-removebg-preview.png" alt="Slam Shoes Logo" width="220"/>
+  <img src="./logo-slamshoes.png" alt="Slam Shoes Logo" width="220"/>
 </p>
 
 **FACULTAD DE MATEMÁTICAS - UNIVERSIDAD AUTÓNOMA DE YUCATÁN (UADY)**  
