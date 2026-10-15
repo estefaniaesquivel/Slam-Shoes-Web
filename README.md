@@ -12,10 +12,11 @@
 ---
 
 ## Integrantes del Equipo
+* **Caamal Tencle Mateo Alejandro**
 * **Dzib Martínez Agustín Emanuel**
 * **Esquivel Bacelis Estefanía**
-* *[Nombre del integrante 3]*
-* *[Nombre del integrante 4]*
+* **Morales Caro Axel Adolfo**
+
 
 **Profesor:** Juan Pablo Ucán Pech  
 
