@@ -35,7 +35,7 @@
                 <!-- enlace que abre el html de login -->
                 <a href="login.html"><i class="bi bi-person text-dark"></i></a>
                 <!-- carrito con el contador -->
-                <a href="#" class="position-relative text-dark">
+                <a href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-dark text-decoration-none" aria-label="Abrir carrito">
                     <i class="bi bi-bag"></i>
                     <span id="contador-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">0</span>
                 </a>
@@ -169,34 +169,34 @@
                         <div class="col-md-4">
                             <div class="border p-5">
                                 <!-- imagen 1 -->
-                                <span>[Imagen 1]</span>
+                                <span>[Nike LeBron XXI]</span>
                             </div>
                             <div class="mt-2">
-                                <h6>[Nombre del producto]</h6>
-                                <p>[Precio]</p>
-                                <button class="btn btn-dark btn-sm btn-agregar">Añadir al carrito</button>
+                                <h6>Nike LeBron XXI</h6>
+                                <p>$3,899 MXN</p>
+                                <button class="btn btn-dark btn-sm btn-agregar" data-id="1" data-nombre="Nike LeBron XXI" data-precio="3899">Añadir al carrito</button>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border p-5">
                                 <!-- imagen 2 -->
-                                <span>[Imagen 2]</span>
+                                <span>[Air Jordan XXXVIII]</span>
                             </div>
                             <div class="mt-2">
-                                <h6>[Nombre del producto]</h6>
-                                <p>[Precio]</p>
-                                <button class="btn btn-dark btn-sm btn-agregar">Añadir al carrito</button>
+                                <h6>Air Jordan XXXVIII</h6>
+                                <p>$4,499 MXN</p>
+                                <button class="btn btn-dark btn-sm btn-agregar" data-id="2" data-nombre="Air Jordan XXXVIII" data-precio="4499">Añadir al carrito</button>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border p-5">
                                 <!-- imagen 3 -->
-                                <span>[Imagen 3]</span>
+                                <span>[KD 16]</span>
                             </div>
                             <div class="mt-2">
-                                <h6>[Nombre del producto]</h6>
-                                <p>[Precio]</p>
-                                <button class="btn btn-dark btn-sm btn-agregar">Añadir al carrito</button>
+                                <h6>KD 16</h6>
+                                <p>$3,299 MXN</p>
+                                <button class="btn btn-dark btn-sm btn-agregar" data-id="3" data-nombre="KD 16" data-precio="3299">Añadir al carrito</button>
                             </div>
                         </div>
                     </div>
@@ -229,20 +229,30 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- funcionalidad del carrito -->
-    <script>
-        let carrito = 0;
-        const textoCarrito = document.getElementById('contador-carrito');
-        const botonesAgregar = document.querySelectorAll('.btn-agregar');
+    <!-- Panel lateral del carrito -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrito" aria-labelledby="offcanvasCarritoLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" id="offcanvasCarritoLabel">Carrito de compras</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+            <div id="lista-carrito" class="flex-grow-1 overflow-auto">
+                <!-- Se llena con JavaScript -->
+            </div>
+            <div class="border-top pt-3 mt-auto">
+                <div class="d-flex justify-content-between fw-bold mb-3">
+                    <span>Total:</span>
+                    <span id="total-carrito">$0.00 MXN</span>
+                </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-danger btn-sm" id="btn-vaciar-carrito">Vaciar carrito</button>
+                    <button class="btn btn-dark" id="btn-comprar">Continuar compra</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        botonesAgregar.forEach(boton => {
-            boton.addEventListener('click', () => {
-                carrito++;
-                textoCarrito.textContent = carrito;
-            });
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="carrito.js"></script>
 </body>
-</html>
+</html>
