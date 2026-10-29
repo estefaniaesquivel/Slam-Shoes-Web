@@ -141,25 +141,21 @@ El FrontEnd (Vue) y el BackEnd (Spring Boot) serán dos aplicaciones independien
 
 ---
 
-## 7. Estado Actual y Primer Avance de Codificación
-Como parte de la fase inicial de desarrollo del prototipo funcional de Slam Shoes, se ha concretado la implementación de la estructura base del FrontEnd utilizando HTML, Bootstrap para el diseño responsivo y la maquetación de componentes, y JavaScript para la lógica de interacción del cliente, incluyendo un sistema de carrito de compras con persistencia local (que se adaptará en la siguiente entrega a una persistencia a base de datos).
+## Tecnologías Utilizadas y Escalabilidad
 
-A continuación, se detallan los componentes principales desarrollados en este primer avance:
+### Enfoque de Escalabilidad y Elección Tecnológica (Backend Java & Spring Boot)
+Para el desarrollo del servidor, se seleccionó **Java 17+ con Spring Boot**, una decisión fundamentada en la arquitectura de nivel empresarial. A diferencia de lenguajes de tipado dinámico, Spring Boot aporta:
+* **Tipado estricto y compilación segura:** Detecta fallos estructurales antes de ejecutar el código, facilitando el mantenimiento a largo plazo.
+* **Inyección de dependencias y separación de capas:** Controladores, servicios y repositorios perfectamente desacoplados.
+* **Alta concurrencia:** Gestión eficiente de hilos (*multithreading*) para procesar miles de transacciones concurrentes.
 
-### 7.1. Página Principal (`index.html`)
-* **Barra de navegación (navbar):** Integrada con un menú colapsable para dispositivos móviles, menús desplegables (*dropdowns*) clasificados por marcas y jugadores profesionales, barra de búsqueda, enlace directo al módulo de autenticación y un indicador dinámico de cantidad de artículos en el carrito.
-* **Sección multimedia y carruseles:** Estructuración de carruseles dinámicos mediante componentes de Bootstrap para mostrar novedades, ofertas destacadas y colecciones de calzado de básquetbol.
-* **Catálogo interactivo en tendencia:** Visualización de tarjetas de productos con soporte para el botón "Añadir al carrito".
-* **Panel lateral del carrito:** Un cajón deslizante lateral que muestra los artículos seleccionados, subtotales, cálculo del monto total en pesos mexicanos (MXN), opción de vaciar el carrito y un botón de redirección para continuar con el flujo de compra.
+**Comparativa con aplicaciones reales:** Este mismo estándar de robustez y arquitectura orientada a microservicios con Spring Boot y Java es utilizado por gigantes tecnológicos globales para soportar operaciones masivas y críticas, tales como **Mercado Libre** (procesamiento masivo de e-commerce), **Netflix** (streaming y pasarelas concurrentes), **LinkedIn** y **Uber** (gestión transaccional segura).
 
-### 7.2. Módulo de Autenticación (`login.html`)
-* **Interfaz de acceso:** Formulario limpio y centrado para el inicio de sesión de usuarios, solicitando correo electrónico y contraseña.
-* **Simulación de sesión:** Incorporación de un script en JavaScript que intercepta el evento `submit` del formulario, captura el correo ingresado y emite una alerta de confirmación antes de redirigir al usuario de vuelta a la página principal (`index.html`), simulando el flujo de entrada al sistema.
+### Tabla de Tecnologías
 
-### 7.3. Lógica de Negocio del Cliente (`carrito.js`)
-* **Persistencia local:** Utilización de `localStorage` bajo la clave `slam_shoes_cart` para garantizar que los productos agregados al carrito no se pierdan si el usuario recarga la página o navega entre secciones.
-* **Funciones principales implementadas:**
-  * `obtenerCarrito()` y `guardarCarrito()`: Lectura y escritura segura del estado actual del carrito en formato JSON.
-  * `actualizarBadge()`: Modifica dinámicamente el contador numérico en el icono de la bolsa de compras.
-  * `renderizarCarrito()`: Genera de forma dinámica los elementos HTML dentro del panel lateral, calculando subtotales y sumatorias totales.
-  * `agregarAlCarrito()` y `eliminarItem()`: Controlan la adición de nuevas unidades (incrementando la cantidad si el producto ya existía) y la supresión de artículos individuales.
+| Componente | Tecnología / Herramienta | Descripción y Propósito |
+| :--- | :--- | :--- |
+| **Lenguaje de Programación (BackEnd)** | **Java 17+** <br> ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white) <br> **Apache Tomcat (Embebido)** | Núcleo de la API REST encargado de la lógica de negocio, seguridad y gestión de peticiones concurrentes bajo un entorno robusto y escalable. |
+| **Framework FrontEnd** | **Vue.js 3** <br> ![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vue.js&logoColor=4FC08D) <br> **Pinia & Vite** | Desarrollo de una Single Page Application (SPA) responsiva y ultrarrápida, con gestión de estado global para el carrito y sesiones de usuario. |
+| **Base de Datos & Cloud** | **PostgreSQL** <br> ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white) <br> **Supabase** | Base de datos relacional alojada en la nube con integridad referencial estricta mediante llaves foráneas. |
+| **Herramientas de Pruebas** | **Bruno API Client** <br> ![Bruno](https://img.shields.io/badge/Bruno-7B61FF?style=for-the-badge&logo=bruno&logoColor=white) | Validación independiente de los endpoints REST del backend antes de la integración con el frontend. |
