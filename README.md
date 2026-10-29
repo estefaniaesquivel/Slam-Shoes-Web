@@ -141,7 +141,8 @@ El FrontEnd (Vue) y el BackEnd (Spring Boot) serán dos aplicaciones independien
 
 ---
 
-## Tecnologías Utilizadas y Escalabilidad
+
+# Tecnologías Utilizadas y Escalabilidad
 
 ### Enfoque de Escalabilidad y Elección Tecnológica (Backend Java & Spring Boot)
 Para el desarrollo del servidor, se seleccionó **Java 17+ con Spring Boot**, una decisión fundamentada en la arquitectura de nivel empresarial. A diferencia de lenguajes de tipado dinámico, Spring Boot aporta:
