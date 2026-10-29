@@ -18,7 +18,7 @@
 - **Morales Caro Axel Adolfo**
 
 **Profesor:** Juan Pablo Ucán Pech  
-**Repositorio:** [https://github.com/estefaniaesquivel/Slam-Shoes-Web](https://github.com/estefaniaesquivel/Slam-Shoes-Web)
+
 
 ---
 
