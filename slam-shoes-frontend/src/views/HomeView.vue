@@ -5,7 +5,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
         <div class="container-fluid px-0">
             <router-link class="navbar-brand" to="/">
-                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">          
+                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">         
             </router-link>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Toggle navigation">
@@ -147,7 +147,8 @@
         <h2 class="mb-4 text-center">[En Tendencia]</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="border border-secondary bg-white p-3 rounded-3 text-center d-flex align-items-center justify-content-center overflow-hidden" style="height: 200px;">
+                <div class="border border-secondary bg-white p-3 rounded-3 text-center d-flex align-items-center justify-content-center overflow-hidden position-relative" style="height: 200px;">
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle" @click="marcarFavorito({id: 1, nombre: 'Wade All City 14 Encore Genesis'})"><i class="bi bi-heart"></i></button>
                     <img src="/14AC_genesis.webp" class="img-fluid object-fit-contain" style="max-height: 160px; transform: scale(1.9);" alt="Wade All City 14">
                 </div>
                 <div class="mt-2 text-start">
@@ -157,7 +158,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center" style="height: 200px;"><span>[Air Jordan XXXVIII]</span></div>
+                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white" @click="marcarFavorito({id: 2, nombre: 'Air Jordan XXXVIII'})"><i class="bi bi-heart"></i></button>
+                    <span>[Air Jordan XXXVIII]</span>
+                </div>
                 <div class="mt-2 text-start">
                     <h6 class="text-white">Air Jordan XXXVIII</h6>
                     <p class="text-success fw-bold">$4,499 MXN</p>
@@ -165,7 +169,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center" style="height: 200px;"><span>[KD 16]</span></div>
+                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white" @click="marcarFavorito({id: 3, nombre: 'KD 16'})"><i class="bi bi-heart"></i></button>
+                    <span>[KD 16]</span>
+                </div>
                 <div class="mt-2 text-start">
                     <h6 class="text-white">KD 16</h6>
                     <p class="text-success fw-bold">$3,299 MXN</p>
@@ -175,9 +182,9 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: CATÁLOGO GENERAL (Conectado a la Base de Datos) -->
+    <!-- SECCIÓN: NUESTRO CATÁLOGO -->
     <div class="container-fluid px-4 my-5 border-top border-secondary pt-5">
-        <h2 class="mb-4 text-center">Catálogo General (Supabase & Spring Boot)</h2>
+        <h2 class="mb-4 text-center">NUESTRO CATÁLOGO</h2>
         
         <div v-if="productos.length === 0" class="text-center text-muted py-4">
             <p>Cargando productos de la base de datos o sin registros activos...</p>
@@ -185,7 +192,12 @@
 
         <div class="row g-4" v-else>
             <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
-                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between" style="min-height: 380px;">
+                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative" style="min-height: 380px;">
+                    <!-- Botón de Favoritos con validación -->
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)">
+                        <i class="bi bi-heart"></i>
+                    </button>
+
                     <div class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden" style="height: 180px;">
                         <img :src="producto.imagenUrl || '/logo-slamshoes-blanco.png'" class="img-fluid object-fit-contain rounded" style="max-height: 150px;" :alt="producto.nombre" />
                     </div>
@@ -255,6 +267,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import productoService from '@/services/productoService';
+import { verificarSesionYAccionar } from '@/utils/auth.js'; // Importamos la validación de sesión
 
 export default {
   name: 'HomeView',
@@ -277,6 +290,10 @@ export default {
     };
 
     const agregarAlCarrito = (producto) => {
+      // Validamos sesión antes de permitir añadir al carrito
+      const usuarioActivo = verificarSesionYAccionar();
+      if (!usuarioActivo) return;
+
       const idProd = producto.idProducto || producto.id;
       const itemExistente = carrito.value.find(item => (item.id || item.idProducto) === idProd);
       if (itemExistente) {
@@ -290,6 +307,15 @@ export default {
         });
       }
       guardarCarritoStorage();
+      alert(`¡"${producto.nombre}" se añadió a tu carrito!`);
+    };
+
+    const marcarFavorito = (producto) => {
+      // Validamos sesión antes de permitir agregar a favoritos
+      const usuarioActivo = verificarSesionYAccionar();
+      if (!usuarioActivo) return;
+
+      alert(`¡"${producto.nombre}" fue agregado a tus favoritos con éxito!`);
     };
 
     const eliminarItem = (index) => {
@@ -307,6 +333,10 @@ export default {
     });
 
     const continuarCompra = () => {
+      // Validar sesión también para finalizar la compra
+      const usuarioActivo = verificarSesionYAccionar();
+      if (!usuarioActivo) return;
+
       alert('¡Proceso de compra simulado con éxito!');
       vaciarCarrito();
     };
@@ -319,6 +349,7 @@ export default {
       productos,
       carrito,
       agregarAlCarrito,
+      marcarFavorito,
       eliminarItem,
       vaciarCarrito,
       totalCarrito,
