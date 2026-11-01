@@ -22,6 +22,9 @@ public class Producto {
     @Column(name = "id_jugador")
     private Long idJugador;
 
+    @Column(name = "id_coleccion")
+    private Long idColeccion; // Llave foránea hacia la tabla colecciones
+
     private String nombre;
     private String marca;
     
@@ -35,7 +38,12 @@ public class Producto {
 
     private Boolean activo;
 
-    // Constructores vacíos y llenos
+    private String modelo;
+
+    @Column(name = "es_tendencia")
+    private Boolean esTendencia;
+
+    // Constructores
     public Producto() {}
 
     // Getters y Setters
@@ -47,6 +55,9 @@ public class Producto {
 
     public Long getIdJugador() { return idJugador; }
     public void setIdJugador(Long idJugador) { this.idJugador = idJugador; }
+
+    public Long getIdColeccion() { return idColeccion; }
+    public void setIdColeccion(Long idColeccion) { this.idColeccion = idColeccion; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
@@ -65,4 +76,10 @@ public class Producto {
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }
+
+    public String getModelo() { return modelo; }
+    public void setModelo(String modelo) { this.modelo = modelo; }
+
+    public Boolean getEsTendencia() { return esTendencia; }
+    public void setEsTendencia(Boolean esTendencia) { this.esTendencia = esTendencia; }
 }

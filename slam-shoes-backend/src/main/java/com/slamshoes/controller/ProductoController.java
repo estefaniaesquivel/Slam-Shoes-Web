@@ -19,7 +19,7 @@ import com.slamshoes.repository.ProductoRepository;
 
 @RestController
 @RequestMapping("/api/productos")
-@CrossOrigin(origins = "*") // Permite la comunicación con el frontend de Vue.jszg
+@CrossOrigin(origins = "*") // Permite la comunicación con el frontend de Vue.js
 public class ProductoController {
 
     @Autowired
@@ -56,7 +56,11 @@ public class ProductoController {
             producto.setImagenUrl(productoDetalles.getImagenUrl());
             producto.setIdCategoria(productoDetalles.getIdCategoria());
             producto.setIdJugador(productoDetalles.getIdJugador());
+            producto.setIdColeccion(productoDetalles.getIdColeccion()); // Mapeo del ID de la colección
             producto.setActivo(productoDetalles.getActivo());
+            
+            producto.setModelo(productoDetalles.getModelo());
+            producto.setEsTendencia(productoDetalles.getEsTendencia());
             
             Producto productoActualizado = productoRepository.save(producto);
             return ResponseEntity.ok(productoActualizado);

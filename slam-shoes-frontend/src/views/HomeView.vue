@@ -59,7 +59,10 @@
                     <i class="bi bi-heart"></i>
                 </a>
 
-                <router-link to="/login" class="text-light fs-5"><i class="bi bi-person"></i></router-link>
+                <!-- ICONO DE USUARIO CONDICIONAL (Lleva al perfil si hay sesión, o al login si no) -->
+                <a href="#" class="text-light fs-5 text-decoration-none" @click.prevent="manejarClickUsuario" aria-label="Perfil de usuario">
+                    <i class="bi bi-person"></i>
+                </a>
                 
                 <!-- Botón de Carrito con el contador reactivo -->
                 <a href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-light text-decoration-none fs-5" aria-label="Abrir carrito">
@@ -274,12 +277,14 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import productoService from '@/services/productoService';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
 
 export default {
   name: 'HomeView',
   setup() {
+    const router = useRouter();
     const productos = ref([]);
     const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
 
@@ -295,6 +300,16 @@ export default {
 
     const guardarCarritoStorage = () => {
       localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito.value));
+    };
+
+    // Validación para redirigir al perfil si hay sesión, o al login si no
+    const manejarClickUsuario = () => {
+      const usuarioGuardado = localStorage.getItem('usuario');
+      if (!usuarioGuardado) {
+        router.push('/login');
+      } else {
+        router.push('/profile');
+      }
     };
 
     const agregarAlCarrito = (producto) => {
@@ -341,7 +356,6 @@ export default {
       guardarCarritoStorage();
     };
 
-    // Propiedad computada para el total de artículos en el carrito
     const totalItemsCarrito = computed(() => {
       return carrito.value.reduce((suma, item) => suma + item.cantidad, 0);
     });
@@ -365,6 +379,7 @@ export default {
     return {
       productos,
       carrito,
+      manejarClickUsuario,
       agregarAlCarrito,
       marcarFavorito,
       irAFavoritos,
