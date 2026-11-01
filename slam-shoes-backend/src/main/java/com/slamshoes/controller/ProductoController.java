@@ -19,7 +19,7 @@ import com.slamshoes.repository.ProductoRepository;
 
 @RestController
 @RequestMapping("/api/productos")
-@CrossOrigin(origins = "*") // Permite la comunicación con el frontend de Vue.js
+@CrossOrigin(origins = "*") // Permite la comunicación con el frontend de Vue.jszg
 public class ProductoController {
 
     @Autowired
