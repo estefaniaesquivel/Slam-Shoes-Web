@@ -54,10 +54,19 @@
             <!-- Iconos de la derecha -->
             <div class="d-flex align-items-center gap-3">
                 <a href="#" class="text-light fs-5"><i class="bi bi-search"></i></a>
+                
+                <a href="#" class="text-light fs-5 text-decoration-none" @click.prevent="irAFavoritos" aria-label="Favoritos">
+                    <i class="bi bi-heart"></i>
+                </a>
+
                 <router-link to="/login" class="text-light fs-5"><i class="bi bi-person"></i></router-link>
+                
+                <!-- Botón de Carrito con el contador reactivo -->
                 <a href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-light text-decoration-none fs-5" aria-label="Abrir carrito">
                     <i class="bi bi-bag"></i>
-                    <span id="contador-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">0</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                        {{ totalItemsCarrito }}
+                    </span>
                 </a>
             </div>
         </div>
@@ -148,7 +157,7 @@
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="border border-secondary bg-white p-3 rounded-3 text-center d-flex align-items-center justify-content-center overflow-hidden position-relative" style="height: 200px;">
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle" @click="marcarFavorito({id: 1, nombre: 'Wade All City 14 Encore Genesis'})"><i class="bi bi-heart"></i></button>
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito({id: 1, nombre: 'Wade All City 14 Encore Genesis'})"><i class="bi bi-heart"></i></button>
                     <img src="/14AC_genesis.webp" class="img-fluid object-fit-contain" style="max-height: 160px; transform: scale(1.9);" alt="Wade All City 14">
                 </div>
                 <div class="mt-2 text-start">
@@ -159,7 +168,7 @@
             </div>
             <div class="col-md-4">
                 <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white" @click="marcarFavorito({id: 2, nombre: 'Air Jordan XXXVIII'})"><i class="bi bi-heart"></i></button>
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito({id: 2, nombre: 'Air Jordan XXXVIII'})"><i class="bi bi-heart"></i></button>
                     <span>[Air Jordan XXXVIII]</span>
                 </div>
                 <div class="mt-2 text-start">
@@ -170,7 +179,7 @@
             </div>
             <div class="col-md-4">
                 <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white" @click="marcarFavorito({id: 3, nombre: 'KD 16'})"><i class="bi bi-heart"></i></button>
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito({id: 3, nombre: 'KD 16'})"><i class="bi bi-heart"></i></button>
                     <span>[KD 16]</span>
                 </div>
                 <div class="mt-2 text-start">
@@ -193,7 +202,6 @@
         <div class="row g-4" v-else>
             <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
                 <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative" style="min-height: 380px;">
-                    <!-- Botón de Favoritos con validación -->
                     <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)">
                         <i class="bi bi-heart"></i>
                     </button>
@@ -267,7 +275,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import productoService from '@/services/productoService';
-import { verificarSesionYAccionar } from '@/utils/auth.js'; // Importamos la validación de sesión
+import { verificarSesionYAccionar } from '@/utils/auth.js';
 
 export default {
   name: 'HomeView',
@@ -290,7 +298,6 @@ export default {
     };
 
     const agregarAlCarrito = (producto) => {
-      // Validamos sesión antes de permitir añadir al carrito
       const usuarioActivo = verificarSesionYAccionar();
       if (!usuarioActivo) return;
 
@@ -311,11 +318,17 @@ export default {
     };
 
     const marcarFavorito = (producto) => {
-      // Validamos sesión antes de permitir agregar a favoritos
       const usuarioActivo = verificarSesionYAccionar();
       if (!usuarioActivo) return;
 
       alert(`¡"${producto.nombre}" fue agregado a tus favoritos con éxito!`);
+    };
+
+    const irAFavoritos = () => {
+      const usuarioActivo = verificarSesionYAccionar();
+      if (!usuarioActivo) return;
+
+      alert("Redirigiendo a tu sección de Favoritos...");
     };
 
     const eliminarItem = (index) => {
@@ -328,12 +341,16 @@ export default {
       guardarCarritoStorage();
     };
 
+    // Propiedad computada para el total de artículos en el carrito
+    const totalItemsCarrito = computed(() => {
+      return carrito.value.reduce((suma, item) => suma + item.cantidad, 0);
+    });
+
     const totalCarrito = computed(() => {
       return carrito.value.reduce((total, item) => total + (item.precio * item.cantidad), 0);
     });
 
     const continuarCompra = () => {
-      // Validar sesión también para finalizar la compra
       const usuarioActivo = verificarSesionYAccionar();
       if (!usuarioActivo) return;
 
@@ -350,8 +367,10 @@ export default {
       carrito,
       agregarAlCarrito,
       marcarFavorito,
+      irAFavoritos,
       eliminarItem,
       vaciarCarrito,
+      totalItemsCarrito,
       totalCarrito,
       continuarCompra
     };
