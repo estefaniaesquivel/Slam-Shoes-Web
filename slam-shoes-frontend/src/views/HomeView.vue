@@ -1,12 +1,11 @@
 <template>
-  <div class="bg-dark text-light min-vh-100">
+  <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden">
 
-    <!-- Encabezado (Navbar con menús desplegables) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
-        <div class="container-fluid px-4">
-            <!-- Logo -->
+    <!-- Encabezado (Navbar a todo lo ancho con px-4) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
+        <div class="container-fluid px-0">
             <router-link class="navbar-brand" to="/">
-                <span class="fw-bold text-white fs-4">SLAM SHOES</span>
+                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">          
             </router-link>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,7 +16,6 @@
                 <ul class="navbar-nav mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link text-light" href="#">Novedades</a></li>
                     
-                    <!-- Menú Marcas -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownMarcas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Marcas
@@ -33,7 +31,6 @@
                         </ul>
                     </li>
 
-                    <!-- Menú Por Jugador -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownPlayer" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Por Jugador
@@ -66,46 +63,147 @@
         </div>
     </nav>
 
-    <!-- Carrusel Principal -->
-    <div id="primerCarrusel" class="carousel slide my-4 container" data-bs-ride="carousel" data-bs-interval="3000">
-        <div class="carousel-inner rounded">
+    <!-- Carrusel 1 (Abarca todo el ancho con container-fluid) -->
+    <div id="primerCarrusel" class="carousel slide my-4 container-fluid px-4" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
             <div class="carousel-item active">
-                <div class="p-5 bg-black border border-secondary text-center rounded">
-                    <h2 class="text-white">Catálogo Oficial Slam Shoes</h2>
-                    <p class="text-muted">Explora los modelos exclusivos desde tu base de datos en Supabase</p>
+                <img src="/Nike JA 3.png" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px;" alt="Nike JA 3 - Cobalt Bliss">
+            </div>
+            <div class="carousel-item">
+                <img src="/promo-halloween.png" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px; object-position: center;" alt="Promoción Halloween">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#primerCarrusel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-secondary rounded p-3" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#primerCarrusel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-secondary rounded p-3" aria-hidden="true"></span>
+        </button>
+    </div>
+
+    <!-- Segundo Carrusel -->
+    <div id="segundoCarrusel" class="carousel slide my-4 container-fluid px-4" data-bs-ride="carousel" data-bs-interval="4000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="border border-secondary bg-black p-5 text-center my-3 rounded">
+                    <h2>[Imagen 1]</h2>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="border border-secondary bg-black p-5 text-center my-3 rounded">
+                    <h2>[Imagen 2]</h2>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#segundoCarrusel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-secondary rounded p-3" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#segundoCarrusel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-secondary rounded p-3" aria-hidden="true"></span>
+        </button>
+    </div>
+
+    <!-- Ofertas y Novedades -->
+    <div class="container-fluid px-4 my-4">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="border border-secondary bg-black p-5 text-center rounded">
+                    <h4>[Ofertas]</h4>
+                    <a href="#" class="btn btn-outline-light mt-3">[Enlace a Ofertas]</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="border border-secondary bg-black p-5 text-center rounded">
+                    <h4>[Novedades]</h4>
+                    <a href="#" class="btn btn-outline-light mt-3">[Enlace a Novedades]</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SECCIÓN DINÁMICA: Productos desde Spring Boot / Supabase -->
-    <div class="container my-5">
-      <h2 class="mb-4 text-center">[En Tendencia / Catálogo]</h2>
-      
-      <div class="row g-4">
-        <!-- Recorremos la lista de productos que trae el backend -->
-        <div class="col-md-4" v-for="producto in productos" :key="producto.idProducto">
-          <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between" style="min-height: 380px;">
-            <img :src="producto.imagenUrl" class="img-fluid object-fit-contain mb-3 rounded" style="max-height: 160px;" :alt="producto.nombre" />
-            
-            <div class="mt-2 text-start w-100">
-              <h6 class="text-white">{{ producto.nombre }}</h6>
-              <p class="text-secondary small mb-1">{{ producto.marca }}</p>
-              <p class="text-success fw-bold">${{ producto.precio }} MXN</p>
-              <button 
-                class="btn btn-light w-100 btn-sm" 
-                @click="agregarAlCarrito(producto)">
-                Añadir al carrito
-              </button>
-            </div>
-          </div>
+    <!-- Colecciones -->
+    <div class="container-fluid py-5 my-4 border-top border-bottom border-secondary px-4">
+        <div class="mb-4">
+            <h3>[COLECCIONES]</h3>
         </div>
-      </div>
+        <div class="row g-3 text-center">
+            <div class="col-md-3">
+                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 1]</p></div>
+            </div>
+            <div class="col-md-3">
+                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 2]</p></div>
+            </div>
+            <div class="col-md-3">
+                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 3]</p></div>
+            </div>
+            <div class="col-md-3">
+                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 4]</p></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Pie de página -->
-    <footer class="border-top border-secondary bg-dark pt-4 pb-2 mt-5">
-        <div class="container text-center">
+    <!-- SECCIÓN: EN TENDENCIA -->
+    <div class="container-fluid px-4 my-5">
+        <h2 class="mb-4 text-center">[En Tendencia]</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="border border-secondary bg-white p-3 rounded-3 text-center d-flex align-items-center justify-content-center overflow-hidden" style="height: 200px;">
+                    <img src="/14AC_genesis.webp" class="img-fluid object-fit-contain" style="max-height: 160px; transform: scale(1.9);" alt="Wade All City 14">
+                </div>
+                <div class="mt-2 text-start">
+                    <h6 class="text-white">Wade All City 14 Encore "Genesis"</h6>
+                    <p class="text-success fw-bold">$3,899 MXN</p>
+                    <button class="btn btn-light w-100 btn-sm" @click="agregarAlCarrito({id: 1, nombre: 'Wade All City 14 Encore Genesis', precio: 3899})">Añadir al carrito</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center" style="height: 200px;"><span>[Air Jordan XXXVIII]</span></div>
+                <div class="mt-2 text-start">
+                    <h6 class="text-white">Air Jordan XXXVIII</h6>
+                    <p class="text-success fw-bold">$4,499 MXN</p>
+                    <button class="btn btn-light w-100 btn-sm" @click="agregarAlCarrito({id: 2, nombre: 'Air Jordan XXXVIII', precio: 4499})">Añadir al carrito</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center" style="height: 200px;"><span>[KD 16]</span></div>
+                <div class="mt-2 text-start">
+                    <h6 class="text-white">KD 16</h6>
+                    <p class="text-success fw-bold">$3,299 MXN</p>
+                    <button class="btn btn-light w-100 btn-sm" @click="agregarAlCarrito({id: 3, nombre: 'KD 16', precio: 3299})">Añadir al carrito</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: CATÁLOGO GENERAL (Supabase) -->
+    <div class="container-fluid px-4 my-5 border-top border-secondary pt-5">
+        <h2 class="mb-4 text-center">Catálogo General (Base de Datos Supabase)</h2>
+        
+        <div v-if="productos.length === 0" class="text-center text-muted py-4">
+            <p>No hay productos cargados en la base de datos o el backend no está conectado.</p>
+        </div>
+
+        <div class="row g-4" v-else>
+            <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
+                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between" style="min-height: 350px;">
+                    <div class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden" style="height: 180px;">
+                        <img :src="producto.imagenUrl || '/logo-slamshoes-blanco.png'" class="img-fluid object-fit-contain rounded" style="max-height: 150px;" :alt="producto.nombre" />
+                    </div>
+                    <div class="mt-3 text-start w-100">
+                        <h6 class="text-white text-truncate">{{ producto.nombre }}</h6>
+                        <p class="text-success fw-bold mb-2">${{ producto.precio }} MXN</p>
+                        <button class="btn btn-light w-100 btn-sm fw-semibold" @click="agregarAlCarrito(producto)">
+                            Añadir al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie -->
+    <footer class="border-top border-secondary bg-dark pt-4 pb-2 mt-5 w-100">
+        <div class="container-fluid text-center px-4">
             <div class="row mb-3">
                 <div class="col">
                     <a href="#" class="mx-2 text-secondary text-decoration-none">[Enlace pie 1]</a>
@@ -113,11 +211,11 @@
                     <a href="#" class="mx-2 text-secondary text-decoration-none">[Enlace pie 3]</a>
                 </div>
             </div>
-            <p class="mb-0 text-muted">Slam Shoes Web - Todos los derechos reservados</p>
+            <p class="mb-0 text-muted">[Texto xd sit seven]</p>
         </div>
     </footer>
 
-    <!-- Panel lateral del carrito (Offcanvas) -->
+    <!-- Panel lateral del carrito -->
     <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasCarrito" aria-labelledby="offcanvasCarritoLabel">
         <div class="offcanvas-header border-bottom border-secondary">
             <h5 class="offcanvas-title" id="offcanvasCarritoLabel">Carrito de compras</h5>
@@ -133,9 +231,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="fw-bold text-success">${{ item.precio * item.cantidad }}</span>
-                        <button class="btn btn-sm btn-outline-danger" @click="eliminarItem(index)">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger" @click="eliminarItem(index)"><i class="bi bi-trash"></i></button>
                     </div>
                 </div>
             </div>
@@ -165,7 +261,6 @@ export default {
     const productos = ref([]);
     const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
 
-    // Cargar productos desde Spring Boot / Supabase
     const cargarProductos = async () => {
       try {
         const respuesta = await productoService.obtenerProductos();
@@ -175,18 +270,18 @@ export default {
       }
     };
 
-    // Funciones del carrito
     const guardarCarritoStorage = () => {
       localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito.value));
     };
 
     const agregarAlCarrito = (producto) => {
-      const itemExistente = carrito.value.find(item => (item.idProducto || item.id) === (producto.idProducto || producto.id));
+      const idProd = producto.idProducto || producto.id;
+      const itemExistente = carrito.value.find(item => (item.id || item.idProducto) === idProd);
       if (itemExistente) {
         itemExistente.cantidad += 1;
       } else {
         carrito.value.push({
-          id: producto.idProducto || producto.id,
+          id: idProd,
           nombre: producto.nombre,
           precio: producto.precio,
           cantidad: 1
