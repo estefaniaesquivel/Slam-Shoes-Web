@@ -8,3 +8,8 @@ export default {
   name: 'App'
 }
 </script>
+
+<!--PARA PRENDER EL SERVIDOR PRIMERO
+cd slam-shoes-frontend LUEGO
+npm run dev
+-->
