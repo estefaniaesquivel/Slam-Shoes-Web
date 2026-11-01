@@ -24,15 +24,18 @@ public class Producto {
 
     private String nombre;
     private String marca;
+    
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
+    
     private Double precio;
 
-    @Column(name = "imagen_url")
+    @Column(name = "imagen_url", columnDefinition = "TEXT")
     private String imagenUrl;
 
     private Boolean activo;
 
-    // Constructor vacío obligatorio para JPA
+    // Constructores vacíos y llenos
     public Producto() {}
 
     // Getters y Setters

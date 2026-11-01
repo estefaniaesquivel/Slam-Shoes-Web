@@ -1,7 +1,7 @@
 <template>
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden">
 
-    <!-- Encabezado (Navbar a todo lo ancho con px-4) -->
+    <!-- Encabezado (Navbar) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
         <div class="container-fluid px-0">
             <router-link class="navbar-brand" to="/">
@@ -63,7 +63,7 @@
         </div>
     </nav>
 
-    <!-- Carrusel 1 (Abarca todo el ancho con container-fluid) -->
+    <!-- Carrusel 1 -->
     <div id="primerCarrusel" class="carousel slide my-4 container-fluid px-4" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -175,22 +175,23 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: CATÁLOGO GENERAL (Supabase) -->
+    <!-- SECCIÓN: CATÁLOGO GENERAL (Conectado a la Base de Datos) -->
     <div class="container-fluid px-4 my-5 border-top border-secondary pt-5">
-        <h2 class="mb-4 text-center">Catálogo General (Base de Datos Supabase)</h2>
+        <h2 class="mb-4 text-center">Catálogo General (Supabase & Spring Boot)</h2>
         
         <div v-if="productos.length === 0" class="text-center text-muted py-4">
-            <p>No hay productos cargados en la base de datos o el backend no está conectado.</p>
+            <p>Cargando productos de la base de datos o sin registros activos...</p>
         </div>
 
         <div class="row g-4" v-else>
             <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
-                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between" style="min-height: 350px;">
+                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between" style="min-height: 380px;">
                     <div class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden" style="height: 180px;">
                         <img :src="producto.imagenUrl || '/logo-slamshoes-blanco.png'" class="img-fluid object-fit-contain rounded" style="max-height: 150px;" :alt="producto.nombre" />
                     </div>
                     <div class="mt-3 text-start w-100">
-                        <h6 class="text-white text-truncate">{{ producto.nombre }}</h6>
+                        <h6 class="text-white">{{ producto.nombre }}</h6>
+                        <p class="text-secondary small mb-1">{{ producto.marca }}</p>
                         <p class="text-success fw-bold mb-2">${{ producto.precio }} MXN</p>
                         <button class="btn btn-light w-100 btn-sm fw-semibold" @click="agregarAlCarrito(producto)">
                             Añadir al carrito
@@ -265,6 +266,7 @@ export default {
       try {
         const respuesta = await productoService.obtenerProductos();
         productos.value = respuesta.data;
+        console.log("Productos cargados desde Spring Boot:", respuesta.data);
       } catch (error) {
         console.error("Error al cargar los productos de la API:", error);
       }
