@@ -59,12 +59,12 @@
                     <i class="bi bi-heart"></i>
                 </a>
 
-                <!-- ICONO DE USUARIO CONDICIONAL (Lleva al perfil si hay sesión, o al login si no) -->
+                <!-- ICONO DE USUARIO CONDICIONAL -->
                 <a href="#" class="text-light fs-5 text-decoration-none" @click.prevent="manejarClickUsuario" aria-label="Perfil de usuario">
                     <i class="bi bi-person"></i>
                 </a>
                 
-                <!-- Botón de Carrito con el contador reactivo -->
+                <!-- Botón de Carrito -->
                 <a href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-light text-decoration-none fs-5" aria-label="Abrir carrito">
                     <i class="bi bi-bag"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
@@ -75,7 +75,7 @@
         </div>
     </nav>
 
-    <!-- Carrusel 1 -->
+    <!-- Carrusel Principal (Banners) -->
     <div id="primerCarrusel" class="carousel slide my-4 container-fluid px-4" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -89,28 +89,6 @@
             <span class="carousel-control-prev-icon bg-secondary rounded p-3" aria-hidden="true"></span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#primerCarrusel" data-bs-slide="next">
-            <span class="carousel-control-next-icon bg-secondary rounded p-3" aria-hidden="true"></span>
-        </button>
-    </div>
-
-    <!-- Segundo Carrusel -->
-    <div id="segundoCarrusel" class="carousel slide my-4 container-fluid px-4" data-bs-ride="carousel" data-bs-interval="4000">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <div class="border border-secondary bg-black p-5 text-center my-3 rounded">
-                    <h2>[Imagen 1]</h2>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <div class="border border-secondary bg-black p-5 text-center my-3 rounded">
-                    <h2>[Imagen 2]</h2>
-                </div>
-            </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#segundoCarrusel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon bg-secondary rounded p-3" aria-hidden="true"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#segundoCarrusel" data-bs-slide="next">
             <span class="carousel-control-next-icon bg-secondary rounded p-3" aria-hidden="true"></span>
         </button>
     </div>
@@ -133,69 +111,29 @@
         </div>
     </div>
 
-    <!-- Colecciones -->
+    <!-- SECCIÓN: COLECCIONES -->
     <div class="container-fluid py-5 my-4 border-top border-bottom border-secondary px-4">
         <div class="mb-4">
-            <h3>[COLECCIONES]</h3>
+            <h3 class="text-center fw-bold">COLECCIONES</h3>
         </div>
-        <div class="row g-3 text-center">
-            <div class="col-md-3">
-                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 1]</p></div>
-            </div>
-            <div class="col-md-3">
-                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 2]</p></div>
-            </div>
-            <div class="col-md-3">
-                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 3]</p></div>
-            </div>
-            <div class="col-md-3">
-                <div class="border border-secondary bg-black p-5 rounded"><p>[Colección 4]</p></div>
+        <div class="row g-3 text-center" v-if="colecciones.length > 0">
+            <div class="col-md-3" v-for="col in colecciones" :key="col.idColeccion">
+                <div class="border border-secondary bg-black p-3 rounded position-relative overflow-hidden collection-card" style="height: 220px; display: flex; flex-direction: column; justify-content: flex-end;">
+                    <img v-if="col.imagenUrl" :src="col.imagenUrl" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-50" :alt="col.nombre">
+                    <div class="position-relative z-1 bg-dark bg-opacity-75 p-2 rounded">
+                        <h5 class="text-white mb-1">{{ col.nombre }}</h5>
+                        <p class="text-secondary small mb-0">{{ col.descripcion }}</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- SECCIÓN: EN TENDENCIA -->
-    <div class="container-fluid px-4 my-5">
-        <h2 class="mb-4 text-center">[En Tendencia]</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="border border-secondary bg-white p-3 rounded-3 text-center d-flex align-items-center justify-content-center overflow-hidden position-relative" style="height: 200px;">
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito({id: 1, nombre: 'Wade All City 14 Encore Genesis'})"><i class="bi bi-heart"></i></button>
-                    <img src="/14AC_genesis.webp" class="img-fluid object-fit-contain" style="max-height: 160px; transform: scale(1.9);" alt="Wade All City 14">
-                </div>
-                <div class="mt-2 text-start">
-                    <h6 class="text-white">Wade All City 14 Encore "Genesis"</h6>
-                    <p class="text-success fw-bold">$3,899 MXN</p>
-                    <button class="btn btn-light w-100 btn-sm" @click="agregarAlCarrito({id: 1, nombre: 'Wade All City 14 Encore Genesis', precio: 3899})">Añadir al carrito</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito({id: 2, nombre: 'Air Jordan XXXVIII'})"><i class="bi bi-heart"></i></button>
-                    <span>[Air Jordan XXXVIII]</span>
-                </div>
-                <div class="mt-2 text-start">
-                    <h6 class="text-white">Air Jordan XXXVIII</h6>
-                    <p class="text-success fw-bold">$4,499 MXN</p>
-                    <button class="btn btn-light w-100 btn-sm" @click="agregarAlCarrito({id: 2, nombre: 'Air Jordan XXXVIII', precio: 4499})">Añadir al carrito</button>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="border border-secondary bg-black p-5 rounded text-center d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito({id: 3, nombre: 'KD 16'})"><i class="bi bi-heart"></i></button>
-                    <span>[KD 16]</span>
-                </div>
-                <div class="mt-2 text-start">
-                    <h6 class="text-white">KD 16</h6>
-                    <p class="text-success fw-bold">$3,299 MXN</p>
-                    <button class="btn btn-light w-100 btn-sm" @click="agregarAlCarrito({id: 3, nombre: 'KD 16', precio: 3299})">Añadir al carrito</button>
-                </div>
-            </div>
+        <div v-else class="text-center text-muted py-3">
+            <p>Cargando colecciones...</p>
         </div>
     </div>
 
     <!-- SECCIÓN: NUESTRO CATÁLOGO -->
-    <div class="container-fluid px-4 my-5 border-top border-secondary pt-5">
+    <div class="container-fluid px-4 my-5 pt-3">
         <h2 class="mb-4 text-center">NUESTRO CATÁLOGO</h2>
         
         <div v-if="productos.length === 0" class="text-center text-muted py-4">
@@ -205,15 +143,31 @@
         <div class="row g-4" v-else>
             <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
                 <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative" style="min-height: 380px;">
+                    
+                    <!-- Botón Favorito -->
                     <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)">
                         <i class="bi bi-heart"></i>
                     </button>
 
-                    <div class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden" style="height: 180px;">
-                        <img :src="producto.imagenUrl || '/logo-slamshoes-blanco.png'" class="img-fluid object-fit-contain rounded" style="max-height: 150px;" :alt="producto.nombre" />
+                    <!-- Imagen con transición fade al pasar el cursor para mostrar orden = 2 -->
+                    <div 
+                        class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative" 
+                        style="height: 190px; cursor: pointer;" 
+                        @click="irADetalle(producto.idProducto)"
+                        @mouseenter="cargarSegundaImagen(producto)"
+                        @mouseleave="restaurarImagen(producto)"
+                    >
+                        <img 
+                            :src="producto.imagenActual || producto.imagenUrl || '/logo-slamshoes-blanco.png'" 
+                            class="img-fluid rounded catalog-img fade-transition" 
+                            :alt="producto.nombre" 
+                        />
                     </div>
+
                     <div class="mt-3 text-start w-100">
-                        <h6 class="text-white">{{ producto.nombre }}</h6>
+                        <h6 class="text-white text-truncate" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
+                            {{ producto.nombre }}
+                        </h6>
                         <p class="text-secondary small mb-1">{{ producto.marca }}</p>
                         <p class="text-success fw-bold mb-2">${{ producto.precio }} MXN</p>
                         <button class="btn btn-light w-100 btn-sm fw-semibold" @click="agregarAlCarrito(producto)">
@@ -278,6 +232,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 import productoService from '@/services/productoService';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
 
@@ -286,23 +241,55 @@ export default {
   setup() {
     const router = useRouter();
     const productos = ref([]);
+    const colecciones = ref([]);
     const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
 
-    const cargarProductos = async () => {
+    const cargarDatos = async () => {
       try {
-        const respuesta = await productoService.obtenerProductos();
-        productos.value = respuesta.data;
-        console.log("Productos cargados desde Spring Boot:", respuesta.data);
+        const respuestaProductos = await productoService.obtenerProductos();
+        productos.value = respuestaProductos.data.map(p => ({
+          ...p,
+          imagenActual: p.imagenUrl,
+          segundaImagen: null 
+        }));
+
+        const respuestaColecciones = await axios.get('http://localhost:8080/api/colecciones').catch(() => ({ data: [] }));
+        colecciones.value = respuestaColecciones.data;
+
       } catch (error) {
-        console.error("Error al cargar los productos de la API:", error);
+        console.error("Error al cargar los datos de la API:", error);
       }
+    };
+
+    const cargarSegundaImagen = async (producto) => {
+      if (producto.segundaImagen) {
+        producto.imagenActual = producto.segundaImagen;
+        return;
+      }
+
+      try {
+        const resImgs = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${producto.idProducto}`);
+        const imgOrden2 = resImgs.data.find(img => img.orden === 2);
+        
+        if (imgOrden2) {
+          producto.segundaImagen = imgOrden2.urlImagen;
+          producto.imagenActual = producto.segundaImagen;
+        } else {
+          producto.segundaImagen = producto.imagenUrl;
+        }
+      } catch (error) {
+        producto.segundaImagen = producto.imagenUrl;
+      }
+    };
+
+    const restaurarImagen = (producto) => {
+      producto.imagenActual = producto.imagenUrl;
     };
 
     const guardarCarritoStorage = () => {
       localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito.value));
     };
 
-    // Validación para redirigir al perfil si hay sesión, o al login si no
     const manejarClickUsuario = () => {
       const usuarioGuardado = localStorage.getItem('usuario');
       if (!usuarioGuardado) {
@@ -310,6 +297,10 @@ export default {
       } else {
         router.push('/profile');
       }
+    };
+
+    const irADetalle = (id) => {
+      router.push(`/producto/${id}`);
     };
 
     const agregarAlCarrito = (producto) => {
@@ -373,13 +364,17 @@ export default {
     };
 
     onMounted(() => {
-      cargarProductos();
+      cargarDatos();
     });
 
     return {
       productos,
+      colecciones,
       carrito,
       manejarClickUsuario,
+      irADetalle,
+      cargarSegundaImagen,
+      restaurarImagen,
       agregarAlCarrito,
       marcarFavorito,
       irAFavoritos,
@@ -392,3 +387,20 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.catalog-img {
+  max-height: 170px;
+  width: 100%;
+  object-fit: contain;
+}
+.fade-transition {
+  transition: opacity 0.4s ease-in-out;
+}
+.collection-card {
+  transition: transform 0.3s ease;
+}
+.collection-card:hover {
+  transform: translateY(-5px);
+}
+</style>

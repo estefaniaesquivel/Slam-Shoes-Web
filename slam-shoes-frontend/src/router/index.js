@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
-import ProductDetailView from '../views/ProductDetailView.vue' // <--- Importar la vista
+import ProductDetailView from '../views/ProductDetailView.vue'
 
 const routes = [
   {
@@ -16,12 +16,12 @@ const routes = [
     component: LoginView
   },
   {
-    path: '/',
+    path: '/profile',
     name: 'profile',
     component: ProfileView
   },
   {
-    path: '/producto/:id',  // <--- Ruta dinámica para el detalle
+    path: '/producto/:id',
     name: 'product-detail',
     component: ProductDetailView
   }
