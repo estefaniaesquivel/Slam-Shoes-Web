@@ -55,16 +55,20 @@
             <div class="d-flex align-items-center gap-3">
                 <a href="#" class="text-light fs-5"><i class="bi bi-search"></i></a>
                 
-                <a href="#" class="text-light fs-5 text-decoration-none" @click.prevent="irAFavoritos" aria-label="Favoritos">
+                <!-- Icono de Favoritos con contador -->
+                <a href="#" class="position-relative text-light text-decoration-none fs-5" @click.prevent="irAFavoritos" aria-label="Favoritos">
                     <i class="bi bi-heart"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                        {{ totalItemsFavoritos }}
+                    </span>
                 </a>
 
-                <!-- ICONO DE USUARIO CONDICIONAL -->
+                <!-- Icono de Usuario -->
                 <a href="#" class="text-light fs-5 text-decoration-none" @click.prevent="manejarClickUsuario" aria-label="Perfil de usuario">
                     <i class="bi bi-person"></i>
                 </a>
                 
-                <!-- Botón de Carrito -->
+                <!-- Botón de Carrito Desplegable -->
                 <a href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-light text-decoration-none fs-5" aria-label="Abrir carrito">
                     <i class="bi bi-bag"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
@@ -142,14 +146,14 @@
 
         <div class="row g-4" v-else>
             <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
-                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative" style="min-height: 380px;">
+                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative" style="min-height: 350px;">
                     
                     <!-- Botón Favorito -->
-                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)">
+                    <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)" title="Añadir a favoritos" style="z-index: 3;">
                         <i class="bi bi-heart"></i>
                     </button>
 
-                    <!-- Imagen con transición fade al pasar el cursor para mostrar orden = 2 -->
+                    <!-- Imagen con transición fade -->
                     <div 
                         class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative" 
                         style="height: 190px; cursor: pointer;" 
@@ -164,15 +168,13 @@
                         />
                     </div>
 
+                    <!-- Nombre del producto, Categoría real desde la BD y Precio -->
                     <div class="mt-3 text-start w-100">
-                        <h6 class="text-white text-truncate" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
+                        <h6 class="text-white text-truncate mb-1" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
                             {{ producto.nombre }}
                         </h6>
-                        <p class="text-secondary small mb-1">{{ producto.marca }}</p>
-                        <p class="text-success fw-bold mb-2">${{ producto.precio }} MXN</p>
-                        <button class="btn btn-light w-100 btn-sm fw-semibold" @click="agregarAlCarrito(producto)">
-                            Añadir al carrito
-                        </button>
+                        <p class="text-secondary small mb-1">{{ producto.categoriaNombre || 'Calzado Deportivo' }}</p>
+                        <p class="text-success fw-bold mb-0">${{ producto.precio }} MXN</p>
                     </div>
                 </div>
             </div>
@@ -193,38 +195,8 @@
         </div>
     </footer>
 
-    <!-- Panel lateral del carrito -->
-    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasCarrito" aria-labelledby="offcanvasCarritoLabel">
-        <div class="offcanvas-header border-bottom border-secondary">
-            <h5 class="offcanvas-title" id="offcanvasCarritoLabel">Carrito de compras</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
-        </div>
-        <div class="offcanvas-body d-flex flex-column">
-            <div id="lista-carrito" class="flex-grow-1 overflow-auto">
-                <div v-if="carrito.length === 0" class="text-center text-muted my-4">El carrito está vacío</div>
-                <div v-for="(item, index) in carrito" :key="index" class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary">
-                    <div>
-                        <h6 class="mb-0 text-white">{{ item.nombre }}</h6>
-                        <small class="text-muted">${{ item.precio }} x {{ item.cantidad }}</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold text-success">${{ item.precio * item.cantidad }}</span>
-                        <button class="btn btn-sm btn-outline-danger" @click="eliminarItem(index)"><i class="bi bi-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-            <div class="border-top border-secondary pt-3 mt-auto">
-                <div class="d-flex justify-content-between fw-bold mb-3">
-                    <span>Total:</span>
-                    <span class="text-success">${{ totalCarrito }} MXN</span>
-                </div>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-danger btn-sm" @click="vaciarCarrito">Vaciar carrito</button>
-                    <button class="btn btn-light" @click="continuarCompra">Continuar compra</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Componente del Carrito Desplegable -->
+    <CarritoComponent />
 
   </div>
 </template>
@@ -235,22 +207,39 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import productoService from '@/services/productoService';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
+import CarritoComponent from '@/components/CarritoComponent.vue';
 
 export default {
   name: 'HomeView',
+  components: {
+    CarritoComponent
+  },
   setup() {
     const router = useRouter();
     const productos = ref([]);
     const colecciones = ref([]);
-    const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
+    const favoritos = ref(JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || []);
 
     const cargarDatos = async () => {
       try {
         const respuestaProductos = await productoService.obtenerProductos();
-        productos.value = respuestaProductos.data.map(p => ({
-          ...p,
-          imagenActual: p.imagenUrl,
-          segundaImagen: null 
+        
+        productos.value = await Promise.all(respuestaProductos.data.map(async (p) => {
+          let categoriaNombre = "Calzado Deportivo";
+          if (p.idCategoria) {
+            try {
+              const resCat = await axios.get(`http://localhost:8080/api/categorias/${p.idCategoria}`);
+              categoriaNombre = resCat.data.nombre;
+            } catch (e) {
+              console.error("Error al cargar categoría", e);
+            }
+          }
+          return {
+            ...p,
+            categoriaNombre,
+            imagenActual: p.imagenUrl,
+            segundaImagen: null
+          };
         }));
 
         const respuestaColecciones = await axios.get('http://localhost:8080/api/colecciones').catch(() => ({ data: [] }));
@@ -266,11 +255,9 @@ export default {
         producto.imagenActual = producto.segundaImagen;
         return;
       }
-
       try {
         const resImgs = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${producto.idProducto}`);
         const imgOrden2 = resImgs.data.find(img => img.orden === 2);
-        
         if (imgOrden2) {
           producto.segundaImagen = imgOrden2.urlImagen;
           producto.imagenActual = producto.segundaImagen;
@@ -286,10 +273,6 @@ export default {
       producto.imagenActual = producto.imagenUrl;
     };
 
-    const guardarCarritoStorage = () => {
-      localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito.value));
-    };
-
     const manejarClickUsuario = () => {
       const usuarioGuardado = localStorage.getItem('usuario');
       if (!usuarioGuardado) {
@@ -303,86 +286,57 @@ export default {
       router.push(`/producto/${id}`);
     };
 
-    const agregarAlCarrito = (producto) => {
-      const usuarioActivo = verificarSesionYAccionar();
-      if (!usuarioActivo) return;
-
-      const idProd = producto.idProducto || producto.id;
-      const itemExistente = carrito.value.find(item => (item.id || item.idProducto) === idProd);
-      if (itemExistente) {
-        itemExistente.cantidad += 1;
-      } else {
-        carrito.value.push({
-          id: idProd,
-          nombre: producto.nombre,
-          precio: producto.precio,
-          cantidad: 1
-        });
-      }
-      guardarCarritoStorage();
-      alert(`¡"${producto.nombre}" se añadió a tu carrito!`);
-    };
-
     const marcarFavorito = (producto) => {
       const usuarioActivo = verificarSesionYAccionar();
       if (!usuarioActivo) return;
 
-      alert(`¡"${producto.nombre}" fue agregado a tus favoritos con éxito!`);
+      let favs = JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || [];
+      const existe = favs.some(p => p.idProducto === producto.idProducto);
+
+      if (!existe) {
+        favs.push(producto);
+        localStorage.setItem('slam_shoes_favoritos', JSON.stringify(favs));
+        favoritos.value = favs;
+        alert(`¡"${producto.nombre}" fue agregado a tus favoritos con éxito!`);
+      } else {
+        alert(`Este producto ya se encuentra en tus favoritos.`);
+      }
     };
 
     const irAFavoritos = () => {
       const usuarioActivo = verificarSesionYAccionar();
       if (!usuarioActivo) return;
 
-      alert("Redirigiendo a tu sección de Favoritos...");
-    };
-
-    const eliminarItem = (index) => {
-      carrito.value.splice(index, 1);
-      guardarCarritoStorage();
-    };
-
-    const vaciarCarrito = () => {
-      carrito.value = [];
-      guardarCarritoStorage();
+      router.push('/favoritos');
     };
 
     const totalItemsCarrito = computed(() => {
-      return carrito.value.reduce((suma, item) => suma + item.cantidad, 0);
+      const carritoActual = JSON.parse(localStorage.getItem('slam_shoes_cart')) || [];
+      return carritoActual.reduce((suma, item) => suma + item.cantidad, 0);
     });
 
-    const totalCarrito = computed(() => {
-      return carrito.value.reduce((total, item) => total + (item.precio * item.cantidad), 0);
+    const totalItemsFavoritos = computed(() => {
+      return favoritos.value.length;
     });
-
-    const continuarCompra = () => {
-      const usuarioActivo = verificarSesionYAccionar();
-      if (!usuarioActivo) return;
-
-      alert('¡Proceso de compra simulado con éxito!');
-      vaciarCarrito();
-    };
 
     onMounted(() => {
       cargarDatos();
+      window.addEventListener('storage', () => {
+        favoritos.value = JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || [];
+      });
     });
 
     return {
       productos,
       colecciones,
-      carrito,
       manejarClickUsuario,
       irADetalle,
       cargarSegundaImagen,
       restaurarImagen,
-      agregarAlCarrito,
       marcarFavorito,
       irAFavoritos,
-      eliminarItem,
-      vaciarCarrito,
       totalItemsCarrito,
-      totalCarrito,
-      continuarCompra
+      totalItemsFavoritos
     };
   }
 };

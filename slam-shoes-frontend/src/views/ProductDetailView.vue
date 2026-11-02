@@ -22,9 +22,8 @@
 
       <div v-else-if="producto" class="row g-4">
         
-        <!-- COLUMNA IZQUIERDA: Miniaturas verticales en columna + Imagen Principal con opción de carrusel -->
+        <!-- COLUMNA IZQUIERDA: Miniaturas verticales + Imagen Principal -->
         <div class="col-lg-7 d-flex gap-3">
-          <!-- Miniaturas verticales ordenadas por 'orden' -->
           <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 550px; min-width: 80px;">
             <div 
               v-for="(img, index) in galeriaImagenes" 
@@ -38,9 +37,7 @@
             </div>
           </div>
 
-          <!-- Imagen Principal Ampliada sin espacios negros vacíos -->
           <div class="flex-grow-1 bg-black border border-secondary p-3 rounded-3 d-flex align-items-center justify-content-center shadow position-relative" style="min-height: 550px; overflow: hidden;">
-            <!-- Botones de carrusel en la imagen principal -->
             <button class="btn btn-dark position-absolute start-0 ms-2 rounded-circle text-white shadow-lg opacity-75" @click="cambiarImagen(-1)" style="z-index: 2;">
               <i class="bi bi-chevron-left"></i>
             </button>
@@ -51,17 +48,22 @@
           </div>
         </div>
 
-        <!-- COLUMNA DERECHA: Información, Estilos y Cuadrícula de Tallas -->
+        <!-- COLUMNA DERECHA: Información, Categoría de la BD, Tallas -->
         <div class="col-lg-5 ps-lg-4">
           <span class="badge bg-secondary text-uppercase mb-2">{{ producto.marca }}</span>
           <h1 class="text-white fw-bold mb-2">{{ producto.nombre }}</h1>
 
+          <!-- Recuadro simple con Categoría y Descripción real de la BD -->
+          <div class="mb-3 p-3 bg-black border border-secondary rounded">
+            <span class="text-warning small text-uppercase fw-bold d-block mb-1">CATEGORÍA: {{ categoriaInfo.nombre || 'Calzado Deportivo' }}</span>
+            <p class="text-secondary small mb-0">{{ categoriaInfo.descripcion || producto.descripcion }}</p>
+          </div>
+
           <h3 class="text-success fw-bold mb-3">${{ producto.precio }} MXN</h3>
-          <p class="text-secondary small mb-4">{{ producto.descripcion }}</p>
 
           <hr class="border-secondary mb-4">
 
-          <!-- Estilo / Color actual (Miniatura de variante) -->
+          <!-- Estilo / Color actual -->
           <div class="mb-4">
             <span class="text-muted small text-uppercase d-block mb-2">STYLE: {{ producto.nombre }}</span>
             <div class="d-flex gap-2">
@@ -71,16 +73,15 @@
             </div>
           </div>
 
-          <!-- Selección de Tallas Estilo Way of Wade (Rectángulos en CM) -->
+          <!-- Selección de Tallas (Rectángulos en CM) -->
           <div class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <label class="text-light fw-semibold small">
-                TALLA: <span class="text-muted">{{ tallaSeleccionada ? tallaSeleccionada.talla + ' cm (' + tallaSeleccionada.color + ')' : 'Por favor seleccione una talla' }}</span>
+                TALLA: <span class="text-muted">{{ tallaSeleccionada ? tallaSeleccionada.talla + ' cm' : 'Por favor seleccione una talla' }}</span>
               </label>
               <a href="#" class="text-secondary small text-decoration-underline" @click.prevent="alert('Guía de tallas estandarizada en centímetros (CM).')">Guía de Tallas</a>
             </div>
 
-            <!-- Cuadrícula de Tallas en Rectángulos -->
             <div class="row g-2" v-if="tallasDisponibles.length > 0">
               <div class="col-4" v-for="variante in tallasDisponibles" :key="variante.idVariante">
                 <button 
@@ -97,7 +98,7 @@
             </div>
           </div>
 
-          <!-- Estado de Stock en tiempo real -->
+          <!-- Estado de Stock -->
           <div class="mb-4">
             <div v-if="tallaSeleccionada">
               <span v-if="tallaSeleccionada.stock > 0" class="text-success small fw-semibold">
@@ -126,6 +127,9 @@
       </div>
     </div>
 
+    <!-- Componente del Carrito Desplegable -->
+    <CarritoComponent />
+
   </div>
 </template>
 
@@ -134,14 +138,19 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
+import CarritoComponent from '@/components/CarritoComponent.vue';
 
 export default {
   name: 'ProductDetailView',
+  components: {
+    CarritoComponent
+  },
   setup() {
     const route = useRoute();
     const router = useRouter();
 
     const producto = ref(null);
+    const categoriaInfo = ref({});
     const galeriaImagenes = ref([]);
     const tallasDisponibles = ref([]);
     const tallaSeleccionada = ref(null);
@@ -153,21 +162,21 @@ export default {
 
     const cargarDatosProducto = async () => {
       try {
-        // 1. Datos principales del producto
         const resProducto = await axios.get(`http://localhost:8080/api/productos/${idProducto}`);
         producto.value = resProducto.data;
         imagenSeleccionada.value = producto.value.imagenUrl;
 
-        // 2. Tallas y stock desde la tabla producto_tallas
+        if (producto.value.idCategoria) {
+          const resCat = await axios.get(`http://localhost:8080/api/categorias/${producto.value.idCategoria}`).catch(() => ({ data: {} }));
+          categoriaInfo.value = resCat.data;
+        }
+
         const resTallas = await axios.get(`http://localhost:8080/api/producto-tallas/producto/${idProducto}`).catch(() => ({ data: [] }));
         tallasDisponibles.value = resTallas.data;
 
-        // 3. Imágenes adicionales ordenadas estrictamente por el campo 'orden'
         const resImgs = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${idProducto}`).catch(() => ({ data: [] }));
-        
         let imagenesOrdenadas = resImgs.data.sort((a, b) => a.orden - b.orden);
         
-        // Si no hay imágenes en la tabla producto_imagenes, usamos la principal por defecto
         if (imagenesOrdenadas.length === 0 && producto.value.imagenUrl) {
           imagenesOrdenadas = [{ urlImagen: producto.value.imagenUrl, orden: 1 }];
         }
@@ -189,13 +198,13 @@ export default {
       indiceActualImagen.value = galeriaImagenes.value.findIndex(img => img.urlImagen === url);
     };
 
-    const cambiarImage = (direccion) => {
+    const cambiarImagen = (direccion) => {
       if (galeriaImagenes.value.length === 0) return;
       indiceActualImagen.value = (indiceActualImagen.value + direccion + galeriaImagenes.value.length) % galeriaImagenes.value.length;
       imagenSeleccionada.value = galeriaImagenes.value[indiceActualImagen.value].urlImagen;
     };
 
-    const agregarAlCarritoConTalla = () => {
+    const agregarAlCarritoConTalla = async () => {
       const usuarioActivo = verificarSesionYAccionar();
       if (!usuarioActivo) return;
 
@@ -204,23 +213,47 @@ export default {
         return;
       }
 
-      let carrito = JSON.parse(localStorage.getItem('slam_shoes_cart')) || [];
-      const itemExistente = carrito.find(item => item.idVariante === tallaSeleccionada.value.idVariante);
+      const idUsuario = usuarioActivo.idUsuario || usuarioActivo.id || usuarioActivo.id_usuario;
 
-      if (itemExistente) {
-        itemExistente.cantidad += 1;
-      } else {
-        carrito.push({
-          id: producto.value.idProducto,
+      try {
+        // 1. Obtener o crear el carrito del usuario en la BD
+        const resCarrito = await axios.get(`http://localhost:8080/api/carrito/usuario/${idUsuario}`);
+        const idCarrito = resCarrito.data.idCarrito;
+
+        // 2. Guardar en la tabla carrito_detalle mediante el backend
+        await axios.post(`http://localhost:8080/api/carrito/agregar`, {
+          idCarrito: idCarrito,
           idVariante: tallaSeleccionada.value.idVariante,
-          nombre: `${producto.value.nombre} (Talla: ${tallaSeleccionada.value.talla} CM)`,
-          precio: producto.value.precio,
           cantidad: 1
         });
-      }
 
-      localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito));
-      alert(`¡"${producto.value.nombre}" se añadió a tu carrito con éxito!`);
+        // 3. Actualizar almacenamiento local para reactividad visual inmediata
+        let carrito = JSON.parse(localStorage.getItem('slam_shoes_cart')) || [];
+        const itemExistente = carrito.find(item => item.idVariante === tallaSeleccionada.value.idVariante);
+
+        if (itemExistente) {
+          itemExistente.cantidad += 1;
+        } else {
+          carrito.push({
+            id: producto.value.idProducto,
+            idVariante: tallaSeleccionada.value.idVariante,
+            nombre: producto.value.nombre,
+            precio: producto.value.precio,
+            imagenUrl: producto.value.imagenUrl,
+            talla: tallaSeleccionada.value.talla,
+            color: tallaSeleccionada.value.color,
+            cantidad: 1
+          });
+        }
+
+        localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito));
+        window.dispatchEvent(new Event('storage'));
+        alert(`¡"${producto.value.nombre}" se añadió a tu carrito con éxito!`);
+
+      } catch (error) {
+        console.error("Error al sincronizar carrito con el backend:", error);
+        alert("No se pudo guardar el producto en el carrito del servidor.");
+      }
     };
 
     onMounted(() => {
@@ -229,13 +262,14 @@ export default {
 
     return {
       producto,
+      categoriaInfo,
       galeriaImagenes,
       tallasDisponibles,
       tallaSeleccionada,
       imagenSeleccionada,
       cargando,
       seleccionarImagen,
-      cambiarImagen: cambiarImage,
+      cambiarImagen,
       agregarAlCarritoConTalla
     };
   }
@@ -256,8 +290,5 @@ export default {
   border-radius: 4px;
   font-size: 0.85rem;
   transition: all 0.2s ease-in-out;
-}
-.fade-img {
-  transition: opacity 0.3s ease-in-out;
 }
 </style>

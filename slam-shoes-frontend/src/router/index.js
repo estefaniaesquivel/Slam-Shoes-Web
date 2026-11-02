@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import ProductDetailView from '../views/ProductDetailView.vue'
+import FavoritosView from '../views/FavoritosView.vue' // <--- 1. Importar la vista
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/producto/:id',
     name: 'product-detail',
     component: ProductDetailView
+  },
+  {
+    path: '/favoritos',      // <--- 2. Definir la ruta
+    name: 'favoritos',
+    component: FavoritosView
   }
 ]
 
