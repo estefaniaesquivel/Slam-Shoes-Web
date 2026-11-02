@@ -214,20 +214,17 @@ export default {
       }
 
       const idUsuario = usuarioActivo.idUsuario || usuarioActivo.id || usuarioActivo.id_usuario;
+      if (!idUsuario) {
+        alert("Error: No se encontró el ID del usuario activo en la sesión.");
+        return;
+      }
 
       try {
-        // 1. Obtener o crear el carrito del usuario en la BD
+        // 1. Obtener o crear el carrito activo del usuario en la BD[cite: 8]
         const resCarrito = await axios.get(`http://localhost:8080/api/carrito/usuario/${idUsuario}`);
         const idCarrito = resCarrito.data.idCarrito;
 
-        // 2. Guardar en la tabla carrito_detalle mediante el backend
-        await axios.post(`http://localhost:8080/api/carrito/agregar`, {
-          idCarrito: idCarrito,
-          idVariante: tallaSeleccionada.value.idVariante,
-          cantidad: 1
-        });
-
-        // 3. Actualizar almacenamiento local para reactividad visual inmediata
+        // 2. Actualizar almacenamiento local de Vue
         let carrito = JSON.parse(localStorage.getItem('slam_shoes_cart')) || [];
         const itemExistente = carrito.find(item => item.idVariante === tallaSeleccionada.value.idVariante);
 
@@ -247,12 +244,22 @@ export default {
         }
 
         localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito));
+
+        // 3. Sincronizar el carrito completo con el backend
+        const itemsParaBD = carrito.map(item => ({
+          idCarrito: idCarrito,
+          idVariante: item.idVariante,
+          cantidad: item.cantidad
+        }));
+
+        await axios.post(`http://localhost:8080/api/carrito/${idCarrito}/sincronizar`, itemsParaBD);
+
         window.dispatchEvent(new Event('storage'));
         alert(`¡"${producto.value.nombre}" se añadió a tu carrito con éxito!`);
 
       } catch (error) {
-        console.error("Error al sincronizar carrito con el backend:", error);
-        alert("No se pudo guardar el producto en el carrito del servidor.");
+        console.error("Error detallado al sincronizar carrito con el backend:", error.response?.data || error.message);
+        alert("No se pudo guardar el producto en el carrito del servidor. Revisa la consola para más detalles.");
       }
     };
 
