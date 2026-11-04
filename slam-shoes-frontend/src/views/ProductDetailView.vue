@@ -3,59 +3,76 @@
 
     <!-- Encabezado (Navbar) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
-        <div class="container-fluid px-0">
-            <router-link class="navbar-brand" to="/">
-                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">         
-            </router-link>
-            
-            <div class="d-flex align-items-center gap-3">
-                <router-link to="/" class="text-light fs-5 text-decoration-none"><i class="bi bi-house"></i> Volver al inicio</router-link>
-            </div>
+      <div class="container-fluid px-0">
+        <router-link class="navbar-brand" to="/">
+          <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">
+        </router-link>
+
+        <div class="d-flex align-items-center gap-3">
+          <router-link to="/" class="text-light fs-5 text-decoration-none">
+            <i class="bi bi-house"></i> Volver al inicio
+          </router-link>
         </div>
+      </div>
     </nav>
 
-    <!-- Contenido Principal Estilo Way of Wade -->
+    <!-- Contenido Principal -->
     <div class="container-fluid my-4 px-4 flex-grow-1">
       <div v-if="cargando" class="text-center text-muted py-5">
         <p>Cargando detalles del sneaker...</p>
       </div>
 
       <div v-else-if="producto" class="row g-4">
-        
-        <!-- COLUMNA IZQUIERDA: Miniaturas verticales + Imagen Principal -->
-        <div class="col-lg-7 d-flex gap-3">
-          <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 550px; min-width: 80px;">
-            <div 
-              v-for="(img, index) in galeriaImagenes" 
-              :key="img.idImagen || index" 
-              class="border rounded p-1 bg-black cursor-pointer thumbnail-box"
-              :class="imagenSeleccionada === img.urlImagen ? 'border-light active-thumb' : 'border-secondary'"
-              style="width: 75px; height: 75px;"
-              @click="seleccionarImagen(img.urlImagen)"
-            >
-              <img :src="img.urlImagen" class="w-100 h-100 object-fit-cover rounded" :alt="'Vista ' + img.orden" />
-            </div>
-          </div>
 
-          <div class="flex-grow-1 bg-black border border-secondary p-3 rounded-3 d-flex align-items-center justify-content-center shadow position-relative" style="min-height: 550px; overflow: hidden;">
-            <button class="btn btn-dark position-absolute start-0 ms-2 rounded-circle text-white shadow-lg opacity-75" @click="cambiarImagen(-1)" style="z-index: 2;">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <img :src="imagenSeleccionada || producto.imagenUrl" class="img-fluid rounded w-100 h-100" style="object-fit: contain; max-height: 500px;" :alt="producto.nombre" />
-            <button class="btn btn-dark position-absolute end-0 me-2 rounded-circle text-white shadow-lg opacity-75" @click="cambiarImagen(1)" style="z-index: 2;">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+        <!-- COLUMNA IZQUIERDA: Galería (miniaturas + imagen principal 1:1) -->
+        <div class="col-lg-7">
+          <div class="gallery">
+
+            <!-- Miniaturas: misma altura que la imagen principal, con scroll interno -->
+            <div class="thumbs-wrapper">
+              <div class="thumbs-scroll">
+                <div
+                  v-for="(img, index) in galeriaImagenes"
+                  :key="img.idImagen || index"
+                  class="thumbnail-box"
+                  :class="imagenSeleccionada === img.urlImagen ? 'active-thumb' : ''"
+                  @click="seleccionarImagen(img.urlImagen)"
+                >
+                  <img :src="img.urlImagen" class="img-fill" :alt="'Vista ' + (img.orden || index + 1)" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Imagen principal: SIEMPRE cuadrada 1:1 (las imágenes son 2000x2000) -->
+            <div class="main-square-box">
+              <img :src="imagenSeleccionada || producto.imagenUrl" class="img-fill" :alt="producto.nombre" />
+
+              <button
+                class="btn btn-dark nav-arrow nav-arrow-left rounded-circle text-white shadow-lg opacity-75"
+                @click="cambiarImagen(-1)"
+              >
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button
+                class="btn btn-dark nav-arrow nav-arrow-right rounded-circle text-white shadow-lg opacity-75"
+                @click="cambiarImagen(1)"
+              >
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+
           </div>
         </div>
 
-        <!-- COLUMNA DERECHA: Información, Categoría de la BD, Tallas -->
+        <!-- COLUMNA DERECHA: Información, Categoría, Tallas -->
         <div class="col-lg-5 ps-lg-4">
           <span class="badge bg-secondary text-uppercase mb-2">{{ producto.marca }}</span>
           <h1 class="text-white fw-bold mb-2">{{ producto.nombre }}</h1>
 
-          <!-- Recuadro simple con Categoría y Descripción real de la BD -->
           <div class="mb-3 p-3 bg-black border border-secondary rounded">
-            <span class="text-warning small text-uppercase fw-bold d-block mb-1">CATEGORÍA: {{ categoriaInfo.nombre || 'Calzado Deportivo' }}</span>
+            <span class="text-warning small text-uppercase fw-bold d-block mb-1">
+              CATEGORÍA: {{ categoriaInfo.nombre || 'Calzado Deportivo' }}
+            </span>
             <p class="text-secondary small mb-0">{{ categoriaInfo.descripcion || producto.descripcion }}</p>
           </div>
 
@@ -67,24 +84,29 @@
           <div class="mb-4">
             <span class="text-muted small text-uppercase d-block mb-2">STYLE: {{ producto.nombre }}</span>
             <div class="d-flex gap-2">
-              <div class="border border-light p-1 rounded bg-black" style="width: 60px; height: 60px;">
-                <img :src="producto.imagenUrl" class="w-100 h-100 object-fit-cover rounded">
+              <div class="style-box">
+                <img :src="producto.imagenUrl" class="img-fill" :alt="producto.nombre">
               </div>
             </div>
           </div>
 
-          <!-- Selección de Tallas (Rectángulos en CM) -->
+          <!-- Selección de Tallas (CM) -->
           <div class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <label class="text-light fw-semibold small">
-                TALLA: <span class="text-muted">{{ tallaSeleccionada ? tallaSeleccionada.talla + ' cm' : 'Por favor seleccione una talla' }}</span>
+                TALLA:
+                <span class="text-muted">
+                  {{ tallaSeleccionada ? tallaSeleccionada.talla + ' cm' : 'Por favor seleccione una talla' }}
+                </span>
               </label>
-              <a href="#" class="text-secondary small text-decoration-underline" @click.prevent="alert('Guía de tallas estandarizada en centímetros (CM).')">Guía de Tallas</a>
+              <a href="#" class="text-secondary small text-decoration-underline" @click.prevent="mostrarGuiaTallas">
+                Guía de Tallas
+              </a>
             </div>
 
             <div class="row g-2" v-if="tallasDisponibles.length > 0">
               <div class="col-4" v-for="variante in tallasDisponibles" :key="variante.idVariante">
-                <button 
+                <button
                   class="btn w-100 py-2 size-rect-btn text-center"
                   :class="tallaSeleccionada?.idVariante === variante.idVariante ? 'btn-light fw-bold shadow' : 'btn-outline-secondary text-light bg-black'"
                   @click="tallaSeleccionada = variante"
@@ -111,8 +133,8 @@
           </div>
 
           <!-- Botón de Añadir al Carrito -->
-          <button 
-            class="btn btn-light w-100 py-3 fw-bold shadow text-uppercase" 
+          <button
+            class="btn btn-light w-100 py-3 fw-bold shadow text-uppercase"
             :disabled="!tallaSeleccionada || tallaSeleccionada.stock <= 0"
             @click="agregarAlCarritoConTalla"
           >
@@ -135,7 +157,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
 import CarritoComponent from '@/components/CarritoComponent.vue';
@@ -147,7 +169,6 @@ export default {
   },
   setup() {
     const route = useRoute();
-    const router = useRouter();
 
     const producto = ref(null);
     const categoriaInfo = ref({});
@@ -167,23 +188,30 @@ export default {
         imagenSeleccionada.value = producto.value.imagenUrl;
 
         if (producto.value.idCategoria) {
-          const resCat = await axios.get(`http://localhost:8080/api/categorias/${producto.value.idCategoria}`).catch(() => ({ data: {} }));
+          const resCat = await axios
+            .get(`http://localhost:8080/api/categorias/${producto.value.idCategoria}`)
+            .catch(() => ({ data: {} }));
           categoriaInfo.value = resCat.data;
         }
 
-        const resTallas = await axios.get(`http://localhost:8080/api/producto-tallas/producto/${idProducto}`).catch(() => ({ data: [] }));
+        const resTallas = await axios
+          .get(`http://localhost:8080/api/producto-tallas/producto/${idProducto}`)
+          .catch(() => ({ data: [] }));
         tallasDisponibles.value = resTallas.data;
 
-        const resImgs = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${idProducto}`).catch(() => ({ data: [] }));
-        let imagenesOrdenadas = resImgs.data.sort((a, b) => a.orden - b.orden);
-        
+        const resImgs = await axios
+          .get(`http://localhost:8080/api/producto-imagenes/producto/${idProducto}`)
+          .catch(() => ({ data: [] }));
+        let imagenesOrdenadas = [...resImgs.data].sort((a, b) => a.orden - b.orden);
+
         if (imagenesOrdenadas.length === 0 && producto.value.imagenUrl) {
           imagenesOrdenadas = [{ urlImagen: producto.value.imagenUrl, orden: 1 }];
         }
-        
+
         galeriaImagenes.value = imagenesOrdenadas;
         if (galeriaImagenes.value.length > 0) {
           imagenSeleccionada.value = galeriaImagenes.value[0].urlImagen;
+          indiceActualImagen.value = 0;
         }
 
       } catch (error) {
@@ -195,13 +223,19 @@ export default {
 
     const seleccionarImagen = (url) => {
       imagenSeleccionada.value = url;
-      indiceActualImagen.value = galeriaImagenes.value.findIndex(img => img.urlImagen === url);
+      const idx = galeriaImagenes.value.findIndex(img => img.urlImagen === url);
+      indiceActualImagen.value = idx >= 0 ? idx : 0;
     };
 
     const cambiarImagen = (direccion) => {
       if (galeriaImagenes.value.length === 0) return;
-      indiceActualImagen.value = (indiceActualImagen.value + direccion + galeriaImagenes.value.length) % galeriaImagenes.value.length;
+      const total = galeriaImagenes.value.length;
+      indiceActualImagen.value = (indiceActualImagen.value + direccion + total) % total;
       imagenSeleccionada.value = galeriaImagenes.value[indiceActualImagen.value].urlImagen;
+    };
+
+    const mostrarGuiaTallas = () => {
+      alert('Guía de tallas estandarizada en centímetros (CM).');
     };
 
     const agregarAlCarritoConTalla = async () => {
@@ -220,11 +254,9 @@ export default {
       }
 
       try {
-        // 1. Obtener o crear el carrito activo del usuario en la BD[cite: 8]
         const resCarrito = await axios.get(`http://localhost:8080/api/carrito/usuario/${idUsuario}`);
         const idCarrito = resCarrito.data.idCarrito;
 
-        // 2. Actualizar almacenamiento local de Vue
         let carrito = JSON.parse(localStorage.getItem('slam_shoes_cart')) || [];
         const itemExistente = carrito.find(item => item.idVariante === tallaSeleccionada.value.idVariante);
 
@@ -245,7 +277,6 @@ export default {
 
         localStorage.setItem('slam_shoes_cart', JSON.stringify(carrito));
 
-        // 3. Sincronizar el carrito completo con el backend
         const itemsParaBD = carrito.map(item => ({
           idCarrito: idCarrito,
           idVariante: item.idVariante,
@@ -277,6 +308,7 @@ export default {
       cargando,
       seleccionarImagen,
       cambiarImagen,
+      mostrarGuiaTallas,
       agregarAlCarritoConTalla
     };
   }
@@ -284,18 +316,126 @@ export default {
 </script>
 
 <style scoped>
+/* Todas las imágenes (2000x2000) llenan su contenedor cuadrado sin bordes ni recortes:
+   como la fuente ya es 1:1, "cover" en una caja 1:1 no corta nada. */
+.img-fill {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Galería: la altura la define SOLO la imagen principal (cuadrada) */
+.gallery {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Imagen principal: cuadrada perfecta, sin padding, sin estirarse */
+.main-square-box {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  border: 1px solid #6c757d;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
+}
+
+/* Columna de miniaturas: no aporta altura, copia la de la imagen principal */
+.thumbs-wrapper {
+  position: relative;
+  flex: 0 0 84px;
+  width: 84px;
+}
+.thumbs-scroll {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+/* Miniaturas cuadradas, sin padding */
 .thumbnail-box {
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  border: 1px solid #6c757d;
+  border-radius: 0.375rem;
+  overflow: hidden;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.7;
   transition: all 0.2s ease;
 }
-.thumbnail-box:hover, .active-thumb {
+.thumbnail-box:hover,
+.active-thumb {
   opacity: 1;
-  border-color: #fff !important;
+  border-color: #fff;
 }
+.active-thumb {
+  border-width: 2px;
+}
+
+/* Cuadro de estilo actual */
+.style-box {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border: 1px solid #f8f9fa;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+/* Flechas centradas verticalmente sobre la imagen */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-arrow-left { left: 0.5rem; }
+.nav-arrow-right { right: 0.5rem; }
+
 .size-rect-btn {
   border-radius: 4px;
   font-size: 0.85rem;
   transition: all 0.2s ease-in-out;
+}
+
+/* Móvil: miniaturas debajo de la imagen */
+@media (max-width: 575.98px) {
+  .gallery {
+    flex-direction: column-reverse;
+  }
+  .thumbs-wrapper {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 72px;
+  }
+  .thumbs-scroll {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .thumbnail-box {
+    width: 72px;
+    height: 72px;
+  }
 }
 </style>

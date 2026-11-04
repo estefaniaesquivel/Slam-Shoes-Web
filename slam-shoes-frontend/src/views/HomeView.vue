@@ -146,17 +146,17 @@
 
         <div class="row g-4" v-else>
             <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
-                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative" style="min-height: 350px;">
+                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative">
                     
                     <!-- Botón Favorito -->
                     <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)" title="Añadir a favoritos" style="z-index: 3;">
                         <i class="bi bi-heart"></i>
                     </button>
 
-                    <!-- Imagen con transición fade -->
+                    <!-- Contenedor Cuadrado Perfecto 1:1 sin sobrantes negros -->
                     <div 
-                        class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative" 
-                        style="height: 190px; cursor: pointer;" 
+                        class="bg-white w-100 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative square-box mb-3" 
+                        style="cursor: pointer;" 
                         @click="irADetalle(producto.idProducto)"
                         @mouseenter="cargarSegundaImagen(producto)"
                         @mouseleave="restaurarImagen(producto)"
@@ -168,8 +168,8 @@
                         />
                     </div>
 
-                    <!-- Nombre del producto, Categoría real desde la BD y Precio -->
-                    <div class="mt-3 text-start w-100">
+                    <!-- Nombre del producto, Categoría real y Precio -->
+                    <div class="text-start w-100">
                         <h6 class="text-white text-truncate mb-1" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
                             {{ producto.nombre }}
                         </h6>
@@ -343,10 +343,14 @@ export default {
 </script>
 
 <style scoped>
-.catalog-img {
-  max-height: 170px;
+.square-box {
   width: 100%;
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
+}
+.catalog-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .fade-transition {
   transition: opacity 0.4s ease-in-out;
