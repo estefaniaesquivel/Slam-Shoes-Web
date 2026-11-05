@@ -111,3 +111,9 @@ public class DemoBroker {
         Consola.titulo("Fin de la demo");
     }
 }
+
+//NOTAS PARA COMPILAR EL NIVEL 1:
+// cd slam-shoes-backend
+//mkdir target\demo -Force
+//javac -encoding UTF-8 -d target\demo (Get-ChildItem -Recurse src\main\java\com\slamshoes\broker, src\main\java\com\slamshoes\providers -Filter *.java | ForEach-Object FullName) src\main\java\com\slamshoes\config\BrokerConfig.java
+//java -cp target\demo com.slamshoes.broker.cliente.DemoBroker | Tee-Object evidencia-nivel1.txt
