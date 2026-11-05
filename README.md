@@ -11,6 +11,17 @@
 
 ---
 
+## Integrantes del Equipo de Construcción de Software
+- **Espejo Basto Herbert Alejandro**
+- **Cruz Sabido Felipe de Jesús**
+- **Dzib Martínez Agustín Emanuel**
+- **Esquivel Bacelis Estefanía**
+- **Morales Caro Axel Adolfo**
+
+
+
+---
+
 ## Integrantes del Equipo
 - **Caamal Tencle Mateo Alejandro**
 - **Dzib Martínez Agustín Emanuel**
