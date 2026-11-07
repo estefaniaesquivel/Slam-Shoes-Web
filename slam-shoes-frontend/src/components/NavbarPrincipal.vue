@@ -12,20 +12,40 @@
 
       <div class="collapse navbar-collapse justify-content-center" id="menuPrincipal">
         <ul class="navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link text-light" href="#">Novedades</a></li>
+          <!-- Catálogo: categorías reales de la tabla "categorias" -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownCatalogo" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Catálogo
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownCatalogo">
+              <li v-for="categoria in categorias" :key="categoria.idCategoria">
+                <router-link class="dropdown-item" :to="`/categoria/${categoria.idCategoria}`">
+                  {{ categoria.nombre }}
+                </router-link>
+              </li>
+              <li v-if="categorias.length === 0">
+                <span class="dropdown-item-text text-secondary small">
+                  {{ cargandoCategorias ? 'Cargando categorías...' : 'Sin categorías registradas' }}
+                </span>
+              </li>
+            </ul>
+          </li>
 
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownMarcas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Marcas
             </a>
             <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownMarcas">
-              <li><a class="dropdown-item" href="#">Nike</a></li>
-              <li><a class="dropdown-item" href="#">Adidas</a></li>
-              <li><a class="dropdown-item" href="#">Li-ning</a></li>
-              <li><a class="dropdown-item" href="#">Under Armour</a></li>
-              <li><a class="dropdown-item" href="#">ANTA</a></li>
-              <li><hr class="dropdown-divider border-secondary"></li>
-              <li><a class="dropdown-item" href="#">Ver todas las marcas</a></li>
+              <li v-for="marca in marcas" :key="marca.idMarca">
+                <router-link class="dropdown-item" :to="`/marca/${marca.idMarca}`">
+                  {{ marca.nombre }}
+                </router-link>
+              </li>
+              <li v-if="marcas.length === 0">
+                <span class="dropdown-item-text text-secondary small">
+                  {{ cargandoMarcas ? 'Cargando marcas...' : 'Sin marcas registradas' }}
+                </span>
+              </li>
             </ul>
           </li>
 
@@ -113,6 +133,10 @@ export default {
     const jugadores = ref([]);
     const cargandoJugadores = ref(true);
     const colecciones = ref([]);
+    const marcas = ref([]);
+    const cargandoMarcas = ref(true);
+    const categorias = ref([]);
+    const cargandoCategorias = ref(true);
     const cargandoColecciones = ref(true);
     const favoritos = ref(JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || []);
     const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
@@ -136,6 +160,26 @@ export default {
         console.error('Error al cargar las colecciones:', error);
       } finally {
         cargandoColecciones.value = false;
+      }
+    };
+
+    const cargarMarcas = async () => {
+      try {
+        marcas.value = (await axios.get('http://localhost:8080/api/marcas')).data;
+      } catch (error) {
+        console.error('Error al cargar las marcas:', error);
+      } finally {
+        cargandoMarcas.value = false;
+      }
+    };
+
+    const cargarCategorias = async () => {
+      try {
+        categorias.value = (await axios.get('http://localhost:8080/api/categorias')).data;
+      } catch (error) {
+        console.error('Error al cargar las categorías:', error);
+      } finally {
+        cargandoCategorias.value = false;
       }
     };
 
@@ -164,6 +208,8 @@ export default {
     onMounted(() => {
       cargarJugadores();
       cargarColecciones();
+      cargarMarcas();
+      cargarCategorias();
       window.addEventListener('storage', refrescarContadores);
     });
 
@@ -176,6 +222,10 @@ export default {
       cargandoJugadores,
       colecciones,
       cargandoColecciones,
+      marcas,
+      cargandoMarcas,
+      categorias,
+      cargandoCategorias,
       manejarClickUsuario,
       irAFavoritos,
       totalItemsFavoritos,

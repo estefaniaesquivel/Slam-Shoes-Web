@@ -7,12 +7,22 @@
     <!-- Carrusel Principal (Banners) -->
     <div id="primerCarrusel" class="carousel slide my-4 container-fluid px-4" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="/Nike JA 3.png" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px;" alt="Nike JA 3 - Cobalt Bliss">
-            </div>
-            <div class="carousel-item">
-                <img src="/promo-halloween.png" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px; object-position: center;" alt="Promoción Halloween">
-            </div>
+            <!-- Banners: segunda imagen (banner_url) de cada colección activa; si no hay, se usan los banners fijos -->
+            <template v-if="bannersColecciones.length > 0">
+                <div v-for="(col, i) in bannersColecciones" :key="col.idColeccion" class="carousel-item" :class="{ active: i === 0 }">
+                    <router-link :to="`/coleccion/${col.idColeccion}`">
+                        <img :src="col.bannerUrl" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px;" :alt="col.nombre">
+                    </router-link>
+                </div>
+            </template>
+            <template v-else>
+                <div class="carousel-item active">
+                    <img src="/Nike JA 3.png" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px;" alt="Nike JA 3 - Cobalt Bliss">
+                </div>
+                <div class="carousel-item">
+                    <img src="/promo-halloween.png" class="d-block w-100 object-fit-cover rounded shadow" style="max-height: 500px; object-position: center;" alt="Promoción Halloween">
+                </div>
+            </template>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#primerCarrusel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon bg-secondary rounded p-3" aria-hidden="true"></span>
@@ -36,6 +46,22 @@
                     <h4>[Novedades]</h4>
                     <a href="#" class="btn btn-outline-light mt-3">[Enlace a Novedades]</a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: ENCUENTRA TENIS POR MARCA (tabla marcas) -->
+    <div class="container-fluid px-4 my-5" v-if="marcas.length > 0">
+        <h3 class="fw-bold mb-4">Encuentra tenis por marca</h3>
+        <div class="row g-4">
+            <div class="col-6 col-md-3" v-for="marca in marcas" :key="marca.idMarca">
+                <router-link :to="`/marca/${marca.idMarca}`" class="text-decoration-none">
+                    <div class="brand-tile rounded d-flex align-items-center justify-content-center">
+                        <img v-if="marca.logoUrl" :src="marca.logoUrl" class="brand-logo" :alt="marca.nombre">
+                        <span v-else class="text-white fw-bold fs-4">{{ marca.nombre }}</span>
+                    </div>
+                    <p class="text-white fw-semibold mt-2 mb-0">{{ marca.nombre }}</p>
+                </router-link>
             </div>
         </div>
     </div>
@@ -101,7 +127,7 @@
                         <h6 class="text-white text-truncate mb-1" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
                             {{ producto.nombre }}
                         </h6>
-                        <p class="text-secondary small mb-1">{{ producto.categoriaNombre || 'Calzado Deportivo' }}</p>
+                        <p class="text-secondary small mb-1">{{ producto.categoriaNombre }}</p>
                         <p class="text-success fw-bold mb-0">${{ producto.precio }} MXN</p>
                     </div>
                 </div>
@@ -130,7 +156,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import productoService from '@/services/productoService';
@@ -149,28 +175,27 @@ export default {
     const productos = ref([]);
     const colecciones = ref([]);
     const cargandoColecciones = ref(true);
+    const marcas = ref([]);
+    const bannersColecciones = computed(() => colecciones.value.filter(c => c.bannerUrl));
 
     const cargarDatos = async () => {
       try {
         const respuestaProductos = await productoService.obtenerProductos();
-        
-        productos.value = await Promise.all(respuestaProductos.data.map(async (p) => {
-          let categoriaNombre = "Calzado Deportivo";
-          if (p.idCategoria) {
-            try {
-              const resCat = await axios.get(`http://localhost:8080/api/categorias/${p.idCategoria}`);
-              categoriaNombre = resCat.data.nombre;
-            } catch (e) {
-              console.error("Error al cargar categoría", e);
-            }
-          }
-          return {
-            ...p,
-            categoriaNombre,
-            imagenActual: p.imagenUrl,
-            segundaImagen: null
-          };
+
+        // Categorías reales de la BD (una sola petición) para mostrar el nombre en cada tarjeta
+        const respuestaCategorias = await axios.get('http://localhost:8080/api/categorias').catch(() => ({ data: [] }));
+        const nombresCategoria = {};
+        respuestaCategorias.data.forEach(c => { nombresCategoria[c.idCategoria] = c.nombre; });
+
+        productos.value = respuestaProductos.data.map(p => ({
+          ...p,
+          categoriaNombre: nombresCategoria[p.idCategoria] || '',
+          imagenActual: p.imagenUrl,
+          segundaImagen: null
         }));
+
+        const respuestaMarcas = await axios.get('http://localhost:8080/api/marcas').catch(() => ({ data: [] }));
+        marcas.value = respuestaMarcas.data;
 
         const respuestaColecciones = await axios.get('http://localhost:8080/api/colecciones').catch(() => ({ data: [] }));
         colecciones.value = respuestaColecciones.data;
@@ -237,6 +262,8 @@ export default {
     return {
       productos,
       colecciones,
+      bannersColecciones,
+      marcas,
       cargandoColecciones,
       irAColeccion,
       irADetalle,
@@ -260,6 +287,20 @@ export default {
 }
 .fade-transition {
   transition: opacity 0.4s ease-in-out;
+}
+.brand-tile {
+  background-color: #2b2b3b;
+  aspect-ratio: 2 / 1;
+  padding: 1.5rem;
+  transition: background-color 0.2s ease;
+}
+.brand-tile:hover {
+  background-color: #3a3a50;
+}
+.brand-logo {
+  max-width: 70%;
+  max-height: 70%;
+  object-fit: contain;
 }
 .collection-card {
   cursor: pointer;

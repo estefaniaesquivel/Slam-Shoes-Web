@@ -69,9 +69,9 @@
           <span class="badge bg-secondary text-uppercase mb-2">{{ producto.marca }}</span>
           <h1 class="text-white fw-bold mb-2">{{ producto.nombre }}</h1>
 
-          <div class="mb-3 p-3 bg-black border border-secondary rounded">
+          <div class="mb-3 p-3 bg-black border border-secondary rounded" v-if="categoriaInfo.nombre">
             <span class="text-warning small text-uppercase fw-bold d-block mb-1">
-              CATEGORÍA: {{ categoriaInfo.nombre || 'Calzado Deportivo' }}
+              CATEGORÍA: {{ categoriaInfo.nombre }}
             </span>
             <p class="text-secondary small mb-0">{{ categoriaInfo.descripcion || producto.descripcion }}</p>
           </div>

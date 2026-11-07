@@ -25,6 +25,9 @@ public class Producto {
     @Column(name = "id_coleccion")
     private Long idColeccion; // Llave foránea hacia la tabla colecciones
 
+    @Column(name = "id_marca")
+    private Long idMarca; // Llave foránea hacia la tabla marcas
+
     private String nombre;
     private String marca;
     
@@ -58,6 +61,9 @@ public class Producto {
 
     public Long getIdColeccion() { return idColeccion; }
     public void setIdColeccion(Long idColeccion) { this.idColeccion = idColeccion; }
+
+    public Long getIdMarca() { return idMarca; }
+    public void setIdMarca(Long idMarca) { this.idMarca = idMarca; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }

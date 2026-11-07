@@ -21,6 +21,9 @@ public class Coleccion {
     @Column(name = "imagen_url")
     private String imagenUrl;
     
+    @Column(name = "banner_url")
+    private String bannerUrl; // Segunda imagen: banner horizontal del HomeView
+
     private Boolean activa;
 
     // Getters y Setters
@@ -32,6 +35,8 @@ public class Coleccion {
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
+    public String getBannerUrl() { return bannerUrl; }
+    public void setBannerUrl(String bannerUrl) { this.bannerUrl = bannerUrl; }
     public Boolean getActiva() { return activa; }
     public void setActiva(Boolean activa) { this.activa = activa; }
 }

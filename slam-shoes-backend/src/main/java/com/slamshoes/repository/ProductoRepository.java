@@ -15,4 +15,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     // Productos indexados a una colección mediante productos.id_coleccion
     List<Producto> findByIdColeccion(Long idColeccion);
+
+    // Productos de una marca (productos.id_marca)
+    List<Producto> findByIdMarca(Long idMarca);
+
+    // Productos de una categoría (productos.id_categoria)
+    List<Producto> findByIdCategoria(Long idCategoria);
 }

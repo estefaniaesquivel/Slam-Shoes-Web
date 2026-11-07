@@ -57,6 +57,7 @@ public class ProductoController {
             producto.setIdCategoria(productoDetalles.getIdCategoria());
             producto.setIdJugador(productoDetalles.getIdJugador());
             producto.setIdColeccion(productoDetalles.getIdColeccion()); // Mapeo del ID de la colección
+            producto.setIdMarca(productoDetalles.getIdMarca());
             producto.setActivo(productoDetalles.getActivo());
             
             producto.setModelo(productoDetalles.getModelo());
