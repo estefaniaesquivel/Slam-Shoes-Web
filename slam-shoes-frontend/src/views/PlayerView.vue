@@ -19,26 +19,16 @@
 
       <template v-else>
 
-        <!-- Portada del jugador: imagen tomada de jugadores.imagen_url -->
-        <div class="container-fluid px-4 my-4">
-          <div class="player-banner position-relative overflow-hidden rounded border border-secondary bg-black shadow">
-            <img
-              v-if="jugador.imagenUrl && !bannerFallido"
-              :src="jugador.imagenUrl"
-              :alt="'Portada de ' + jugador.nombre"
-              class="player-banner-img position-absolute top-0 start-0 w-100 h-100"
-              @error="bannerFallido = true"
-            />
-            <div class="player-banner-shade position-absolute top-0 start-0 w-100 h-100"></div>
-
-            <div class="position-absolute bottom-0 start-0 p-4 p-md-5">
-              <span class="badge bg-secondary text-uppercase mb-2">Por jugador</span>
-              <h1 class="text-white fw-bold text-uppercase mb-1 player-name">{{ jugador.nombre }}</h1>
-              <p class="text-light opacity-75 mb-0">
-                {{ productos.length }} {{ productos.length === 1 ? 'modelo disponible' : 'modelos disponibles' }}
-              </p>
-            </div>
-          </div>
+        <!-- Portada del jugador (jugadores.imagen_url): pegada al encabezado, a todo el ancho, imagen completa 3:1 sin recortar -->
+        <div class="player-banner position-relative w-100 bg-black">
+          <img
+            v-if="jugador.imagenUrl && !bannerFallido"
+            :src="jugador.imagenUrl"
+            :alt="'Portada de ' + jugador.nombre"
+            class="player-banner-img d-block w-100"
+            @error="bannerFallido = true"
+          />
+          <div class="player-banner-shade position-absolute top-0 start-0 w-100 h-100"></div>
         </div>
 
         <!-- Catálogo de tenis indexados al jugador -->
@@ -233,23 +223,21 @@ export default {
 
 <style scoped>
 /*
-  Portada del jugador: ocupa ~40% del alto de la pantalla (mínimo 300px, máximo 480px)
-  y todo el ancho del contenedor. La imagen se recorta con "cover", centrada un poco
-  hacia arriba para no cortar rostros.
+  Portada: ocupa todo el ancho, pegada al encabezado (sin márgenes ni bordes).
+  La proporción 3:1 (2400x800) se respeta con aspect-ratio y la imagen se muestra
+  completa, sin recortes. Si falla la carga, queda un bloque oscuro de la misma proporción.
 */
 .player-banner {
-  height: clamp(300px, 40vh, 480px);
+  aspect-ratio: 3 / 1;
 }
 .player-banner-img {
-  object-fit: cover;
-  object-position: center 25%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .player-banner-shade {
+  pointer-events: none;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 75%);
-}
-.player-name {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  letter-spacing: 0.02em;
 }
 
 /* Mismo estilo de tarjetas que el catálogo de HomeView */
