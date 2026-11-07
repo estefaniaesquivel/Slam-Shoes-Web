@@ -7,7 +7,18 @@
 **FACULTAD DE MATEMÁTICAS - UNIVERSIDAD AUTÓNOMA DE YUCATÁN (UADY)**  
 **Licenciatura en Ingeniería en Software**  
 **Asignatura:** Desarrollo de Aplicaciones Web  
-**Proyecto Integrador (Primera revisión - 29 de octubre de 2026):** Prototipo funcional de tienda web para el comercio de calzado deportivo orientado al básquetbol.
+Prototipo funcional de tienda web para el comercio de calzado deportivo orientado al básquetbol.
+
+---
+
+## Integrantes del Equipo de Construcción de Software
+- **Espejo Basto Herbert Alejandro**
+- **Cruz Sabido Felipe de Jesús**
+- **Dzib Martínez Agustín Emanuel**
+- **Esquivel Bacelis Estefanía**
+- **Morales Caro Axel Adolfo**
+
+
 
 ---
 
