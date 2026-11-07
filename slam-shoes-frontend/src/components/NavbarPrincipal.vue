@@ -48,7 +48,24 @@
             </ul>
           </li>
 
-          <li class="nav-item"><a class="nav-link text-light" href="#">Accesorios</a></li>
+          <!-- Colecciones: solo las activas de la tabla "colecciones" -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownColecciones" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Colecciones
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownColecciones">
+              <li v-for="coleccion in colecciones" :key="coleccion.idColeccion">
+                <router-link class="dropdown-item" :to="`/coleccion/${coleccion.idColeccion}`">
+                  {{ coleccion.nombre }}
+                </router-link>
+              </li>
+              <li v-if="colecciones.length === 0">
+                <span class="dropdown-item-text text-secondary small">
+                  {{ cargandoColecciones ? 'Cargando colecciones...' : 'Sin colecciones registradas' }}
+                </span>
+              </li>
+            </ul>
+          </li>
           <li class="nav-item"><a class="nav-link text-light" href="#">Ofertas</a></li>
         </ul>
       </div>
@@ -95,6 +112,8 @@ export default {
 
     const jugadores = ref([]);
     const cargandoJugadores = ref(true);
+    const colecciones = ref([]);
+    const cargandoColecciones = ref(true);
     const favoritos = ref(JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || []);
     const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
 
@@ -106,6 +125,17 @@ export default {
         console.error('Error al cargar los jugadores:', error);
       } finally {
         cargandoJugadores.value = false;
+      }
+    };
+
+    const cargarColecciones = async () => {
+      try {
+        const respuesta = await axios.get('http://localhost:8080/api/colecciones');
+        colecciones.value = respuesta.data;
+      } catch (error) {
+        console.error('Error al cargar las colecciones:', error);
+      } finally {
+        cargandoColecciones.value = false;
       }
     };
 
@@ -133,6 +163,7 @@ export default {
 
     onMounted(() => {
       cargarJugadores();
+      cargarColecciones();
       window.addEventListener('storage', refrescarContadores);
     });
 
@@ -143,6 +174,8 @@ export default {
     return {
       jugadores,
       cargandoJugadores,
+      colecciones,
+      cargandoColecciones,
       manejarClickUsuario,
       irAFavoritos,
       totalItemsFavoritos,

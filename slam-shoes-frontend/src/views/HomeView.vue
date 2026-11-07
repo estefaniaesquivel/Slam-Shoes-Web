@@ -45,19 +45,22 @@
         <div class="mb-4">
             <h3 class="text-center fw-bold">COLECCIONES</h3>
         </div>
-        <div class="row g-3 text-center" v-if="colecciones.length > 0">
+        <div class="row g-4" v-if="colecciones.length > 0">
             <div class="col-md-3" v-for="col in colecciones" :key="col.idColeccion">
-                <div class="border border-secondary bg-black p-3 rounded position-relative overflow-hidden collection-card" style="height: 220px; display: flex; flex-direction: column; justify-content: flex-end;">
-                    <img v-if="col.imagenUrl" :src="col.imagenUrl" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-50" :alt="col.nombre">
-                    <div class="position-relative z-1 bg-dark bg-opacity-75 p-2 rounded">
+                <!-- Imagen 1:1 completa (2000x2000), sin texto encima; la descripción va como pie de imagen -->
+                <figure class="collection-card m-0 border border-secondary bg-black rounded-3 overflow-hidden" @click="irAColeccion(col.idColeccion)">
+                    <div class="square-box bg-white">
+                        <img v-if="col.imagenUrl" :src="col.imagenUrl" class="collection-img" :alt="col.nombre">
+                    </div>
+                    <figcaption class="p-3 text-start">
                         <h5 class="text-white mb-1">{{ col.nombre }}</h5>
                         <p class="text-secondary small mb-0">{{ col.descripcion }}</p>
-                    </div>
-                </div>
+                    </figcaption>
+                </figure>
             </div>
         </div>
         <div v-else class="text-center text-muted py-3">
-            <p>Cargando colecciones...</p>
+            <p>{{ cargandoColecciones ? 'Cargando colecciones...' : 'Aún no hay colecciones registradas.' }}</p>
         </div>
     </div>
 
@@ -145,6 +148,7 @@ export default {
     const router = useRouter();
     const productos = ref([]);
     const colecciones = ref([]);
+    const cargandoColecciones = ref(true);
 
     const cargarDatos = async () => {
       try {
@@ -170,6 +174,7 @@ export default {
 
         const respuestaColecciones = await axios.get('http://localhost:8080/api/colecciones').catch(() => ({ data: [] }));
         colecciones.value = respuestaColecciones.data;
+        cargandoColecciones.value = false;
 
       } catch (error) {
         console.error("Error al cargar los datos de la API:", error);
@@ -197,6 +202,10 @@ export default {
 
     const restaurarImagen = (producto) => {
       producto.imagenActual = producto.imagenUrl;
+    };
+
+    const irAColeccion = (id) => {
+      router.push(`/coleccion/${id}`);
     };
 
     const irADetalle = (id) => {
@@ -228,6 +237,8 @@ export default {
     return {
       productos,
       colecciones,
+      cargandoColecciones,
+      irAColeccion,
       irADetalle,
       cargarSegundaImagen,
       restaurarImagen,
@@ -251,7 +262,14 @@ export default {
   transition: opacity 0.4s ease-in-out;
 }
 .collection-card {
+  cursor: pointer;
   transition: transform 0.3s ease;
+}
+.collection-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 .collection-card:hover {
   transform: translateY(-5px);

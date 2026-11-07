@@ -5,6 +5,7 @@ import ProfileView from '../views/ProfileView.vue'
 import ProductDetailView from '../views/ProductDetailView.vue'
 import FavoritosView from '../views/FavoritosView.vue' // <--- 1. Importar la vista
 import PlayerView from '../views/PlayerView.vue'
+import CollectionView from '../views/CollectionView.vue'
 
 const routes = [
   {
@@ -31,6 +32,11 @@ const routes = [
     path: '/jugador/:id',
     name: 'jugador',
     component: PlayerView
+  },
+  {
+    path: '/coleccion/:id',
+    name: 'coleccion',
+    component: CollectionView
   },
   {
     path: '/favoritos',      // <--- 2. Definir la ruta
