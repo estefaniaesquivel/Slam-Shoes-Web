@@ -28,6 +28,9 @@ public class Pedido {
     @Column(name = "direccion_envio")
     private String direccionEnvio;
 
+    @Column(name = "metodo_pago")
+    private String metodoPago;
+
     public Pedido() {}
 
     // Getters y Setters
@@ -48,4 +51,6 @@ public class Pedido {
 
     public String getDireccionEnvio() { return direccionEnvio; }
     public void setDireccionEnvio(String direccionEnvio) { this.direccionEnvio = direccionEnvio; }
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 }

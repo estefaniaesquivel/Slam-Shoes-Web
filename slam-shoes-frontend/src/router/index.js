@@ -7,6 +7,15 @@ import FavoritosView from '../views/FavoritosView.vue' // <--- 1. Importar la vi
 import PlayerView from '../views/PlayerView.vue'
 import CollectionView from '../views/CollectionView.vue'
 import CatalogoView from '../views/CatalogoView.vue'
+import PromocionesView from '../views/PromocionesView.vue'
+import RegistroView from '../views/RegistroView.vue'
+import MiPerfilView from '../views/MiPerfilView.vue'
+import ResumenPedidoView from '../views/ResumenPedidoView.vue'
+import HomeAdminView from '../views/HomeAdminView.vue'
+import AdminModulosView from '../views/AdminModulosView.vue'
+import AdminPlaceholderView from '../views/AdminPlaceholderView.vue'
+import AdminPedidosView from '../views/AdminPedidosView.vue'
+import { obtenerUsuario } from '../utils/auth.js'
 
 const routes = [
   {
@@ -51,6 +60,16 @@ const routes = [
     component: CatalogoView,
     meta: { tipo: 'categoria' }
   },
+  { path: '/ofertas', name: 'ofertas', component: PromocionesView, meta: { tipo: 'ofertas' } },
+  { path: '/novedades', name: 'novedades', component: PromocionesView, meta: { tipo: 'novedades' } },
+  { path: '/registro', name: 'registro', component: RegistroView },
+  { path: '/mi-perfil', name: 'mi-perfil', component: MiPerfilView, meta: { requiereSesion: true } },
+  { path: '/checkout', name: 'checkout', component: ResumenPedidoView, meta: { requiereSesion: true } },
+  // Módulos del administrador
+  { path: '/admin', name: 'admin-home', component: HomeAdminView, meta: { requiereAdmin: true } },
+  { path: '/admin/modulos', name: 'admin-modulos', component: AdminModulosView, meta: { requiereAdmin: true } },
+  { path: '/admin/modulo/:modulo', name: 'admin-modulo', component: AdminPlaceholderView, meta: { requiereAdmin: true } },
+  { path: '/admin/pedidos', name: 'admin-pedidos', component: AdminPedidosView, meta: { requiereAdmin: true } },
   {
     path: '/favoritos',      // <--- 2. Definir la ruta
     name: 'favoritos',
@@ -62,5 +81,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
+
+// Protección de rutas en el frontend (la validación real de roles en el servidor es una mejora pendiente)
+router.beforeEach((to) => {
+  const usuario = obtenerUsuario();
+  if (to.meta.requiereAdmin && (!usuario || usuario.rol !== 'ADMIN')) return '/login';
+  if (to.meta.requiereSesion && !usuario) return '/login';
+});
 
 export default router

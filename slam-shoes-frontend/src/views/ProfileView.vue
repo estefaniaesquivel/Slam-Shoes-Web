@@ -1,18 +1,7 @@
 <template>
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden d-flex flex-column">
 
-    <!-- Encabezado (Navbar idéntico) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
-        <div class="container-fluid px-0">
-            <router-link class="navbar-brand" to="/">
-                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">         
-            </router-link>
-            
-            <div class="d-flex align-items-center gap-3">
-                <router-link to="/" class="text-light fs-5"><i class="bi bi-house"></i></router-link>
-            </div>
-        </div>
-    </nav>
+    <NavbarPrincipal />
 
     <!-- Contenido Principal: Perfil del Usuario -->
     <div class="login-wrapper flex-grow-1">
@@ -52,6 +41,11 @@
           </div>
 
           <div class="d-grid gap-2">
+            <!-- Solo clientes con sesión iniciada -->
+            <router-link v-if="usuario && usuario.rol === 'CLIENTE'" to="/mi-perfil" class="btn btn-outline-light">
+              <i class="bi bi-pencil-square me-1"></i> Mi perfil
+            </router-link>
+            <router-link v-if="usuario && usuario.rol === 'ADMIN'" to="/admin" class="btn btn-outline-light">Panel de administrador</router-link>
             <button class="btn btn-outline-light" @click="irAFavoritos">Mis Favoritos</button>
             <button class="btn btn-danger fw-bold py-2 mt-2" @click="cerrarSesion">Cerrar Sesión</button>
           </div>
@@ -59,10 +53,14 @@
       </div>
     </div>
 
+    <CarritoComponent />
+
   </div>
 </template>
 
 <script setup>
+import NavbarPrincipal from '@/components/NavbarPrincipal.vue'
+import CarritoComponent from '@/components/CarritoComponent.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -86,7 +84,7 @@ function cerrarSesion() {
 }
 
 function irAFavoritos() {
-  alert("Redirigiendo a la sección de favoritos...")
+  router.push('/favoritos')
 }
 </script>
 

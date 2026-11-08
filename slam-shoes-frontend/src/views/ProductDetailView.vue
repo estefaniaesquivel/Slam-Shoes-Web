@@ -1,20 +1,7 @@
 <template>
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden d-flex flex-column">
 
-    <!-- Encabezado (Navbar) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
-      <div class="container-fluid px-0">
-        <router-link class="navbar-brand" to="/">
-          <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">
-        </router-link>
-
-        <div class="d-flex align-items-center gap-3">
-          <router-link to="/" class="text-light fs-5 text-decoration-none">
-            <i class="bi bi-house"></i> Volver al inicio
-          </router-link>
-        </div>
-      </div>
-    </nav>
+    <NavbarPrincipal />
 
     <!-- Contenido Principal -->
     <div class="container-fluid my-4 px-4 flex-grow-1">
@@ -76,7 +63,14 @@
             <p class="text-secondary small mb-0">{{ categoriaInfo.descripcion || producto.descripcion }}</p>
           </div>
 
-          <h3 class="text-success fw-bold mb-3">${{ producto.precio }} MXN</h3>
+          <h3 class="text-success fw-bold mb-3">
+            ${{ precioFinal }} MXN
+            <template v-if="ofertaVigente">
+              <span class="text-secondary text-decoration-line-through fs-6 ms-2">${{ producto.precio }}</span>
+              <span class="badge bg-danger ms-2 fs-6">-{{ ofertaVigente.porcentajeDescuento }}%</span>
+              <span v-if="ofertaVigente.nombre" class="badge bg-secondary ms-1 fs-6">{{ ofertaVigente.nombre }}</span>
+            </template>
+          </h3>
 
           <hr class="border-secondary mb-4">
 
@@ -156,21 +150,25 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
 import CarritoComponent from '@/components/CarritoComponent.vue';
+import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
 export default {
   name: 'ProductDetailView',
   components: {
-    CarritoComponent
+    CarritoComponent,
+    NavbarPrincipal
   },
   setup() {
     const route = useRoute();
 
     const producto = ref(null);
+    const ofertaVigente = ref(null); // oferta activa del producto (tabla ofertas)
+    const precioFinal = computed(() => (ofertaVigente.value ? ofertaVigente.value.precioConDescuento : producto.value?.precio));
     const categoriaInfo = ref({});
     const galeriaImagenes = ref([]);
     const tallasDisponibles = ref([]);
@@ -186,6 +184,12 @@ export default {
         const resProducto = await axios.get(`http://localhost:8080/api/productos/${idProducto}`);
         producto.value = resProducto.data;
         imagenSeleccionada.value = producto.value.imagenUrl;
+
+        // Oferta vigente (si existe): 404 = sin oferta
+        const resOferta = await axios
+          .get(`http://localhost:8080/api/ofertas/producto/${idProducto}`)
+          .catch(() => ({ data: null }));
+        ofertaVigente.value = resOferta.data;
 
         if (producto.value.idCategoria) {
           const resCat = await axios
@@ -267,7 +271,7 @@ export default {
             id: producto.value.idProducto,
             idVariante: tallaSeleccionada.value.idVariante,
             nombre: producto.value.nombre,
-            precio: producto.value.precio,
+            precio: precioFinal.value,
             imagenUrl: producto.value.imagenUrl,
             talla: tallaSeleccionada.value.talla,
             color: tallaSeleccionada.value.color,
@@ -301,6 +305,8 @@ export default {
     return {
       producto,
       categoriaInfo,
+      ofertaVigente,
+      precioFinal,
       galeriaImagenes,
       tallasDisponibles,
       tallaSeleccionada,

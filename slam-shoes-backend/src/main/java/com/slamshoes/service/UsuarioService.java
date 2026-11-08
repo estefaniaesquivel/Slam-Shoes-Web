@@ -17,7 +17,10 @@ public class UsuarioService {
     private BCryptPasswordEncoder passwordEncoder;
 
     // Método para Registrar
+    // Registro público: SIEMPRE crea un CLIENTE, sin importar el rol que venga en la petición
     public Usuario registrarUsuario(Usuario usuario) {
+        usuario.setRol("CLIENTE");
+        usuario.setFechaRegistro(java.time.LocalDateTime.now());
         // Encriptamos la contraseña en texto plano antes de guardarla
         String hashedPassword = passwordEncoder.encode(usuario.getContrasenaHash());
         usuario.setContrasenaHash(hashedPassword);

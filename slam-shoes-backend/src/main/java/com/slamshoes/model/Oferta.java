@@ -21,6 +21,8 @@ public class Oferta {
     @Column(name = "id_producto")
     private Long idProducto;
 
+    private String nombre; // opcional, ej. 'BUEN FIN'
+
     @Column(name = "porcentaje_descuento")
     private Double porcentajeDescuento;
 
@@ -38,6 +40,8 @@ public class Oferta {
     public void setIdOferta(Long idOferta) { this.idOferta = idOferta; }
     public Long getIdProducto() { return idProducto; }
     public void setIdProducto(Long idProducto) { this.idProducto = idProducto; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
     public Double getPorcentajeDescuento() { return porcentajeDescuento; }
     public void setPorcentajeDescuento(Double porcentajeDescuento) { this.porcentajeDescuento = porcentajeDescuento; }
     public LocalDateTime getFechaInicio() { return fechaInicio; }

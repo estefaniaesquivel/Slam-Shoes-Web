@@ -132,7 +132,11 @@ export default {
         return;
       }
 
-      alert('¡Redirigiendo a confirmación de compra y generación de pedido...');
+      // Cierra el panel lateral y abre el resumen del pedido
+      const panel = document.getElementById('offcanvasCarrito');
+      const instancia = panel && window.bootstrap ? window.bootstrap.Offcanvas.getInstance(panel) : null;
+      if (instancia) instancia.hide();
+      router.push('/checkout');
     };
 
     onMounted(() => {

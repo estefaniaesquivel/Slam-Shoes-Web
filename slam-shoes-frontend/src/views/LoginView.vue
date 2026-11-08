@@ -1,67 +1,7 @@
 <template>
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden d-flex flex-column">
 
-    <!-- Encabezado (Navbar idéntico al de HomeView) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
-        <div class="container-fluid px-0">
-            <router-link class="navbar-brand" to="/">
-                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">         
-            </router-link>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse justify-content-center" id="menuPrincipal">
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link text-light" href="#">Novedades</a></li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownMarcas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Marcas
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownMarcas">
-                            <li><a class="dropdown-item" href="#">Nike</a></li>
-                            <li><a class="dropdown-item" href="#">Adidas</a></li>
-                            <li><a class="dropdown-item" href="#">Li-ning</a></li>
-                            <li><a class="dropdown-item" href="#">Under Armour</a></li>
-                            <li><a class="dropdown-item" href="#">ANTA</a></li>
-                            <li><hr class="dropdown-divider border-secondary"></li>
-                            <li><a class="dropdown-item" href="#">Ver todas las marcas</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownPlayer" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Por Jugador
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownPlayer">
-                            <li><a class="dropdown-item" href="#">Lebron James</a></li>
-                            <li><a class="dropdown-item" href="#">Kevin Durant</a></li>
-                            <li><a class="dropdown-item" href="#">Stephen Curry</a></li>
-                            <li><a class="dropdown-item" href="#">Dwyane Wade</a></li>
-                            <li><a class="dropdown-item" href="#">Kyrie Irving</a></li>
-                            <li><a class="dropdown-item" href="#">Giannis A.</a></li>
-                            <li><hr class="dropdown-divider border-secondary"></li>
-                            <li><a class="dropdown-item" href="#">Ver todos</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item"><a class="nav-link text-light" href="#">Accesorios</a></li>
-                    <li class="nav-item"><a class="nav-link text-light" href="#">Ofertas</a></li>
-                </ul>
-            </div>
-
-            <!-- Iconos de la derecha -->
-            <div class="d-flex align-items-center gap-3">
-                <a href="#" class="text-light fs-5"><i class="bi bi-search"></i></a>
-                <router-link to="/login" class="text-light fs-5"><i class="bi bi-person"></i></router-link>
-                <a href="#" class="position-relative text-light text-decoration-none fs-5" aria-label="Carrito">
-                    <i class="bi bi-bag"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">0</span>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <NavbarPrincipal />
 
     <!-- Contenido Principal: Dos columnas (Estilo ANTA sin la caja de texto flotante) -->
     <div class="login-wrapper flex-grow-1">
@@ -96,16 +36,20 @@
 
           <div class="login-links">
             <span class="disabled-link">¿Olvidaste tu contraseña?</span>
-            <a href="#" @click.prevent="irARegistro">Crear cuenta nueva</a>
+            <router-link to="/registro">Crear cuenta nueva</router-link>
           </div>
         </div>
       </div>
     </div>
 
+    <CarritoComponent />
+
   </div>
 </template>
 
 <script setup>
+import NavbarPrincipal from '@/components/NavbarPrincipal.vue'
+import CarritoComponent from '@/components/CarritoComponent.vue'
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
@@ -139,10 +83,6 @@ async function handleLogin() {
     const mensaje = error.response?.data?.error || "Credenciales incorrectas o servidor inactivo";
     alert("Error al iniciar sesión: " + mensaje);
   }
-}
-
-function irARegistro() {
-  alert("Próximamente habilitaremos el módulo de registro de cuentas nuevas.");
 }
 </script>
 
@@ -251,13 +191,15 @@ function irARegistro() {
   font-size: 0.9rem;
 }
 
-.login-links a {
+.login-links a,
+.login-links :deep(a) {
   color: #aaa;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.login-links a:hover {
+.login-links a:hover,
+.login-links :deep(a:hover) {
   color: #fff;
   text-decoration: underline;
 }

@@ -1,18 +1,7 @@
 <template>
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden d-flex flex-column">
 
-    <!-- Encabezado (Navbar) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
-        <div class="container-fluid px-0">
-            <router-link class="navbar-brand" to="/">
-                <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">         
-            </router-link>
-            
-            <div class="d-flex align-items-center gap-3">
-                <router-link to="/" class="text-light fs-5 text-decoration-none"><i class="bi bi-house"></i> Volver al inicio</router-link>
-            </div>
-        </div>
-    </nav>
+    <NavbarPrincipal />
 
     <!-- Contenido de Favoritos -->
     <div class="container my-5 flex-grow-1">
@@ -68,6 +57,8 @@
       </div>
     </div>
 
+    <CarritoComponent />
+
   </div>
 </template>
 
@@ -75,9 +66,12 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
+import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
+import CarritoComponent from '@/components/CarritoComponent.vue';
 
 export default {
   name: 'FavoritosView',
+  components: { NavbarPrincipal, CarritoComponent },
   setup() {
     const router = useRouter();
     const favoritos = ref([]);

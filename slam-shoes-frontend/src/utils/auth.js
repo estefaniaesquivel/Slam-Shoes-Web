@@ -11,3 +11,17 @@ export function verificarSesionYAccionar() {
   
   return usuario;
 }
+
+// Usuario guardado en el navegador (o null si no hay sesión)
+export function obtenerUsuario() {
+  try {
+    return JSON.parse(localStorage.getItem('usuario'));
+  } catch (e) {
+    return null;
+  }
+}
+
+export function esAdmin() {
+  const usuario = obtenerUsuario();
+  return !!usuario && usuario.rol === 'ADMIN';
+}

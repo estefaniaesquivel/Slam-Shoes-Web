@@ -33,8 +33,6 @@
 
         <!-- Catálogo de tenis indexados al jugador -->
         <div class="container-fluid px-4 my-5 pt-3">
-          <h2 class="mb-4 text-center text-uppercase">Tenis de {{ jugador.nombre }}</h2>
-
           <div v-if="productos.length === 0" class="text-center text-muted py-4">
             <p>Aún no hay tenis registrados para este jugador.</p>
           </div>
