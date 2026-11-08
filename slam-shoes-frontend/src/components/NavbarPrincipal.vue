@@ -99,7 +99,7 @@
         <a href="#" class="text-light fs-5"><i class="bi bi-search"></i></a>
 
         <!-- Cliente: favoritos con contador -->
-        <a v-if="!modoAdmin" href="#" class="position-relative text-light text-decoration-none fs-5" @click.prevent="irAFavoritos" aria-label="Favoritos">
+        <a v-if="!esModoAdmin" href="#" class="position-relative text-light text-decoration-none fs-5" @click.prevent="irAFavoritos" aria-label="Favoritos">
           <i class="bi bi-heart"></i>
           <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
             {{ totalItemsFavoritos }}
@@ -112,10 +112,10 @@
         </a>
 
         <!-- Administrador: edición (módulos) y pedidos con contador -->
-        <router-link v-if="modoAdmin" to="/admin/modulos" class="text-light fs-5 text-decoration-none" aria-label="Módulos de edición" title="Módulos de edición">
+        <router-link v-if="esModoAdmin" to="/admin/modulos" class="text-light fs-5 text-decoration-none" aria-label="Módulos de edición" title="Módulos de edición">
           <i class="bi bi-pencil-square"></i>
         </router-link>
-        <router-link v-if="modoAdmin" to="/admin/pedidos" class="position-relative text-light text-decoration-none fs-5" aria-label="Pedidos" title="Pedidos">
+        <router-link v-if="esModoAdmin" to="/admin/pedidos" class="position-relative text-light text-decoration-none fs-5" aria-label="Pedidos" title="Pedidos">
           <i class="bi bi-box-seam"></i>
           <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
             {{ totalPedidos }}
@@ -123,7 +123,7 @@
         </router-link>
 
         <!-- Botón de Carrito Desplegable (el offcanvas lo aporta CarritoComponent en cada vista) -->
-        <a v-if="!modoAdmin" href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-light text-decoration-none fs-5" aria-label="Abrir carrito">
+        <a v-if="!esModoAdmin" href="#offcanvasCarrito" data-bs-toggle="offcanvas" class="position-relative text-light text-decoration-none fs-5" aria-label="Abrir carrito">
           <i class="bi bi-bag"></i>
           <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
             {{ totalItemsCarrito }}
@@ -138,7 +138,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
-import { verificarSesionYAccionar } from '@/utils/auth.js';
+import { verificarSesionYAccionar, esAdmin } from '@/utils/auth.js';
 
 export default {
   name: 'NavbarPrincipal',
@@ -149,7 +149,9 @@ export default {
   setup(props) {
     const router = useRouter();
     const route = useRoute();
-    const rutaInicio = computed(() => (props.modoAdmin ? '/admin' : '/'));
+    // Se activa con la prop o automáticamente si quien inició sesión es el ADMIN
+    const esModoAdmin = computed(() => props.modoAdmin || esAdmin());
+    const rutaInicio = computed(() => (esModoAdmin.value ? '/admin' : '/'));
     const esInicio = computed(() => route.path === rutaInicio.value);
     const totalPedidos = ref(0);
 
@@ -241,7 +243,7 @@ export default {
       cargarColecciones();
       cargarMarcas();
       cargarCategorias();
-      if (props.modoAdmin) cargarTotalPedidos();
+      if (esModoAdmin.value) cargarTotalPedidos();
       window.addEventListener('storage', refrescarContadores);
     });
 
@@ -250,6 +252,7 @@ export default {
     });
 
     return {
+      esModoAdmin,
       rutaInicio,
       esInicio,
       totalPedidos,

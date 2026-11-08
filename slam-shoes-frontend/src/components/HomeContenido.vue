@@ -3,9 +3,8 @@
     <!-- Banners (tabla banners) -->
     <BannerCarousel />
 
-    <!-- Ofertas, novedades y tendencias (tablas ofertas, novedades y productos.es_tendencia) -->
-    <SeccionProductos tipo="ofertas" />
-    <SeccionProductos tipo="novedades" />
+    <!-- Novedades y ofertas (bloques con portada) y tendencias (productos.es_tendencia) -->
+    <PromoTiles />
     <SeccionProductos tipo="tendencias" />
 
     <!-- Marcas (tabla marcas) -->
@@ -27,9 +26,7 @@
                 <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative">
                     
                     <!-- Botón Favorito -->
-                    <button v-if="!modoAdmin" class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)" title="Añadir a favoritos" style="z-index: 3;">
-                        <i class="bi bi-heart"></i>
-                    </button>
+                    <BotonFavorito :producto="producto" />
 
                     <!-- Contenedor Cuadrado Perfecto 1:1 sin sobrantes negros -->
                     <div 
@@ -79,16 +76,18 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import BotonFavorito from '@/components/BotonFavorito.vue';
 import productoService from '@/services/productoService';
-import { verificarSesionYAccionar } from '@/utils/auth.js';
 import BannerCarousel from '@/components/BannerCarousel.vue';
+import PromoTiles from '@/components/PromoTiles.vue';
 import SeccionProductos from '@/components/SeccionProductos.vue';
 import MarcasGrid from '@/components/MarcasGrid.vue';
 import ColeccionesGrid from '@/components/ColeccionesGrid.vue';
 
 export default {
   name: 'HomeContenido',
-  components: { BannerCarousel, SeccionProductos, MarcasGrid, ColeccionesGrid },
+  components: {
+    BotonFavorito, BannerCarousel, PromoTiles, SeccionProductos, MarcasGrid, ColeccionesGrid },
   props: {
     // En el inicio del administrador no se muestra el botón de favoritos
     modoAdmin: { type: Boolean, default: false }
@@ -144,24 +143,6 @@ export default {
       router.push(`/producto/${id}`);
     };
 
-    const marcarFavorito = (producto) => {
-      const usuarioActivo = verificarSesionYAccionar();
-      if (!usuarioActivo) return;
-
-      let favs = JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || [];
-      const existe = favs.some(p => p.idProducto === producto.idProducto);
-
-      if (!existe) {
-        favs.push(producto);
-        localStorage.setItem('slam_shoes_favoritos', JSON.stringify(favs));
-        // Avisa al encabezado para que actualice el contador de favoritos
-        window.dispatchEvent(new Event('storage'));
-        alert(`¡"${producto.nombre}" fue agregado a tus favoritos con éxito!`);
-      } else {
-        alert(`Este producto ya se encuentra en tus favoritos.`);
-      }
-    };
-
     onMounted(() => {
       cargarDatos();
     });
@@ -170,8 +151,7 @@ export default {
       productos,
       irADetalle,
       cargarSegundaImagen,
-      restaurarImagen,
-      marcarFavorito
+      restaurarImagen
     };
   }
 };

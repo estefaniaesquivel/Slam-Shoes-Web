@@ -1,6 +1,7 @@
 <template>
   <!-- Tarjeta cuadrada 1:1 reutilizable (secciones del inicio y paneles de ofertas/novedades) -->
   <div class="border border-secondary bg-black p-3 rounded-3 d-flex flex-column position-relative tarjeta" @click="$emit('abrir')">
+    <BotonFavorito v-if="idProducto" :producto="{ idProducto, nombre, imagenUrl, precio, marca }" />
     <span v-if="descuento" class="badge bg-danger position-absolute top-0 start-0 m-2" style="z-index: 2;">-{{ descuentoTexto }}%</span>
 
     <div class="bg-white w-100 rounded-3 overflow-hidden square-box mb-3">
@@ -22,10 +23,14 @@
 
 <script>
 import { computed } from 'vue';
+import BotonFavorito from '@/components/BotonFavorito.vue';
 
 export default {
   name: 'ProductoCardSimple',
+  components: { BotonFavorito },
   props: {
+    idProducto: { type: Number, default: null },
+    marca: { type: String, default: '' },
     nombre: { type: String, default: '' },
     imagenUrl: { type: String, default: '' },
     precio: { type: Number, default: 0 },

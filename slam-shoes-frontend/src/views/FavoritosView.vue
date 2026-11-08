@@ -66,6 +66,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
+import { quitarFavorito } from '@/utils/favoritos.js';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 
@@ -89,7 +90,7 @@ export default {
 
     const removerFavorito = (idProducto) => {
       favoritos.value = favoritos.value.filter(p => p.idProducto !== idProducto);
-      localStorage.setItem('slam_shoes_favoritos', JSON.stringify(favoritos.value));
+      quitarFavorito(idProducto); // actualiza el navegador y la BD del cliente
       alert("Producto eliminado de tus favoritos.");
     };
 

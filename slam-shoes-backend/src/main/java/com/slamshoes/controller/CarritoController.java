@@ -17,7 +17,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.slamshoes.model.Carrito;
+import com.slamshoes.dto.CarritoItemDTO;
 import com.slamshoes.model.CarritoDetalle;
+import com.slamshoes.model.Producto;
+import com.slamshoes.model.ProductoTalla;
+import com.slamshoes.repository.ProductoRepository;
+import com.slamshoes.repository.ProductoTallaRepository;
+import com.slamshoes.service.OfertaService;
 import com.slamshoes.repository.CarritoDetalleRepository;
 import com.slamshoes.repository.CarritoRepository;
 
@@ -32,6 +38,15 @@ public class CarritoController {
     @Autowired
     private CarritoDetalleRepository carritoDetalleRepository;
 
+    @Autowired
+    private ProductoTallaRepository productoTallaRepository;
+
+    @Autowired
+    private ProductoRepository productoRepository;
+
+    @Autowired
+    private OfertaService ofertaService;
+
     @GetMapping("/usuario/{idUsuario}")
     public Carrito obtenerCarritoPorUsuario(@PathVariable Long idUsuario) {
         return carritoRepository.findByIdUsuario(idUsuario)
@@ -41,6 +56,27 @@ public class CarritoController {
                     nuevoCarrito.setFechaActualizacion(LocalDateTime.now());
                     return carritoRepository.save(nuevoCarrito);
                 });
+    }
+
+    // Carrito del usuario con los datos listos para mostrarse (se restaura al iniciar sesión)
+    @GetMapping("/usuario/{idUsuario}/items")
+    public List<CarritoItemDTO> obtenerItems(@PathVariable Long idUsuario) {
+        return carritoRepository.findByIdUsuario(idUsuario)
+                .map(c -> carritoDetalleRepository.findByIdCarrito(c.getIdCarrito()).stream()
+                        .map(d -> {
+                            ProductoTalla v = productoTallaRepository.findById(d.getIdVariante()).orElse(null);
+                            if (v == null) return null;
+                            Producto p = productoRepository.findById(v.getIdProducto()).orElse(null);
+                            if (p == null) return null;
+                            double precio = ofertaService.precioFinal(
+                                    p.getPrecio() == null ? 0 : p.getPrecio(),
+                                    ofertaService.mejorDeProducto(p.getIdProducto()).orElse(null));
+                            return new CarritoItemDTO(p.getIdProducto(), v.getIdVariante(), p.getNombre(), precio,
+                                    p.getImagenUrl(), v.getTalla(), v.getColor(), d.getCantidad());
+                        })
+                        .filter(i -> i != null)
+                        .toList())
+                .orElse(List.of());
     }
 
     @GetMapping("/{idCarrito}/detalles")

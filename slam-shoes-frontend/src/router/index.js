@@ -15,6 +15,10 @@ import HomeAdminView from '../views/HomeAdminView.vue'
 import AdminModulosView from '../views/AdminModulosView.vue'
 import AdminPlaceholderView from '../views/AdminPlaceholderView.vue'
 import AdminPedidosView from '../views/AdminPedidosView.vue'
+import MisPedidosView from '../views/MisPedidosView.vue'
+import AdminProductosView from '../views/AdminProductosView.vue'
+import AdminProductoNuevoView from '../views/AdminProductoNuevoView.vue'
+import AdminProductoEditarView from '../views/AdminProductoEditarView.vue'
 import { obtenerUsuario } from '../utils/auth.js'
 
 const routes = [
@@ -64,10 +68,14 @@ const routes = [
   { path: '/novedades', name: 'novedades', component: PromocionesView, meta: { tipo: 'novedades' } },
   { path: '/registro', name: 'registro', component: RegistroView },
   { path: '/mi-perfil', name: 'mi-perfil', component: MiPerfilView, meta: { requiereSesion: true } },
+  { path: '/mis-pedidos', name: 'mis-pedidos', component: MisPedidosView, meta: { requiereSesion: true } },
   { path: '/checkout', name: 'checkout', component: ResumenPedidoView, meta: { requiereSesion: true } },
   // Módulos del administrador
   { path: '/admin', name: 'admin-home', component: HomeAdminView, meta: { requiereAdmin: true } },
   { path: '/admin/modulos', name: 'admin-modulos', component: AdminModulosView, meta: { requiereAdmin: true } },
+  { path: '/admin/productos', name: 'admin-productos', component: AdminProductosView, meta: { requiereAdmin: true } },
+  { path: '/admin/productos/nuevo', name: 'admin-producto-nuevo', component: AdminProductoNuevoView, meta: { requiereAdmin: true } },
+  { path: '/admin/productos/editar', name: 'admin-producto-editar', component: AdminProductoEditarView, meta: { requiereAdmin: true } },
   { path: '/admin/modulo/:modulo', name: 'admin-modulo', component: AdminPlaceholderView, meta: { requiereAdmin: true } },
   { path: '/admin/pedidos', name: 'admin-pedidos', component: AdminPedidosView, meta: { requiereAdmin: true } },
   {
@@ -85,6 +93,8 @@ const router = createRouter({
 // Protección de rutas en el frontend (la validación real de roles en el servidor es una mejora pendiente)
 router.beforeEach((to) => {
   const usuario = obtenerUsuario();
+  // El administrador tiene su propio inicio
+  if (to.path === '/' && usuario && usuario.rol === 'ADMIN') return '/admin';
   if (to.meta.requiereAdmin && (!usuario || usuario.rol !== 'ADMIN')) return '/login';
   if (to.meta.requiereSesion && !usuario) return '/login';
 });

@@ -42,9 +42,7 @@
               <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative">
 
                 <!-- Botón Favorito -->
-                <button class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle text-white shadow" @click="marcarFavorito(producto)" title="Añadir a favoritos" style="z-index: 3;">
-                  <i class="bi bi-heart"></i>
-                </button>
+                <BotonFavorito :producto="producto" />
 
                 <!-- Contenedor cuadrado 1:1 -->
                 <div
@@ -101,13 +99,14 @@
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { verificarSesionYAccionar } from '@/utils/auth.js';
+import BotonFavorito from '@/components/BotonFavorito.vue';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
 export default {
   name: 'PlayerView',
   components: {
+    BotonFavorito,
     CarritoComponent,
     NavbarPrincipal
   },
@@ -187,24 +186,6 @@ export default {
       router.push(`/producto/${id}`);
     };
 
-    const marcarFavorito = (producto) => {
-      const usuarioActivo = verificarSesionYAccionar();
-      if (!usuarioActivo) return;
-
-      let favs = JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || [];
-      const existe = favs.some(p => p.idProducto === producto.idProducto);
-
-      if (!existe) {
-        favs.push(producto);
-        localStorage.setItem('slam_shoes_favoritos', JSON.stringify(favs));
-        // Avisa al encabezado para que actualice el contador de favoritos
-        window.dispatchEvent(new Event('storage'));
-        alert(`¡"${producto.nombre}" fue agregado a tus favoritos con éxito!`);
-      } else {
-        alert('Este producto ya se encuentra en tus favoritos.');
-      }
-    };
-
     return {
       jugador,
       productos,
@@ -212,8 +193,7 @@ export default {
       bannerFallido,
       cargarSegundaImagen,
       restaurarImagen,
-      irADetalle,
-      marcarFavorito
+      irADetalle
     };
   }
 };

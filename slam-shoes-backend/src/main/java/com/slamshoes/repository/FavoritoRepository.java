@@ -10,5 +10,7 @@ import com.slamshoes.model.Favorito;
 @Repository
 public interface FavoritoRepository extends JpaRepository<Favorito, Long> {
     List<Favorito> findByIdUsuario(Long idUsuario);
+    boolean existsByIdUsuarioAndIdProducto(Long idUsuario, Long idProducto);
+
     void deleteByIdUsuarioAndIdProducto(Long idUsuario, Long idProducto);
 }

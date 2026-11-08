@@ -10,12 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.slamshoes.dto.ItemPedidoDTO;
+import com.slamshoes.dto.PedidoClienteDTO;
 import com.slamshoes.dto.PedidoRequestDTO;
 import com.slamshoes.model.Pedido;
 import com.slamshoes.model.PedidoDetalle;
@@ -125,6 +129,27 @@ public class PedidoController {
         respuesta.put("total", pedido.getTotal());
         respuesta.put("estado", pedido.getEstado());
         return ResponseEntity.status(201).body(respuesta);
+    }
+
+    // Mis pedidos: pedidos del cliente con sus productos (más recientes primero)
+    @GetMapping("/usuario/{idUsuario}")
+    public List<PedidoClienteDTO> pedidosDeUsuario(@PathVariable Long idUsuario) {
+        return pedidoRepository.findByIdUsuario(idUsuario, Sort.by(Sort.Direction.DESC, "fecha")).stream()
+                .map(p -> new PedidoClienteDTO(
+                        p.getIdPedido(), p.getFecha(), p.getTotal(), p.getEstado(),
+                        p.getDireccionEnvio(), p.getMetodoPago(),
+                        pedidoDetalleRepository.findByIdPedido(p.getIdPedido()).stream().map(d -> {
+                            ProductoTalla v = productoTallaRepository.findById(d.getIdVariante()).orElse(null);
+                            Producto prod = v == null ? null : productoRepository.findById(v.getIdProducto()).orElse(null);
+                            return new PedidoClienteDTO.LineaPedidoDTO(
+                                    prod == null ? null : prod.getIdProducto(),
+                                    prod == null ? "Producto no disponible" : prod.getNombre(),
+                                    prod == null ? null : prod.getImagenUrl(),
+                                    v == null ? null : v.getTalla(),
+                                    v == null ? null : v.getColor(),
+                                    d.getCantidad(), d.getPrecioUnitario());
+                        }).toList()))
+                .toList();
     }
 
     private ResponseEntity<Map<String, String>> error(String mensaje) {

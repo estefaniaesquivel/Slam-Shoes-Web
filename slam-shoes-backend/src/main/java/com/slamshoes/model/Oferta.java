@@ -32,6 +32,9 @@ public class Oferta {
     @Column(name = "fecha_fin")
     private LocalDateTime fechaFin;
 
+    @Column(name = "portada_url", columnDefinition = "TEXT")
+    private String portadaUrl; // imagen de portada del bloque "Ofertas" del inicio
+
     private Boolean activa;
 
     public Oferta() {}
@@ -48,6 +51,8 @@ public class Oferta {
     public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
     public LocalDateTime getFechaFin() { return fechaFin; }
     public void setFechaFin(LocalDateTime fechaFin) { this.fechaFin = fechaFin; }
+    public String getPortadaUrl() { return portadaUrl; }
+    public void setPortadaUrl(String portadaUrl) { this.portadaUrl = portadaUrl; }
     public Boolean getActiva() { return activa; }
     public void setActiva(Boolean activa) { this.activa = activa; }
 }

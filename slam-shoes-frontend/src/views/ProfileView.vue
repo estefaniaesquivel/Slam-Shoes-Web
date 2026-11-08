@@ -46,7 +46,10 @@
               <i class="bi bi-pencil-square me-1"></i> Mi perfil
             </router-link>
             <router-link v-if="usuario && usuario.rol === 'ADMIN'" to="/admin" class="btn btn-outline-light">Panel de administrador</router-link>
-            <button class="btn btn-outline-light" @click="irAFavoritos">Mis Favoritos</button>
+            <router-link v-if="usuario && usuario.rol === 'CLIENTE'" to="/mis-pedidos" class="btn btn-outline-light">
+              <i class="bi bi-box-seam me-1"></i> Mis pedidos
+            </router-link>
+            <button v-if="usuario && usuario.rol === 'CLIENTE'" class="btn btn-outline-light" @click="irAFavoritos">Mis Favoritos</button>
             <button class="btn btn-danger fw-bold py-2 mt-2" @click="cerrarSesion">Cerrar Sesión</button>
           </div>
         </div>
@@ -63,6 +66,7 @@ import NavbarPrincipal from '@/components/NavbarPrincipal.vue'
 import CarritoComponent from '@/components/CarritoComponent.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { cerrarSesionLocal } from '@/utils/sesion.js'
 
 const router = useRouter()
 const usuario = ref(null)
@@ -77,9 +81,9 @@ onMounted(() => {
 })
 
 function cerrarSesion() {
-  // Eliminamos solo los datos de usuario; el carrito y favoritos (si los manejas en storage) se quedan intactos
-  localStorage.removeItem('usuario')
-  alert("Has cerrado sesión correctamente. Tus artículos en el carrito se mantienen guardados.")
+  // Vacía el carrito y los favoritos del navegador; siguen guardados en la cuenta del cliente
+  cerrarSesionLocal()
+  alert("Has cerrado sesión correctamente. Tu carrito y tus favoritos se restaurarán al volver a iniciar sesión.")
   router.push('/')
 }
 

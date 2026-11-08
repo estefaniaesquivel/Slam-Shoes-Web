@@ -20,6 +20,8 @@
     <div class="row g-4">
       <div class="col-6 col-md-3" v-for="item in items" :key="item.idProducto">
         <ProductoCardSimple
+          :id-producto="item.idProducto"
+          :marca="item.marca"
           :nombre="item.nombre"
           :imagen-url="item.imagenUrl"
           :precio="item.precio"
@@ -72,6 +74,7 @@ export default {
             precio: o.producto.precio,
             precioFinal: o.precioConDescuento,
             descuento: o.porcentajeDescuento,
+            marca: o.producto.marca || '',
             subtitulo: o.nombre || ''
           }));
         } else if (props.tipo === 'novedades') {
@@ -96,6 +99,7 @@ export default {
       precio: p.precio,
       precioFinal: null,
       descuento: null,
+      marca: p.marca || '',
       subtitulo: p.marca || ''
     });
 

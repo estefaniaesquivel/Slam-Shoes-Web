@@ -53,6 +53,7 @@ import CarritoComponent from '@/components/CarritoComponent.vue'
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { iniciarSesionLocal } from '@/utils/sesion.js'
 
 const router = useRouter()
 const correoInput = ref('')
@@ -67,8 +68,8 @@ async function handleLogin() {
 
     const usuario = response.data;
     
-    // Guardamos la sesión en el navegador
-    localStorage.setItem('usuario', JSON.stringify(usuario));
+    // Guarda la sesión y restaura el carrito y los favoritos de este cliente desde la BD
+    await iniciarSesionLocal(usuario);
 
     alert(`¡Bienvenido de nuevo, ${usuario.nombre}!`);
 
