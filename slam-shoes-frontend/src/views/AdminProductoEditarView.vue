@@ -2,35 +2,56 @@
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden d-flex flex-column">
     <NavbarPrincipal modo-admin />
 
-    <div class="flex-grow-1 container-fluid px-4 my-4">
+    <div class="flex-grow-1 container my-4" style="max-width: 1000px;">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h2 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Editar productos</h2>
         <router-link to="/admin/productos" class="btn btn-outline-light btn-sm">Volver</router-link>
       </div>
 
-      <input type="text" class="form-control bg-dark text-light border-secondary mb-3" style="max-width: 400px;" placeholder="Buscar por nombre..." v-model="busqueda" />
+      <input type="text" class="form-control bg-dark text-light border-secondary mb-3" style="max-width: 420px;"
+        placeholder="Buscar por ID o nombre..." v-model="busqueda" />
 
       <div v-if="cargando" class="text-muted">Cargando...</div>
+      <div v-else-if="filtrados.length === 0" class="text-center text-muted py-5">No se encontraron productos.</div>
+
       <div v-else class="table-responsive">
-        <table class="table table-dark table-bordered align-middle small">
+        <table class="table table-dark table-bordered align-middle">
           <thead>
-            <tr><th>ID</th><th>Imagen</th><th>Nombre</th><th style="width: 140px;">Precio (MXN)</th><th>Activo</th><th>Tendencia</th><th></th></tr>
+            <tr>
+              <th style="width: 70px;">ID</th>
+              <th style="width: 90px;">Portada</th>
+              <th>Nombre</th>
+              <th>Marca</th>
+              <th style="width: 150px;"></th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="p in filtrados" :key="p.idProducto">
               <td>{{ p.idProducto }}</td>
-              <td><img :src="p.imagenUrl" style="width: 48px; height: 48px; object-fit: cover;" class="rounded bg-white" :alt="p.nombre" /></td>
-              <td>{{ p.nombre }}</td>
-              <td><input type="number" min="0" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary" v-model.number="p.precio" /></td>
-              <td class="text-center"><input type="checkbox" class="form-check-input" v-model="p.activo" /></td>
-              <td class="text-center"><input type="checkbox" class="form-check-input" v-model="p.esTendencia" /></td>
-              <td><button class="btn btn-light btn-sm" @click="guardar(p)">Guardar</button></td>
+              <td>
+                <img :src="p.imagenUrl || '/logo-slamshoes-blanco.png'" class="rounded bg-white" style="width: 64px; height: 64px; object-fit: cover;" :alt="p.nombre" />
+              </td>
+              <td>
+                {{ p.nombre }}
+                <span v-if="p.activo === false" class="badge bg-secondary ms-1">Inactivo</span>
+              </td>
+              <td>{{ p.marca }}</td>
+              <td class="text-end text-nowrap">
+                <button class="btn btn-outline-danger btn-sm me-2" @click="aEliminar = p" title="Eliminar producto">
+                  <i class="bi bi-trash"></i>
+                </button>
+                <router-link :to="`/admin/productos/editar/${p.idProducto}`" class="btn btn-light btn-sm" title="Editar producto">
+                  <i class="bi bi-pencil-square me-1"></i>Editar
+                </router-link>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="text-secondary small">Por ahora se pueden editar precio, estado y tendencia. La edición completa (colores, tallas e imágenes) se agregará después.</p>
     </div>
+
+    <!-- Componente de verificación de eliminación -->
+    <ConfirmarEliminacion :producto="aEliminar" :eliminando="eliminando" @cancelar="aEliminar = null" @confirmar="eliminar" />
   </div>
 </template>
 
@@ -38,19 +59,24 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
+import ConfirmarEliminacion from '@/components/ConfirmarEliminacion.vue';
 
 const productos = ref([]);
 const cargando = ref(true);
 const busqueda = ref('');
+const aEliminar = ref(null);
+const eliminando = ref(false);
 
 const filtrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase();
-  return q ? productos.value.filter((p) => p.nombre.toLowerCase().includes(q)) : productos.value;
+  if (!q) return productos.value;
+  return productos.value.filter((p) => String(p.idProducto) === q || (p.nombre || '').toLowerCase().includes(q));
 });
 
 onMounted(async () => {
   try {
-    productos.value = (await axios.get('http://localhost:8080/api/productos')).data;
+    const lista = (await axios.get('http://localhost:8080/api/productos')).data;
+    productos.value = [...lista].sort((a, b) => a.idProducto - b.idProducto);
   } catch (e) {
     console.error('Error al cargar productos:', e);
   } finally {
@@ -58,16 +84,18 @@ onMounted(async () => {
   }
 });
 
-async function guardar(p) {
-  if (!(p.precio > 0)) {
-    alert('El precio debe ser mayor a 0.');
-    return;
-  }
+async function eliminar() {
+  const p = aEliminar.value;
+  eliminando.value = true;
   try {
-    await axios.put(`http://localhost:8080/api/productos/${p.idProducto}`, p);
-    alert(`"${p.nombre}" se actualizó correctamente.`);
+    await axios.delete(`http://localhost:8080/api/admin/productos/${p.idProducto}`);
+    productos.value = productos.value.filter((x) => x.idProducto !== p.idProducto);
+    aEliminar.value = null;
   } catch (e) {
-    alert('No se pudo actualizar el producto.');
+    alert(e.response?.data?.error || 'No se pudo eliminar el producto.');
+    aEliminar.value = null;
+  } finally {
+    eliminando.value = false;
   }
 }
 </script>
