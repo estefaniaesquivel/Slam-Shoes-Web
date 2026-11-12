@@ -11,4 +11,6 @@ import com.slamshoes.model.PedidoDetalle;
 public interface PedidoDetalleRepository extends JpaRepository<PedidoDetalle, Long> {
 
     List<PedidoDetalle> findByIdPedido(Long idPedido);
+
+    boolean existsByIdVariante(Long idVariante);
 }

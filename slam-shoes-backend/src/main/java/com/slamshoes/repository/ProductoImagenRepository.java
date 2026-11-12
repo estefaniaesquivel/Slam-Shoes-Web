@@ -10,4 +10,6 @@ import com.slamshoes.model.ProductoImagen;
 @Repository
 public interface ProductoImagenRepository extends JpaRepository<ProductoImagen, Long> {
     List<ProductoImagen> findByIdProducto(Long idProducto);
+
+    void deleteByIdProducto(Long idProducto);
 }

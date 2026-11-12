@@ -16,26 +16,15 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-
+// Imágenes fijas del sitio (carpeta public/), igual que el logo.
+// Para cambiarlas basta con reemplazar los archivos novedades.webp y ofertas.webp (2100 x 1000 px).
 export default {
   name: 'PromoTiles',
   setup() {
-    const portadas = ref({ novedades: null, ofertas: null });
-
-    onMounted(async () => {
-      try {
-        portadas.value = (await axios.get('http://localhost:8080/api/promos/portadas')).data;
-      } catch (error) {
-        console.error('Error al cargar las portadas:', error);
-      }
-    });
-
-    const tiles = computed(() => [
-      { clave: 'novedades', titulo: 'NOVEDADES', ruta: '/novedades', imagen: portadas.value.novedades },
-      { clave: 'ofertas', titulo: 'OFERTAS', ruta: '/ofertas', imagen: portadas.value.ofertas }
-    ]);
+    const tiles = [
+      { clave: 'novedades', titulo: 'NOVEDADES', ruta: '/novedades', imagen: '/novedades.webp' },
+      { clave: 'ofertas', titulo: 'OFERTAS', ruta: '/ofertas', imagen: '/ofertas.webp' }
+    ];
 
     return { tiles };
   }

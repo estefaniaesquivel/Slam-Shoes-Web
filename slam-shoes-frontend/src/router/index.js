@@ -19,6 +19,7 @@ import MisPedidosView from '../views/MisPedidosView.vue'
 import AdminProductosView from '../views/AdminProductosView.vue'
 import AdminProductoNuevoView from '../views/AdminProductoNuevoView.vue'
 import AdminProductoEditarView from '../views/AdminProductoEditarView.vue'
+import AdminProductoEdicionView from '../views/AdminProductoEdicionView.vue'
 import { obtenerUsuario } from '../utils/auth.js'
 
 const routes = [
@@ -76,6 +77,7 @@ const routes = [
   { path: '/admin/productos', name: 'admin-productos', component: AdminProductosView, meta: { requiereAdmin: true } },
   { path: '/admin/productos/nuevo', name: 'admin-producto-nuevo', component: AdminProductoNuevoView, meta: { requiereAdmin: true } },
   { path: '/admin/productos/editar', name: 'admin-producto-editar', component: AdminProductoEditarView, meta: { requiereAdmin: true } },
+  { path: '/admin/productos/editar/:id', name: 'admin-producto-edicion', component: AdminProductoEdicionView, meta: { requiereAdmin: true } },
   { path: '/admin/modulo/:modulo', name: 'admin-modulo', component: AdminPlaceholderView, meta: { requiereAdmin: true } },
   { path: '/admin/pedidos', name: 'admin-pedidos', component: AdminPedidosView, meta: { requiereAdmin: true } },
   {
