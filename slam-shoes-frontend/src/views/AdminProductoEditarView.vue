@@ -59,6 +59,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
+import { limpiarCatalogos } from '@/utils/catalogos.js';
 import ConfirmarEliminacion from '@/components/ConfirmarEliminacion.vue';
 
 const productos = ref([]);

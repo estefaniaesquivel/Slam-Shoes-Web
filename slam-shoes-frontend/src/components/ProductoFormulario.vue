@@ -66,7 +66,11 @@
           <i v-if="coloresSel.includes(c.nombre)" class="bi bi-check-lg" :class="c.claro ? 'text-dark' : 'text-white'"></i>
         </button>
       </div>
-      <div class="form-text text-secondary">Puedes elegir varios. Pasa el cursor sobre un color para ver su nombre.</div>
+      <div class="form-text text-secondary">
+        Solo se puede elegir <strong>un color</strong> por producto: cada color es un diseño distinto con su propio nombre y portada.
+        Si el modelo tiene otros colores, regístralos como productos aparte con el mismo <strong>Modelo</strong> y aparecerán como variantes en el detalle.
+        Pasa el cursor sobre un color para ver su nombre.
+      </div>
     </section>
 
     <!-- 4. Tallas por color -->
@@ -128,6 +132,7 @@
         <div class="col-md-4">
           <label class="form-label small text-secondary">Modelo</label>
           <input type="text" class="form-control campo" v-model="modelo" />
+          <div class="form-text text-secondary">Los tenis con el mismo modelo se muestran como variantes entre sí.</div>
         </div>
         <div class="col-md-4">
           <button type="button" class="btn w-100" :class="esTendencia ? 'btn-danger' : 'btn-outline-secondary'" @click="esTendencia = !esTendencia">
@@ -146,6 +151,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { COLORES, TALLAS } from '@/utils/paleta.js';
 
 const API = 'http://localhost:8080/api';
 
@@ -159,21 +165,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['enviar']);
 
-// Colores de la paleta (mismo orden y tonos de la imagen de referencia)
-const COLORES = [
-  { nombre: 'Naranja', fondo: '#ff5722' },
-  { nombre: 'Amarillo', fondo: '#ffc107' },
-  { nombre: 'Verde', fondo: '#22c55e' },
-  { nombre: 'Azul', fondo: '#6674f5' },
-  { nombre: 'Rojo', fondo: '#c81e1e' },
-  { nombre: 'Blanco', fondo: '#ffffff', claro: true },
-  { nombre: 'Gris', fondo: '#6b7099' },
-  { nombre: 'Negro', fondo: '#000000' },
-  { nombre: 'Café', fondo: '#6b3a12' },
-  { nombre: 'Morado', fondo: '#a855f7' },
-  { nombre: 'Rosa', fondo: '#ec4899' },
-  { nombre: 'Multicolor', fondo: 'linear-gradient(90deg, #ff5722, #ffc107, #22c55e, #6674f5, #a855f7, #ec4899)', claro: true }
-];
 // Colores de la paleta + los que ya tenga guardados el producto y no estén en la paleta
 const coloresDisponibles = computed(() => {
   const extras = coloresSel.value
@@ -183,8 +174,6 @@ const coloresDisponibles = computed(() => {
 });
 const fondoDe = (nombre) => coloresDisponibles.value.find((c) => c.nombre === nombre)?.fondo;
 
-// Tallas en cm: 22, 22.5, ... 32
-const TALLAS = Array.from({ length: 21 }, (_, i) => String(22 + i * 0.5));
 const STOCK_INICIAL = 10;
 
 // Catálogos desde la BD
@@ -241,14 +230,19 @@ function cargarInicial(p) {
 }
 
 // ---------- Colores y tallas ----------
+// Solo un color por producto: elegir otro reemplaza al actual; pulsar el elegido lo quita
 function alternarColor(color) {
   if (coloresSel.value.includes(color)) {
     coloresSel.value = coloresSel.value.filter((c) => c !== color);
     delete tallasPorColor[color];
-  } else {
-    coloresSel.value.push(color);
-    tallasPorColor[color] = {};
+    return;
   }
+  const anteriores = [...coloresSel.value];
+  const tallasPrevias = anteriores.length === 1 ? { ...tallasPorColor[anteriores[0]] } : {};
+  anteriores.forEach((c) => delete tallasPorColor[c]);
+  coloresSel.value = [color];
+  // Al cambiar de color se conservan las tallas/stock ya capturadas
+  tallasPorColor[color] = tallasPrevias;
 }
 
 function alternarTalla(color, talla) {
@@ -325,7 +319,11 @@ async function enviar() {
   }
 
   if (coloresSel.value.length === 0) {
-    alert('Selecciona al menos un color.');
+    alert('Selecciona un color.');
+    return;
+  }
+  if (coloresSel.value.length > 1) {
+    alert('Este producto tiene más de un color guardado. Deja solo uno (pulsa los colores que sobren para quitarlos) y registra los demás como productos aparte con el mismo Modelo.');
     return;
   }
   const sinTallas = coloresSel.value.find((c) => tallasOrdenadas(c).length === 0);

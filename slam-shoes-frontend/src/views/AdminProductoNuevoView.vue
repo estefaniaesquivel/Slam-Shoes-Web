@@ -18,6 +18,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
+import { limpiarCatalogos } from '@/utils/catalogos.js';
 import ProductoFormulario from '@/components/ProductoFormulario.vue';
 
 const router = useRouter();

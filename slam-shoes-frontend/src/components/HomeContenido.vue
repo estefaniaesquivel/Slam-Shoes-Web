@@ -21,39 +21,7 @@
             <p>Cargando productos de la base de datos o sin registros activos...</p>
         </div>
 
-        <div class="row g-4" v-else>
-            <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
-                <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative">
-                    
-                    <!-- Botón Favorito -->
-                    <BotonFavorito :producto="producto" />
-
-                    <!-- Contenedor Cuadrado Perfecto 1:1 sin sobrantes negros -->
-                    <div 
-                        class="bg-white w-100 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative square-box mb-3" 
-                        style="cursor: pointer;" 
-                        @click="irADetalle(producto.idProducto)"
-                        @mouseenter="cargarSegundaImagen(producto)"
-                        @mouseleave="restaurarImagen(producto)"
-                    >
-                        <img 
-                            :src="producto.imagenActual || producto.imagenUrl || '/logo-slamshoes-blanco.png'" 
-                            class="img-fluid rounded catalog-img fade-transition" 
-                            :alt="producto.nombre" 
-                        />
-                    </div>
-
-                    <!-- Nombre del producto, Categoría real y Precio -->
-                    <div class="text-start w-100">
-                        <h6 class="text-white text-truncate mb-1" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
-                            {{ producto.nombre }}
-                        </h6>
-                        <p class="text-secondary small mb-1">{{ producto.categoriaNombre }}</p>
-                        <p class="text-success fw-bold mb-0">${{ producto.precio }} MXN</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <CatalogoFiltrable v-else :productos="productos" :buscador="false" :filtros="false" />
     </div>
 
     <!-- Pie -->
@@ -74,10 +42,8 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
-import BotonFavorito from '@/components/BotonFavorito.vue';
-import productoService from '@/services/productoService';
+import CatalogoFiltrable from '@/components/CatalogoFiltrable.vue';
+import { obtenerProductos, obtenerCategorias } from '@/utils/catalogos.js';
 import BannerCarousel from '@/components/BannerCarousel.vue';
 import PromoTiles from '@/components/PromoTiles.vue';
 import SeccionProductos from '@/components/SeccionProductos.vue';
@@ -87,87 +53,39 @@ import ColeccionesGrid from '@/components/ColeccionesGrid.vue';
 export default {
   name: 'HomeContenido',
   components: {
-    BotonFavorito, BannerCarousel, PromoTiles, SeccionProductos, MarcasGrid, ColeccionesGrid },
+    CatalogoFiltrable, BannerCarousel, PromoTiles, SeccionProductos, MarcasGrid, ColeccionesGrid },
   props: {
     // En el inicio del administrador no se muestra el botón de favoritos
     modoAdmin: { type: Boolean, default: false }
   },
   setup() {
-    const router = useRouter();
     const productos = ref([]);
 
     const cargarDatos = async () => {
       try {
-        const respuestaProductos = await productoService.obtenerProductos();
-
-        // Categorías reales de la BD (una sola petición) para mostrar el nombre en cada tarjeta
-        const respuestaCategorias = await axios.get('http://localhost:8080/api/categorias').catch(() => ({ data: [] }));
+        // Productos y categorías en paralelo y con caché compartida (el Navbar ya pidió las categorías)
+        const [listaProductos, listaCategorias] = await Promise.all([
+          obtenerProductos(),
+          obtenerCategorias().catch(() => [])
+        ]);
         const nombresCategoria = {};
-        respuestaCategorias.data.forEach(c => { nombresCategoria[c.idCategoria] = c.nombre; });
+        listaCategorias.forEach(c => { nombresCategoria[c.idCategoria] = c.nombre; });
 
-        productos.value = respuestaProductos.data.map(p => ({
+        productos.value = listaProductos.map(p => ({
           ...p,
-          categoriaNombre: nombresCategoria[p.idCategoria] || '',
-          imagenActual: p.imagenUrl,
-          segundaImagen: null
+          subtitulo: nombresCategoria[p.idCategoria] || ''
         }));
       } catch (error) {
         console.error("Error al cargar los datos de la API:", error);
       }
     };
 
-    const cargarSegundaImagen = async (producto) => {
-      if (producto.segundaImagen) {
-        producto.imagenActual = producto.segundaImagen;
-        return;
-      }
-      try {
-        const resImgs = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${producto.idProducto}`);
-        const imgOrden2 = resImgs.data.find(img => img.orden === 2);
-        if (imgOrden2) {
-          producto.segundaImagen = imgOrden2.urlImagen;
-          producto.imagenActual = producto.segundaImagen;
-        } else {
-          producto.segundaImagen = producto.imagenUrl;
-        }
-      } catch (error) {
-        producto.segundaImagen = producto.imagenUrl;
-      }
-    };
-
-    const restaurarImagen = (producto) => {
-      producto.imagenActual = producto.imagenUrl;
-    };
-
-    const irADetalle = (id) => {
-      router.push(`/producto/${id}`);
-    };
-
     onMounted(() => {
       cargarDatos();
     });
 
-    return {
-      productos,
-      irADetalle,
-      cargarSegundaImagen,
-      restaurarImagen
-    };
+    return { productos };
   }
 };
 </script>
 
-<style scoped>
-.square-box {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-}
-.catalog-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.fade-transition {
-  transition: opacity 0.4s ease-in-out;
-}
-</style>

@@ -14,4 +14,7 @@ public interface OfertaRepository extends JpaRepository<Oferta, Long> {
     // Ofertas vigentes: activas y con "ahora" dentro del periodo inicio-fin
     List<Oferta> findByActivaTrueAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
             LocalDateTime inicio, LocalDateTime fin);
+
+    // Ofertas activas que todavía no terminaron (vigentes + las que empiezan más adelante)
+    List<Oferta> findByActivaTrueAndFechaFinGreaterThanEqual(LocalDateTime fin);
 }

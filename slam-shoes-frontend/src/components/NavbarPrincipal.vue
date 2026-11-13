@@ -1,6 +1,9 @@
 <template>
-  <!-- Encabezado (Navbar) compartido por HomeView y PlayerView -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary w-100 px-4">
+  <!-- Espacio que ocupa la barra (la barra es fija y se oculta al bajar / reaparece al subir) -->
+  <div :style="{ height: alturaBarra + 'px' }" aria-hidden="true"></div>
+
+  <!-- Encabezado (Navbar) compartido por todas las vistas -->
+  <nav ref="barra" class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4 barra-fija" :class="{ 'barra-oculta': oculta }">
     <div class="container-fluid px-0">
       <router-link class="navbar-brand" :to="rutaInicio">
         <img src="/logo-slamshoes-blanco.png" alt="Slam Shoes Logo" style="height: 45px; width: auto;" class="object-contain">
@@ -96,7 +99,18 @@
 
       <!-- Iconos de la derecha -->
       <div class="d-flex align-items-center gap-3">
-        <a href="#" class="text-light fs-5"><i class="bi bi-search"></i></a>
+        <!-- Buscador: nombre, marca o modelo (sin importar mayúsculas, acentos ni espacios) -->
+        <form class="d-flex align-items-center buscador-nav" :class="{ abierto: buscadorAbierto }" @submit.prevent="buscar" role="search">
+          <input
+            ref="campoBusqueda" v-model="textoBusqueda" type="search"
+            class="form-control form-control-sm bg-black text-light border-secondary campo-busqueda"
+            placeholder="Buscar nombre, marca o modelo..." aria-label="Buscar productos"
+            @keydown.esc="buscadorAbierto = false"
+          />
+          <button type="button" class="btn btn-link text-light fs-5 p-0 ms-2" aria-label="Buscar" @click="alternarBuscador">
+            <i class="bi bi-search"></i>
+          </button>
+        </form>
 
         <!-- Cliente: favoritos con contador -->
         <a v-if="!esModoAdmin" href="#" class="position-relative text-light text-decoration-none fs-5" @click.prevent="irAFavoritos" aria-label="Favoritos">
@@ -135,10 +149,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar, esAdmin } from '@/utils/auth.js';
+import { obtenerJugadores, obtenerColecciones, obtenerMarcas, obtenerCategorias } from '@/utils/catalogos.js';
 
 export default {
   name: 'NavbarPrincipal',
@@ -155,6 +170,48 @@ export default {
     const esInicio = computed(() => route.path === rutaInicio.value);
     const totalPedidos = ref(0);
 
+    // ---------- Barra fija: se oculta al bajar y reaparece al subir ----------
+    const barra = ref(null);
+    const alturaBarra = ref(70);
+    const oculta = ref(false);
+    let ultimoScroll = 0;
+
+    const medirBarra = () => { if (barra.value) alturaBarra.value = barra.value.offsetHeight; };
+    const alScroll = () => {
+      const y = window.scrollY;
+      if (y <= 80) oculta.value = false;               // arriba del todo: siempre visible
+      else if (y > ultimoScroll + 6) oculta.value = true;  // bajando: se oculta
+      else if (y < ultimoScroll - 6) oculta.value = false; // subiendo: reaparece
+      ultimoScroll = y;
+    };
+
+    // ---------- Buscador ----------
+    const buscadorAbierto = ref(false);
+    const textoBusqueda = ref(String(route.query.q || ''));
+    const campoBusqueda = ref(null);
+
+    const alternarBuscador = async () => {
+      if (!buscadorAbierto.value) {
+        buscadorAbierto.value = true;
+        await nextTick();
+        campoBusqueda.value?.focus();
+      } else if (textoBusqueda.value.trim()) {
+        buscar();
+      } else {
+        buscadorAbierto.value = false;
+      }
+    };
+    const buscar = () => {
+      const q = textoBusqueda.value.trim();
+      if (!q) return;
+      router.push({ path: '/buscar', query: { q } });
+    };
+    // Si ya se está en la página de resultados, el buscador se muestra abierto con lo buscado
+    watch(() => route.fullPath, () => {
+      if (route.path === '/buscar') { textoBusqueda.value = String(route.query.q || ''); buscadorAbierto.value = true; }
+      else buscadorAbierto.value = false;
+    });
+
     const jugadores = ref([]);
     const cargandoJugadores = ref(true);
     const colecciones = ref([]);
@@ -168,8 +225,8 @@ export default {
 
     const cargarJugadores = async () => {
       try {
-        const respuesta = await axios.get('http://localhost:8080/api/jugadores');
-        jugadores.value = respuesta.data;
+        const respuesta = await obtenerJugadores();
+        jugadores.value = respuesta;
       } catch (error) {
         console.error('Error al cargar los jugadores:', error);
       } finally {
@@ -179,8 +236,8 @@ export default {
 
     const cargarColecciones = async () => {
       try {
-        const respuesta = await axios.get('http://localhost:8080/api/colecciones');
-        colecciones.value = respuesta.data;
+        const respuesta = await obtenerColecciones();
+        colecciones.value = respuesta;
       } catch (error) {
         console.error('Error al cargar las colecciones:', error);
       } finally {
@@ -190,7 +247,7 @@ export default {
 
     const cargarMarcas = async () => {
       try {
-        marcas.value = (await axios.get('http://localhost:8080/api/marcas')).data;
+        marcas.value = await obtenerMarcas();
       } catch (error) {
         console.error('Error al cargar las marcas:', error);
       } finally {
@@ -200,7 +257,7 @@ export default {
 
     const cargarCategorias = async () => {
       try {
-        categorias.value = (await axios.get('http://localhost:8080/api/categorias')).data;
+        categorias.value = await obtenerCategorias();
       } catch (error) {
         console.error('Error al cargar las categorías:', error);
       } finally {
@@ -245,13 +302,28 @@ export default {
       cargarCategorias();
       if (esModoAdmin.value) cargarTotalPedidos();
       window.addEventListener('storage', refrescarContadores);
+      window.addEventListener('scroll', alScroll, { passive: true });
+      window.addEventListener('resize', medirBarra);
+      ultimoScroll = window.scrollY;
+      medirBarra();
+      if (route.path === '/buscar') buscadorAbierto.value = true;
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener('storage', refrescarContadores);
+      window.removeEventListener('scroll', alScroll);
+      window.removeEventListener('resize', medirBarra);
     });
 
     return {
+      barra,
+      alturaBarra,
+      oculta,
+      buscadorAbierto,
+      textoBusqueda,
+      campoBusqueda,
+      alternarBuscador,
+      buscar,
       esModoAdmin,
       rutaInicio,
       esInicio,
@@ -272,3 +344,34 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* Barra fija arriba: baja de nivel (se oculta) al desplazarse hacia abajo y vuelve al subir */
+.barra-fija {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  transition: transform 0.3s ease;
+}
+.barra-oculta { transform: translateY(-100%); }
+
+/* Campo de búsqueda: colapsado hasta pulsar la lupa */
+.campo-busqueda {
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-width: 0 !important;
+  opacity: 0;
+  transition: width 0.25s ease, opacity 0.25s ease;
+}
+.buscador-nav.abierto .campo-busqueda {
+  width: 260px;
+  max-width: 45vw;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-width: 1px !important;
+  opacity: 1;
+}
+</style>
