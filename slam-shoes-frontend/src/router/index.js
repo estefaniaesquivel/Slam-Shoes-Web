@@ -8,6 +8,7 @@ import PlayerView from '../views/PlayerView.vue'
 import CollectionView from '../views/CollectionView.vue'
 import CatalogoView from '../views/CatalogoView.vue'
 import PromocionesView from '../views/PromocionesView.vue'
+import BusquedaView from '../views/BusquedaView.vue'
 import RegistroView from '../views/RegistroView.vue'
 import MiPerfilView from '../views/MiPerfilView.vue'
 import ResumenPedidoView from '../views/ResumenPedidoView.vue'
@@ -67,6 +68,7 @@ const routes = [
   },
   { path: '/ofertas', name: 'ofertas', component: PromocionesView, meta: { tipo: 'ofertas' } },
   { path: '/novedades', name: 'novedades', component: PromocionesView, meta: { tipo: 'novedades' } },
+  { path: '/buscar', name: 'buscar', component: BusquedaView },
   { path: '/registro', name: 'registro', component: RegistroView },
   { path: '/mi-perfil', name: 'mi-perfil', component: MiPerfilView, meta: { requiereSesion: true } },
   { path: '/mis-pedidos', name: 'mis-pedidos', component: MisPedidosView, meta: { requiereSesion: true } },

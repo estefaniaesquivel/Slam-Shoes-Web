@@ -24,6 +24,26 @@ public class OfertaService {
         return ofertaRepository.findByActivaTrueAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(ahora, ahora);
     }
 
+    // Todas las ofertas activas que aún no terminaron: las vigentes hoy y las programadas a futuro.
+    // Se usan para LISTAR y mostrar el descuento; el cobro sigue usando solo las vigentes.
+    public List<Oferta> visibles() {
+        return ofertaRepository.findByActivaTrueAndFechaFinGreaterThanEqual(LocalDateTime.now());
+    }
+
+    public boolean esVigente(Oferta o) {
+        LocalDateTime ahora = LocalDateTime.now();
+        return !o.getFechaInicio().isAfter(ahora) && !o.getFechaFin().isBefore(ahora);
+    }
+
+    // Mejor oferta visible por producto: si tiene una vigente gana esa; si no, la futura de mayor descuento
+    public Map<Long, Oferta> mejorVisiblePorProducto() {
+        List<Oferta> todas = visibles();
+        Map<Long, Oferta> mejores = new HashMap<>(mejorPorProducto(todas.stream().filter(this::esVigente).toList()));
+        mejorPorProducto(todas.stream().filter(o -> !esVigente(o)).toList())
+                .forEach(mejores::putIfAbsent);
+        return mejores;
+    }
+
     // Si un producto tiene varias ofertas vigentes se queda con la de mayor descuento
     public Map<Long, Oferta> mejorPorProducto(List<Oferta> ofertas) {
         Map<Long, Oferta> mejores = new HashMap<>();

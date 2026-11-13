@@ -27,9 +27,6 @@ public class Novedad {
     @Column(name = "fecha_fin")
     private LocalDateTime fechaFin;
 
-    @Column(name = "portada_url", columnDefinition = "TEXT")
-    private String portadaUrl; // imagen de portada del bloque "Novedades" del inicio
-
     public Novedad() {}
 
     public Long getIdNovedad() { return idNovedad; }
@@ -40,6 +37,4 @@ public class Novedad {
     public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
     public LocalDateTime getFechaFin() { return fechaFin; }
     public void setFechaFin(LocalDateTime fechaFin) { this.fechaFin = fechaFin; }
-    public String getPortadaUrl() { return portadaUrl; }
-    public void setPortadaUrl(String portadaUrl) { this.portadaUrl = portadaUrl; }
 }

@@ -29,6 +29,8 @@
                 <i class="bi bi-trash"></i>
             </button>
 
+            <EtiquetaOferta :id-producto="producto.idProducto" />
+
             <!-- Imagen con clic al detalle -->
             <div 
                 class="bg-white w-100 p-2 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative mt-2" 
@@ -47,7 +49,7 @@
                     {{ producto.nombre }}
                 </h6>
                 <p class="text-secondary small mb-1">{{ producto.marca }}</p>
-                <p class="text-success fw-bold mb-2">${{ producto.precio }} MXN</p>
+                <div class="mb-2"><PrecioProducto :id-producto="producto.idProducto" :precio="producto.precio" /></div>
                 <button class="btn btn-light w-100 btn-sm fw-semibold" @click="irADetalle(producto.idProducto)">
                     Ver detalles
                 </button>
@@ -69,10 +71,12 @@ import { verificarSesionYAccionar } from '@/utils/auth.js';
 import { quitarFavorito } from '@/utils/favoritos.js';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import CarritoComponent from '@/components/CarritoComponent.vue';
+import EtiquetaOferta from '@/components/EtiquetaOferta.vue';
+import PrecioProducto from '@/components/PrecioProducto.vue';
 
 export default {
   name: 'FavoritosView',
-  components: { NavbarPrincipal, CarritoComponent },
+  components: { NavbarPrincipal, CarritoComponent, EtiquetaOferta, PrecioProducto },
   setup() {
     const router = useRouter();
     const favoritos = ref([]);

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.slamshoes.dto.VarianteModeloDTO;
 import com.slamshoes.model.Producto;
 import com.slamshoes.repository.ProductoRepository;
 
@@ -37,6 +38,24 @@ public class ProductoController {
         return productoRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Variantes de diseño: los productos activos con el mismo "modelo" (incluye al propio producto).
+    // Cada uno se muestra con su portada (imagen de orden 1 = productos.imagen_url).
+    @GetMapping("/{id}/variantes")
+    public ResponseEntity<List<VarianteModeloDTO>> variantes(@PathVariable Long id) {
+        return productoRepository.findById(id).map(actual -> {
+            String modelo = actual.getModelo() == null ? "" : actual.getModelo().trim();
+            List<Producto> mismos = modelo.isEmpty()
+                    ? List.of(actual)
+                    : productoRepository.findByModeloIgnoreCase(modelo);
+            List<VarianteModeloDTO> lista = mismos.stream()
+                    .filter(p -> p.getIdProducto().equals(id) || !Boolean.FALSE.equals(p.getActivo()))
+                    .sorted((a, b) -> Long.compare(a.getIdProducto(), b.getIdProducto()))
+                    .map(p -> new VarianteModeloDTO(p.getIdProducto(), p.getNombre(), p.getImagenUrl()))
+                    .toList();
+            return ResponseEntity.ok(lista);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     // 3. CREATE: Registrar un nuevo producto desde el formulario del administrador

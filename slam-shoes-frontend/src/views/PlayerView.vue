@@ -33,43 +33,7 @@
 
         <!-- Catálogo de tenis indexados al jugador -->
         <div class="container-fluid px-4 my-5 pt-3">
-          <div v-if="productos.length === 0" class="text-center text-muted py-4">
-            <p>Aún no hay tenis registrados para este jugador.</p>
-          </div>
-
-          <div class="row g-4" v-else>
-            <div class="col-md-3" v-for="producto in productos" :key="producto.idProducto">
-              <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative">
-
-                <!-- Botón Favorito -->
-                <BotonFavorito :producto="producto" />
-
-                <!-- Contenedor cuadrado 1:1 -->
-                <div
-                  class="bg-white w-100 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative square-box mb-3"
-                  style="cursor: pointer;"
-                  @click="irADetalle(producto.idProducto)"
-                  @mouseenter="cargarSegundaImagen(producto)"
-                  @mouseleave="restaurarImagen(producto)"
-                >
-                  <img
-                    :src="producto.imagenActual || producto.imagenUrl || '/logo-slamshoes-blanco.png'"
-                    class="img-fluid rounded catalog-img fade-transition"
-                    :alt="producto.nombre"
-                  />
-                </div>
-
-                <!-- Nombre, marca y precio -->
-                <div class="text-start w-100">
-                  <h6 class="text-white text-truncate mb-1" style="cursor: pointer;" @click="irADetalle(producto.idProducto)">
-                    {{ producto.nombre }}
-                  </h6>
-                  <p class="text-secondary small mb-1">{{ producto.marca }}</p>
-                  <p class="text-success fw-bold mb-0">${{ producto.precio }} MXN</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CatalogoFiltrable :productos="productos" vacio="Aún no hay tenis registrados para este jugador." />
         </div>
 
       </template>
@@ -97,22 +61,21 @@
 
 <script>
 import { ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
-import BotonFavorito from '@/components/BotonFavorito.vue';
+import CatalogoFiltrable from '@/components/CatalogoFiltrable.vue';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
 export default {
   name: 'PlayerView',
   components: {
-    BotonFavorito,
+    CatalogoFiltrable,
     CarritoComponent,
     NavbarPrincipal
   },
   setup() {
     const route = useRoute();
-    const router = useRouter();
 
     const jugador = ref(null);
     const productos = ref([]);
@@ -135,11 +98,7 @@ export default {
         if (String(route.params.id) !== String(id)) return;
 
         jugador.value = resJugador.data;
-        productos.value = resProductos.data.map((p) => ({
-          ...p,
-          imagenActual: p.imagenUrl,
-          segundaImagen: null
-        }));
+        productos.value = resProductos.data;
       } catch (error) {
         console.error('Error al cargar la página del jugador:', error);
       } finally {
@@ -159,41 +118,11 @@ export default {
       { immediate: true }
     );
 
-    const cargarSegundaImagen = async (producto) => {
-      if (producto.segundaImagen) {
-        producto.imagenActual = producto.segundaImagen;
-        return;
-      }
-      try {
-        const resImgs = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${producto.idProducto}`);
-        const imgOrden2 = resImgs.data.find(img => img.orden === 2);
-        if (imgOrden2) {
-          producto.segundaImagen = imgOrden2.urlImagen;
-          producto.imagenActual = producto.segundaImagen;
-        } else {
-          producto.segundaImagen = producto.imagenUrl;
-        }
-      } catch (error) {
-        producto.segundaImagen = producto.imagenUrl;
-      }
-    };
-
-    const restaurarImagen = (producto) => {
-      producto.imagenActual = producto.imagenUrl;
-    };
-
-    const irADetalle = (id) => {
-      router.push(`/producto/${id}`);
-    };
-
     return {
       jugador,
       productos,
       cargando,
-      bannerFallido,
-      cargarSegundaImagen,
-      restaurarImagen,
-      irADetalle
+      bannerFallido
     };
   }
 };
@@ -218,17 +147,4 @@ export default {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 75%);
 }
 
-/* Mismo estilo de tarjetas que el catálogo de HomeView */
-.square-box {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-}
-.catalog-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.fade-transition {
-  transition: opacity 0.4s ease-in-out;
-}
 </style>

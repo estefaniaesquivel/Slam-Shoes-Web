@@ -1,53 +1,69 @@
 <template>
-  <!-- Tarjeta cuadrada 1:1 reutilizable (secciones del inicio y paneles de ofertas/novedades) -->
-  <div class="border border-secondary bg-black p-3 rounded-3 d-flex flex-column position-relative tarjeta" @click="$emit('abrir')">
-    <BotonFavorito v-if="idProducto" :producto="{ idProducto, nombre, imagenUrl, precio, marca }" />
-    <span v-if="descuento" class="badge bg-danger position-absolute top-0 start-0 m-2" style="z-index: 2;">-{{ descuentoTexto }}%</span>
+  <!-- Tarjeta del catálogo: imagen 1:1 (cambia a la de orden 2 al pasar el cursor), favorito y etiqueta de oferta -->
+  <div class="border border-secondary bg-black p-3 rounded-3 text-center d-flex flex-column align-items-center justify-content-between position-relative h-100">
+    <BotonFavorito :producto="producto" />
+    <EtiquetaOferta :id-producto="producto.idProducto" />
 
-    <div class="bg-white w-100 rounded-3 overflow-hidden square-box mb-3">
-      <img :src="imagenUrl || '/logo-slamshoes-blanco.png'" class="w-100 h-100 object-fit-cover" :alt="nombre" />
+    <div
+      class="bg-white w-100 rounded-3 d-flex align-items-center justify-content-center overflow-hidden position-relative square-box mb-3"
+      style="cursor: pointer;"
+      @click="irADetalle"
+      @mouseenter="mostrarSegunda"
+      @mouseleave="imagenActual = producto.imagenUrl"
+    >
+      <img
+        :src="imagenActual || producto.imagenUrl || '/logo-slamshoes-blanco.png'"
+        class="img-fluid rounded catalog-img fade-transition"
+        :alt="producto.nombre"
+      />
     </div>
 
-    <h6 class="text-white text-truncate mb-1" :title="nombre">{{ nombre }}</h6>
-    <p v-if="subtitulo" class="text-secondary small mb-1">{{ subtitulo }}</p>
-
-    <p class="mb-0 fw-bold">
-      <template v-if="precioFinal != null && precioFinal < precio">
-        <span class="text-success">${{ precioFinal }} MXN</span>
-        <span class="text-secondary text-decoration-line-through small ms-2">${{ precio }}</span>
-      </template>
-      <span v-else class="text-success">${{ precio }} MXN</span>
-    </p>
+    <div class="text-start w-100">
+      <h6 class="text-white text-truncate mb-1" style="cursor: pointer;" :title="producto.nombre" @click="irADetalle">
+        {{ producto.nombre }}
+      </h6>
+      <p class="text-secondary small mb-1">{{ subtitulo || producto.marca }}</p>
+      <PrecioProducto :id-producto="producto.idProducto" :precio="producto.precio" />
+    </div>
   </div>
 </template>
 
-<script>
-import { computed } from 'vue';
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 import BotonFavorito from '@/components/BotonFavorito.vue';
+import EtiquetaOferta from '@/components/EtiquetaOferta.vue';
+import PrecioProducto from '@/components/PrecioProducto.vue';
 
-export default {
-  name: 'ProductoCardSimple',
-  components: { BotonFavorito },
-  props: {
-    idProducto: { type: Number, default: null },
-    marca: { type: String, default: '' },
-    nombre: { type: String, default: '' },
-    imagenUrl: { type: String, default: '' },
-    precio: { type: Number, default: 0 },
-    precioFinal: { type: Number, default: null },
-    descuento: { type: Number, default: null },
-    subtitulo: { type: String, default: '' }
-  },
-  emits: ['abrir'],
-  setup(props) {
-    const descuentoTexto = computed(() => Number(props.descuento).toString());
-    return { descuentoTexto };
+const props = defineProps({
+  // { idProducto, nombre, marca, precio, imagenUrl }
+  producto: { type: Object, required: true },
+  // Línea bajo el nombre (por defecto la marca)
+  subtitulo: { type: String, default: '' }
+});
+
+const router = useRouter();
+const imagenActual = ref(props.producto.imagenUrl);
+let segundaImagen = null;
+
+const irADetalle = () => router.push(`/producto/${props.producto.idProducto}`);
+
+const mostrarSegunda = async () => {
+  if (segundaImagen) { imagenActual.value = segundaImagen; return; }
+  try {
+    const res = await axios.get(`http://localhost:8080/api/producto-imagenes/producto/${props.producto.idProducto}`);
+    const orden2 = res.data.find((i) => i.orden === 2);
+    segundaImagen = orden2 ? orden2.urlImagen : props.producto.imagenUrl;
+  } catch (e) {
+    segundaImagen = props.producto.imagenUrl;
   }
+  imagenActual.value = segundaImagen;
 };
 </script>
 
 <style scoped>
-.tarjeta { cursor: pointer; transition: transform 0.2s ease; }
-.tarjeta:hover { transform: translateY(-4px); }
-.square-box { aspect-ratio: 1 / 1; }
+.square-box { width: 100%; aspect-ratio: 1 / 1; }
+.catalog-img { width: 100%; height: 100%; object-fit: cover; }
+.fade-transition { transition: opacity 0.4s ease-in-out; }
 </style>

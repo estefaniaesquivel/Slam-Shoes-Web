@@ -56,31 +56,47 @@
           <span class="badge bg-secondary text-uppercase mb-2">{{ producto.marca }}</span>
           <h1 class="text-white fw-bold mb-2">{{ producto.nombre }}</h1>
 
+          <!-- Categoría: solo el nombre -->
           <div class="mb-3 p-3 bg-black border border-secondary rounded" v-if="categoriaInfo.nombre">
-            <span class="text-warning small text-uppercase fw-bold d-block mb-1">
+            <span class="text-warning small text-uppercase fw-bold">
               CATEGORÍA: {{ categoriaInfo.nombre }}
             </span>
-            <p class="text-secondary small mb-0">{{ categoriaInfo.descripcion || producto.descripcion }}</p>
           </div>
 
-          <h3 class="text-success fw-bold mb-3">
+          <!-- Descripción del producto (productos.descripcion) -->
+          <div class="mb-3 p-3 bg-black border border-secondary rounded" v-if="producto.descripcion && producto.descripcion.trim()">
+            <span class="text-light small text-uppercase fw-bold d-block mb-1">Descripción</span>
+            <p class="text-secondary small mb-0" style="white-space: pre-line;">{{ producto.descripcion }}</p>
+          </div>
+
+          <h3 class="text-success fw-bold mb-2">
             ${{ precioFinal }} MXN
-            <template v-if="ofertaVigente">
+            <template v-if="oferta && oferta.vigente">
               <span class="text-secondary text-decoration-line-through fs-6 ms-2">${{ producto.precio }}</span>
-              <span class="badge bg-danger ms-2 fs-6">-{{ ofertaVigente.porcentajeDescuento }}%</span>
-              <span v-if="ofertaVigente.nombre" class="badge bg-secondary ms-1 fs-6">{{ ofertaVigente.nombre }}</span>
+              <span class="badge bg-danger ms-2 fs-6">-{{ porcentajeTexto(oferta) }}%</span>
             </template>
           </h3>
+          <p v-if="oferta && !oferta.vigente" class="text-warning small mb-3">
+            <span class="badge bg-danger me-1">-{{ porcentajeTexto(oferta) }}%</span>
+            Oferta programada desde el {{ fechaCorta(oferta.fechaInicio) }}: ${{ oferta.precioConDescuento }} MXN
+          </p>
+          <div v-else class="mb-3"></div>
 
           <hr class="border-secondary mb-4">
 
-          <!-- Estilo / Color actual -->
+          <!-- Estilos: el actual y los demás tenis del mismo modelo (portada = imagen de orden 1) -->
           <div class="mb-4">
             <span class="text-muted small text-uppercase d-block mb-2">STYLE: {{ producto.nombre }}</span>
-            <div class="d-flex gap-2">
-              <div class="style-box">
-                <img :src="producto.imagenUrl" class="img-fill" :alt="producto.nombre">
-              </div>
+            <div class="d-flex flex-wrap gap-2">
+              <router-link
+                v-for="v in estilos" :key="v.idProducto"
+                :to="`/producto/${v.idProducto}`"
+                class="style-box"
+                :class="{ 'style-activo': v.idProducto === producto.idProducto }"
+                :title="v.nombre"
+              >
+                <img :src="v.imagenUrl || '/logo-slamshoes-blanco.png'" class="img-fill" :alt="v.nombre">
+              </router-link>
             </div>
           </div>
 
@@ -150,12 +166,13 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar } from '@/utils/auth.js';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
+import { porcentajeTexto, fechaCorta } from '@/utils/ofertas.js';
 
 export default {
   name: 'ProductDetailView',
@@ -167,8 +184,15 @@ export default {
     const route = useRoute();
 
     const producto = ref(null);
-    const ofertaVigente = ref(null); // oferta activa del producto (tabla ofertas)
-    const precioFinal = computed(() => (ofertaVigente.value ? ofertaVigente.value.precioConDescuento : producto.value?.precio));
+    const oferta = ref(null); // mejor oferta del producto (vigente o programada)
+    // Solo se cobra el descuento si la oferta ya empezó (igual que en el servidor)
+    const precioFinal = computed(() => (oferta.value && oferta.value.vigente ? oferta.value.precioConDescuento : producto.value?.precio));
+    const variantes = ref([]); // tenis con el mismo modelo
+    const estilos = computed(() =>
+      variantes.value.length > 0
+        ? variantes.value
+        : producto.value ? [{ idProducto: producto.value.idProducto, nombre: producto.value.nombre, imagenUrl: producto.value.imagenUrl }] : []
+    );
     const categoriaInfo = ref({});
     const galeriaImagenes = ref([]);
     const tallasDisponibles = ref([]);
@@ -177,9 +201,14 @@ export default {
     const indiceActualImagen = ref(0);
     const cargando = ref(true);
 
-    const idProducto = route.params.id;
-
     const cargarDatosProducto = async () => {
+      const idProducto = route.params.id;
+      cargando.value = true;
+      producto.value = null;
+      oferta.value = null;
+      variantes.value = [];
+      categoriaInfo.value = {};
+      tallaSeleccionada.value = null;
       try {
         const resProducto = await axios.get(`http://localhost:8080/api/productos/${idProducto}`);
         producto.value = resProducto.data;
@@ -189,7 +218,13 @@ export default {
         const resOferta = await axios
           .get(`http://localhost:8080/api/ofertas/producto/${idProducto}`)
           .catch(() => ({ data: null }));
-        ofertaVigente.value = resOferta.data;
+        oferta.value = resOferta.data;
+
+        // Otros tenis del mismo modelo (columna "modelo" de productos)
+        const resVariantes = await axios
+          .get(`http://localhost:8080/api/productos/${idProducto}/variantes`)
+          .catch(() => ({ data: [] }));
+        variantes.value = resVariantes.data;
 
         if (producto.value.idCategoria) {
           const resCat = await axios
@@ -222,6 +257,7 @@ export default {
         console.error("Error al cargar los detalles del producto:", error);
       } finally {
         cargando.value = false;
+        window.scrollTo({ top: 0 });
       }
     };
 
@@ -298,14 +334,16 @@ export default {
       }
     };
 
-    onMounted(() => {
-      cargarDatosProducto();
-    });
+    // Al elegir otro estilo (otro producto del mismo modelo) la vista se recarga con el nuevo id
+    watch(() => route.params.id, (id) => { if (id && route.name === 'product-detail') cargarDatosProducto(); }, { immediate: true });
 
     return {
       producto,
       categoriaInfo,
-      ofertaVigente,
+      oferta,
+      estilos,
+      porcentajeTexto,
+      fechaCorta,
       precioFinal,
       galeriaImagenes,
       tallasDisponibles,
@@ -394,13 +432,18 @@ export default {
 
 /* Cuadro de estilo actual */
 .style-box {
-  width: 60px;
-  height: 60px;
+  display: block;
+  width: 72px;
+  height: 72px;
   background: #fff;
-  border: 1px solid #f8f9fa;
+  border: 1px solid #6c757d;
   border-radius: 0.375rem;
   overflow: hidden;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
 }
+.style-box:hover { opacity: 1; border-color: #fff; }
+.style-activo { opacity: 1; border: 2px solid #fff; }
 
 /* Flechas centradas verticalmente sobre la imagen */
 .nav-arrow {

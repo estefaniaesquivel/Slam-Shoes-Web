@@ -19,6 +19,9 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     // Productos de una marca (productos.id_marca)
     List<Producto> findByIdMarca(Long idMarca);
 
+    // Productos del mismo modelo (columna productos.modelo), sin distinguir mayúsculas
+    List<Producto> findByModeloIgnoreCase(String modelo);
+
     // Productos de una categoría (productos.id_categoria)
     List<Producto> findByIdCategoria(Long idCategoria);
 }
