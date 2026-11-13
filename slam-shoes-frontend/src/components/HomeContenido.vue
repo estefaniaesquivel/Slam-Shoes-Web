@@ -42,9 +42,8 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import CatalogoFiltrable from '@/components/CatalogoFiltrable.vue';
-import productoService from '@/services/productoService';
+import { obtenerProductos, obtenerCategorias } from '@/utils/catalogos.js';
 import BannerCarousel from '@/components/BannerCarousel.vue';
 import PromoTiles from '@/components/PromoTiles.vue';
 import SeccionProductos from '@/components/SeccionProductos.vue';
@@ -64,14 +63,15 @@ export default {
 
     const cargarDatos = async () => {
       try {
-        const respuestaProductos = await productoService.obtenerProductos();
-
-        // Categorías reales de la BD (una sola petición) para mostrar el nombre en cada tarjeta
-        const respuestaCategorias = await axios.get('http://localhost:8080/api/categorias').catch(() => ({ data: [] }));
+        // Productos y categorías en paralelo y con caché compartida (el Navbar ya pidió las categorías)
+        const [listaProductos, listaCategorias] = await Promise.all([
+          obtenerProductos(),
+          obtenerCategorias().catch(() => [])
+        ]);
         const nombresCategoria = {};
-        respuestaCategorias.data.forEach(c => { nombresCategoria[c.idCategoria] = c.nombre; });
+        listaCategorias.forEach(c => { nombresCategoria[c.idCategoria] = c.nombre; });
 
-        productos.value = respuestaProductos.data.map(p => ({
+        productos.value = listaProductos.map(p => ({
           ...p,
           subtitulo: nombresCategoria[p.idCategoria] || ''
         }));

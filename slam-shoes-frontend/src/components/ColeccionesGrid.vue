@@ -26,7 +26,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { obtenerColecciones } from '@/utils/catalogos.js';
 
 export default {
   name: 'ColeccionesGrid',
@@ -37,7 +37,7 @@ export default {
 
     onMounted(async () => {
       try {
-        colecciones.value = (await axios.get('http://localhost:8080/api/colecciones')).data;
+        colecciones.value = await obtenerColecciones();
       } catch (error) {
         console.error('Error al cargar las colecciones:', error);
       } finally {

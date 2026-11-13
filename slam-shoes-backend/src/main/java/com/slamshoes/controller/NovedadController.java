@@ -2,6 +2,9 @@ package com.slamshoes.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -29,12 +32,17 @@ public class NovedadController {
     @GetMapping("/productos")
     public List<Producto> productosNovedad() {
         LocalDateTime ahora = LocalDateTime.now();
-        return novedadRepository
+        List<Long> ids = novedadRepository
                 .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqualOrderByFechaInicioDesc(ahora, ahora)
                 .stream()
                 .map(Novedad::getIdProducto)
                 .distinct()
-                .map(id -> productoRepository.findById(id).orElse(null))
+                .toList();
+        // Una sola consulta para todos los productos (antes: una por novedad), conservando el orden
+        Map<Long, Producto> porId = productoRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Producto::getIdProducto, Function.identity()));
+        return ids.stream()
+                .map(porId::get)
                 .filter(p -> p != null && !Boolean.FALSE.equals(p.getActivo()))
                 .toList();
     }

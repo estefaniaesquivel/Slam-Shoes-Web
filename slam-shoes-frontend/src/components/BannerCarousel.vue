@@ -19,9 +19,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-
-const API = 'http://localhost:8080/api';
+import { obtenerBanners, obtenerColecciones } from '@/utils/catalogos.js';
 
 export default {
   name: 'BannerCarousel',
@@ -31,11 +29,11 @@ export default {
 
     onMounted(async () => {
       const [resBanners, resColecciones] = await Promise.all([
-        axios.get(`${API}/banners`).catch(() => ({ data: [] })),
-        axios.get(`${API}/colecciones`).catch(() => ({ data: [] }))
+        obtenerBanners().catch(() => []),
+        obtenerColecciones().catch(() => [])
       ]);
-      banners.value = resBanners.data;
-      colecciones.value = resColecciones.data;
+      banners.value = resBanners;
+      colecciones.value = resColecciones;
     });
 
     const slides = computed(() => {

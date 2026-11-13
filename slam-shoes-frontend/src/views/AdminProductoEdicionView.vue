@@ -32,6 +32,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
+import { limpiarCatalogos } from '@/utils/catalogos.js';
 import ProductoFormulario from '@/components/ProductoFormulario.vue';
 
 const API = 'http://localhost:8080/api/admin/productos';

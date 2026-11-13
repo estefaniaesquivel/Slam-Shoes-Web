@@ -1,7 +1,11 @@
 package com.slamshoes.controller;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,20 +40,29 @@ public class OfertaController {
                 ofertaService.precioFinal(p.getPrecio() == null ? 0 : p.getPrecio(), o), p);
     }
 
+    // Lee varios productos en una sola consulta
+    private Map<Long, Producto> productosPorId(Collection<Long> ids) {
+        return productoRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Producto::getIdProducto, Function.identity()));
+    }
+
     // Ofertas vigentes en bruto
     @GetMapping("/vigentes")
     public List<Oferta> listarVigentes() {
         return ofertaService.vigentes();
     }
 
-    // TODAS las ofertas activas que no han terminado (vigentes hoy y programadas), un producto por oferta
+    // TODAS las ofertas activas que no han terminado (vigentes hoy y programadas), un producto por oferta.
+    // Los productos se leen en UNA sola consulta (antes era una consulta por oferta).
     @GetMapping("/productos")
     public List<OfertaProductoDTO> productosEnOferta() {
-        return ofertaService.mejorVisiblePorProducto().values().stream()
-                .map(o -> productoRepository.findById(o.getIdProducto())
-                        .filter(p -> !Boolean.FALSE.equals(p.getActivo()))
-                        .map(p -> aDTO(o, p))
-                        .orElse(null))
+        Map<Long, Oferta> ofertas = ofertaService.mejorVisiblePorProducto();
+        Map<Long, Producto> productos = productosPorId(ofertas.keySet());
+        return ofertas.values().stream()
+                .map(o -> {
+                    Producto p = productos.get(o.getIdProducto());
+                    return (p == null || Boolean.FALSE.equals(p.getActivo())) ? null : aDTO(o, p);
+                })
                 .filter(dto -> dto != null)
                 .sorted(Comparator.comparing(OfertaProductoDTO::vigente).reversed()
                         .thenComparing(Comparator.comparing(OfertaProductoDTO::porcentajeDescuento).reversed()))
@@ -59,10 +72,12 @@ public class OfertaController {
     // Mejor oferta de cada producto en ligero: sirve para pintar la etiqueta de descuento en todas las tarjetas
     @GetMapping("/resumen")
     public List<OfertaResumenDTO> resumen() {
-        return ofertaService.mejorVisiblePorProducto().values().stream()
+        Map<Long, Oferta> ofertas = ofertaService.mejorVisiblePorProducto();
+        Map<Long, Producto> productos = productosPorId(ofertas.keySet());
+        return ofertas.values().stream()
                 .map(o -> {
-                    Double precio = productoRepository.findById(o.getIdProducto())
-                            .map(Producto::getPrecio).orElse(0.0);
+                    Producto prod = productos.get(o.getIdProducto());
+                    Double precio = prod == null || prod.getPrecio() == null ? 0.0 : prod.getPrecio();
                     return new OfertaResumenDTO(
                             o.getIdProducto(), o.getNombre(), o.getPorcentajeDescuento(),
                             ofertaService.precioFinal(precio == null ? 0 : precio, o),

@@ -153,6 +153,7 @@ import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar, esAdmin } from '@/utils/auth.js';
+import { obtenerJugadores, obtenerColecciones, obtenerMarcas, obtenerCategorias } from '@/utils/catalogos.js';
 
 export default {
   name: 'NavbarPrincipal',
@@ -224,8 +225,8 @@ export default {
 
     const cargarJugadores = async () => {
       try {
-        const respuesta = await axios.get('http://localhost:8080/api/jugadores');
-        jugadores.value = respuesta.data;
+        const respuesta = await obtenerJugadores();
+        jugadores.value = respuesta;
       } catch (error) {
         console.error('Error al cargar los jugadores:', error);
       } finally {
@@ -235,8 +236,8 @@ export default {
 
     const cargarColecciones = async () => {
       try {
-        const respuesta = await axios.get('http://localhost:8080/api/colecciones');
-        colecciones.value = respuesta.data;
+        const respuesta = await obtenerColecciones();
+        colecciones.value = respuesta;
       } catch (error) {
         console.error('Error al cargar las colecciones:', error);
       } finally {
@@ -246,7 +247,7 @@ export default {
 
     const cargarMarcas = async () => {
       try {
-        marcas.value = (await axios.get('http://localhost:8080/api/marcas')).data;
+        marcas.value = await obtenerMarcas();
       } catch (error) {
         console.error('Error al cargar las marcas:', error);
       } finally {
@@ -256,7 +257,7 @@ export default {
 
     const cargarCategorias = async () => {
       try {
-        categorias.value = (await axios.get('http://localhost:8080/api/categorias')).data;
+        categorias.value = await obtenerCategorias();
       } catch (error) {
         console.error('Error al cargar las categorías:', error);
       } finally {

@@ -12,15 +12,7 @@
 
     <div class="row g-4">
       <div class="col-6 col-md-3" v-for="item in items" :key="item.idProducto">
-        <ProductoCardSimple
-          :id-producto="item.idProducto"
-          :marca="item.marca"
-          :nombre="item.nombre"
-          :imagen-url="item.imagenUrl"
-          :precio="item.precio"
-          :subtitulo="item.subtitulo"
-          @abrir="irADetalle(item.idProducto)"
-        />
+        <ProductoCardCatalogo :producto="item" :subtitulo="item.subtitulo" />
       </div>
     </div>
   </div>
@@ -28,22 +20,21 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import axios from 'axios';
-import ProductoCardSimple from '@/components/ProductoCardSimple.vue';
+import ProductoCardCatalogo from '@/components/ProductoCardCatalogo.vue';
+import { obtenerProductos } from '@/utils/catalogos.js';
 
 const API = 'http://localhost:8080/api';
 const MAXIMO = 4;
 
 export default {
   name: 'SeccionProductos',
-  components: { ProductoCardSimple },
+  components: { ProductoCardCatalogo },
   props: {
     // 'ofertas' | 'novedades' | 'tendencias'
     tipo: { type: String, required: true }
   },
   setup(props) {
-    const router = useRouter();
     const items = ref([]);
     
     const titulo = computed(() => ({ ofertas: 'Ofertas', novedades: 'Novedades', tendencias: 'Tendencias' }[props.tipo]));
@@ -58,8 +49,8 @@ export default {
           const res = await axios.get(`${API}/novedades/productos`);
           items.value = res.data.slice(0, MAXIMO).map(aItem);
         } else {
-          const res = await axios.get(`${API}/productos`);
-          items.value = res.data
+          const lista = await obtenerProductos();
+          items.value = lista
             .filter((p) => p.esTendencia && p.activo !== false)
             .slice(0, MAXIMO)
             .map(aItem);
@@ -78,11 +69,9 @@ export default {
       subtitulo: p.marca || ''
     });
 
-    const irADetalle = (id) => router.push(`/producto/${id}`);
-
     onMounted(cargar);
 
-    return { items, titulo, ruta, irADetalle };
+    return { items, titulo, ruta };
   }
 };
 </script>

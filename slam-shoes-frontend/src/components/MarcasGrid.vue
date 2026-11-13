@@ -15,7 +15,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { obtenerMarcas } from '@/utils/catalogos.js';
 
 export default {
   name: 'MarcasGrid',
@@ -23,7 +23,7 @@ export default {
     const marcas = ref([]);
     onMounted(async () => {
       try {
-        marcas.value = (await axios.get('http://localhost:8080/api/marcas')).data;
+        marcas.value = await obtenerMarcas();
       } catch (error) {
         console.error('Error al cargar las marcas:', error);
       }

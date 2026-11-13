@@ -76,6 +76,9 @@
               <span class="badge bg-danger ms-2 fs-6">-{{ porcentajeTexto(oferta) }}%</span>
             </template>
           </h3>
+          <p v-if="oferta && oferta.vigente" class="text-warning small mb-3">
+            Oferta del {{ fechaCorta(oferta.fechaInicio) }} al {{ fechaCorta(oferta.fechaFin) }}
+          </p>
           <p v-if="oferta && !oferta.vigente" class="text-warning small mb-3">
             <span class="badge bg-danger me-1">-{{ porcentajeTexto(oferta) }}%</span>
             Oferta programada desde el {{ fechaCorta(oferta.fechaInicio) }}: ${{ oferta.precioConDescuento }} MXN
@@ -173,6 +176,7 @@ import { verificarSesionYAccionar } from '@/utils/auth.js';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import { porcentajeTexto, fechaCorta } from '@/utils/ofertas.js';
+import { obtenerCategorias } from '@/utils/catalogos.js';
 
 export default {
   name: 'ProductDetailView',
@@ -214,33 +218,21 @@ export default {
         producto.value = resProducto.data;
         imagenSeleccionada.value = producto.value.imagenUrl;
 
-        // Oferta vigente (si existe): 404 = sin oferta
-        const resOferta = await axios
-          .get(`http://localhost:8080/api/ofertas/producto/${idProducto}`)
-          .catch(() => ({ data: null }));
+        // Antes eran 5 peticiones una tras otra; ahora salen todas a la vez (la categoría usa la caché del menú)
+        const [resOferta, resVariantes, listaCategorias, resTallas, resImgs] = await Promise.all([
+          // Oferta vigente (si existe): 404 = sin oferta
+          axios.get(`http://localhost:8080/api/ofertas/producto/${idProducto}`).catch(() => ({ data: null })),
+          // Otros tenis del mismo modelo (columna "modelo" de productos)
+          axios.get(`http://localhost:8080/api/productos/${idProducto}/variantes`).catch(() => ({ data: [] })),
+          obtenerCategorias().catch(() => []),
+          axios.get(`http://localhost:8080/api/producto-tallas/producto/${idProducto}`).catch(() => ({ data: [] })),
+          axios.get(`http://localhost:8080/api/producto-imagenes/producto/${idProducto}`).catch(() => ({ data: [] }))
+        ]);
         oferta.value = resOferta.data;
-
-        // Otros tenis del mismo modelo (columna "modelo" de productos)
-        const resVariantes = await axios
-          .get(`http://localhost:8080/api/productos/${idProducto}/variantes`)
-          .catch(() => ({ data: [] }));
         variantes.value = resVariantes.data;
-
-        if (producto.value.idCategoria) {
-          const resCat = await axios
-            .get(`http://localhost:8080/api/categorias/${producto.value.idCategoria}`)
-            .catch(() => ({ data: {} }));
-          categoriaInfo.value = resCat.data;
-        }
-
-        const resTallas = await axios
-          .get(`http://localhost:8080/api/producto-tallas/producto/${idProducto}`)
-          .catch(() => ({ data: [] }));
+        categoriaInfo.value = listaCategorias.find((c) => c.idCategoria === producto.value.idCategoria) || {};
         tallasDisponibles.value = resTallas.data;
 
-        const resImgs = await axios
-          .get(`http://localhost:8080/api/producto-imagenes/producto/${idProducto}`)
-          .catch(() => ({ data: [] }));
         let imagenesOrdenadas = [...resImgs.data].sort((a, b) => a.orden - b.orden);
 
         if (imagenesOrdenadas.length === 0 && producto.value.imagenUrl) {
