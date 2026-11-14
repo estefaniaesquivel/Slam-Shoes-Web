@@ -21,3 +21,5 @@
 2026-11-14 14:28:42.302 | 8f15be52 | usuarios.autenticar | NO_AUTORIZADO | 564 ms | origen=127.0.0.1 error=Correo o contraseña incorrectos
 2026-11-14 14:37:38.325 | -------- | EVENTO | Proveedor SUSTITUIDO: pedidos ahora @ localhost:9104
 2026-11-14 14:38:24.350 | 80827058 | usuarios.autenticar | EXITO | 595 ms | origen=127.0.0.1
+2026-11-14 15:15:55.333 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9104
+2026-11-14 15:15:55.886 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
