@@ -51,7 +51,7 @@
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue'
 import CarritoComponent from '@/components/CarritoComponent.vue'
 import { ref } from 'vue'
-import axios from 'axios'
+import { usuariosBroker } from '@/services/brokerService.js'
 import { useRouter } from 'vue-router'
 import { iniciarSesionLocal } from '@/utils/sesion.js'
 
@@ -61,12 +61,8 @@ const contrasenaInput = ref('')
 
 async function handleLogin() {
   try {
-    const response = await axios.post('http://localhost:8080/api/usuarios/login', {
-      correo: correoInput.value,
-      contrasena: contrasenaInput.value
-    });
-
-    const usuario = response.data;
+    // Broker: usuarios.autenticar (el proveedor compara con BCrypt y nunca devuelve el hash)
+    const usuario = await usuariosBroker.autenticar(correoInput.value, contrasenaInput.value);
     
     // Guarda la sesión y restaura el carrito y los favoritos de este cliente desde la BD
     await iniciarSesionLocal(usuario);
@@ -81,7 +77,7 @@ async function handleLogin() {
     }
 
   } catch (error) {
-    const mensaje = error.response?.data?.error || "Credenciales incorrectas o servidor inactivo";
+    const mensaje = error.message || "Credenciales incorrectas o servidor inactivo";
     alert("Error al iniciar sesión: " + mensaje);
   }
 }

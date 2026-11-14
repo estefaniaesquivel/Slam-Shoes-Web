@@ -14,6 +14,7 @@ import MiPerfilView from '../views/MiPerfilView.vue'
 import ResumenPedidoView from '../views/ResumenPedidoView.vue'
 import HomeAdminView from '../views/HomeAdminView.vue'
 import AdminModulosView from '../views/AdminModulosView.vue'
+import AdminBrokerView from '../views/AdminBrokerView.vue'
 import AdminPlaceholderView from '../views/AdminPlaceholderView.vue'
 import AdminPedidosView from '../views/AdminPedidosView.vue'
 import MisPedidosView from '../views/MisPedidosView.vue'
@@ -98,6 +99,7 @@ const routes = [
   { path: '/admin/colecciones/nueva', name: 'admin-coleccion-nueva', component: AdminColeccionNuevaView, meta: { requiereAdmin: true } },
   { path: '/admin/colecciones/editar', name: 'admin-coleccion-editar', component: AdminColeccionesEditarView, meta: { requiereAdmin: true } },
   { path: '/admin/colecciones/editar/:id', name: 'admin-coleccion-edicion', component: AdminColeccionEdicionView, meta: { requiereAdmin: true } },
+  { path: '/admin/broker', name: 'admin-broker', component: AdminBrokerView, meta: { requiereAdmin: true } },
   { path: '/admin/modulo/:modulo', name: 'admin-modulo', component: AdminPlaceholderView, meta: { requiereAdmin: true } },
   { path: '/admin/pedidos', name: 'admin-pedidos', component: AdminPedidosView, meta: { requiereAdmin: true } },
   {

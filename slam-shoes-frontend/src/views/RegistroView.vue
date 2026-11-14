@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
+import { usuariosBroker } from '@/services/brokerService.js';
 import { useRouter } from 'vue-router';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
@@ -50,15 +50,12 @@ async function registrar() {
   error.value = '';
   enviando.value = true;
   try {
-    await axios.post('http://localhost:8080/api/usuarios/registro', {
-      nombre: nombre.value,
-      correo: correo.value,
-      contrasena: contrasena.value
-    });
+    // Broker: usuarios.registrar (el rol siempre lo asigna el proveedor: CLIENTE)
+    await usuariosBroker.registrar(nombre.value, correo.value, contrasena.value);
     alert('¡Cuenta creada! Ahora inicia sesión.');
     router.push('/login');
   } catch (e) {
-    error.value = e.response?.data?.error || 'No se pudo crear la cuenta. Intenta de nuevo.';
+    error.value = e.message || 'No se pudo crear la cuenta. Intenta de nuevo.';
   } finally {
     enviando.value = false;
   }

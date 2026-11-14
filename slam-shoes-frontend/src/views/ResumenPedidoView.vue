@@ -106,6 +106,7 @@ import { useRouter } from 'vue-router';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import { obtenerUsuario } from '@/utils/auth.js';
+import { pedidosBroker, nuevoIdSolicitud } from '@/services/brokerService.js';
 
 const API = 'http://localhost:8080/api';
 const router = useRouter();
@@ -118,6 +119,8 @@ const direccionEditada = ref('');
 const enviando = ref(false);
 const error = ref('');
 const pedidoCreado = ref(null);
+// Mismo id en cada reintento de ESTA compra: si el clic se repite, el Broker no crea otro pedido
+const idSolicitudCompra = nuevoIdSolicitud();
 
 const redondear = (n) => Math.round(n * 100) / 100;
 const total = computed(() => redondear(carrito.value.reduce((s, i) => s + i.precio * i.cantidad, 0)));
@@ -159,20 +162,20 @@ async function confirmarCompra() {
   error.value = '';
   enviando.value = true;
   try {
-    const res = await axios.post(`${API}/pedidos`, {
+    // Broker: pedidos.crearPedido (valida usuario y stock, calcula precios con ofertas y descuenta existencias)
+    pedidoCreado.value = await pedidosBroker.crearPedido({
       idUsuario: usuario.idUsuario,
       direccionEnvio: perfil.value.direccion,
       metodoPago: perfil.value.metodoPago || null,
       items: carrito.value.map((i) => ({ idVariante: i.idVariante, cantidad: i.cantidad }))
-    });
-    pedidoCreado.value = res.data;
+    }, idSolicitudCompra);
 
     // El carrito se vacía en el navegador (el backend ya lo vació en la BD)
     localStorage.setItem('slam_shoes_cart', JSON.stringify([]));
     carrito.value = [];
     window.dispatchEvent(new Event('storage'));
   } catch (e) {
-    error.value = e.response?.data?.error || 'No se pudo registrar el pedido. Intenta de nuevo.';
+    error.value = e.message || 'No se pudo registrar el pedido. Intenta de nuevo.';
   } finally {
     enviando.value = false;
   }

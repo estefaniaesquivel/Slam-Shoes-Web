@@ -31,7 +31,8 @@ const modulos = [
   { clave: 'colecciones', ruta: '/admin/colecciones', nombre: 'Colecciones', descripcion: 'Agregar y editar colecciones del catálogo', icono: 'bi-collection' },
   { clave: 'jugadores', ruta: '/admin/jugadores', nombre: 'Jugadores', descripcion: 'Nombre e imagen de los jugadores', icono: 'bi-person-badge' },
   { clave: 'marcas', ruta: '/admin/marcas', nombre: 'Marcas', descripcion: 'Nombre y logo de las marcas', icono: 'bi-bookmark-star' },
-  { clave: 'novedades', ruta: '/admin/novedades', nombre: 'Novedades', descripcion: 'Productos nuevos por periodo', icono: 'bi-stars' }
+  { clave: 'novedades', ruta: '/admin/novedades', nombre: 'Novedades', descripcion: 'Productos nuevos por periodo', icono: 'bi-stars' },
+  { clave: 'broker', ruta: '/admin/broker', nombre: 'Monitor del Broker', descripcion: 'Servicios registrados, métricas y bitácora', icono: 'bi-diagram-3' }
 ];
 </script>
 

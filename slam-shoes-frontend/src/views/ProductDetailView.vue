@@ -176,7 +176,7 @@ import { verificarSesionYAccionar } from '@/utils/auth.js';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import { porcentajeTexto, fechaCorta } from '@/utils/ofertas.js';
-import { obtenerCategorias } from '@/utils/catalogos.js';
+import { productosBroker } from '@/services/brokerService.js';
 
 export default {
   name: 'ProductDetailView',
@@ -214,26 +214,17 @@ export default {
       categoriaInfo.value = {};
       tallaSeleccionada.value = null;
       try {
-        const resProducto = await axios.get(`http://localhost:8080/api/productos/${idProducto}`);
-        producto.value = resProducto.data;
+        // UNA sola solicitud al Broker (productos.obtenerDetalle) en lugar de 6 peticiones sueltas:
+        // el proveedor arma producto, categoría, oferta, tallas, imágenes y estilos del modelo.
+        const detalle = await productosBroker.obtenerDetalle(idProducto);
+        producto.value = detalle.producto;
         imagenSeleccionada.value = producto.value.imagenUrl;
+        oferta.value = detalle.oferta || null;
+        variantes.value = detalle.variantes || [];
+        categoriaInfo.value = detalle.categoria || {};
+        tallasDisponibles.value = detalle.tallas || [];
 
-        // Antes eran 5 peticiones una tras otra; ahora salen todas a la vez (la categoría usa la caché del menú)
-        const [resOferta, resVariantes, listaCategorias, resTallas, resImgs] = await Promise.all([
-          // Oferta vigente (si existe): 404 = sin oferta
-          axios.get(`http://localhost:8080/api/ofertas/producto/${idProducto}`).catch(() => ({ data: null })),
-          // Otros tenis del mismo modelo (columna "modelo" de productos)
-          axios.get(`http://localhost:8080/api/productos/${idProducto}/variantes`).catch(() => ({ data: [] })),
-          obtenerCategorias().catch(() => []),
-          axios.get(`http://localhost:8080/api/producto-tallas/producto/${idProducto}`).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/producto-imagenes/producto/${idProducto}`).catch(() => ({ data: [] }))
-        ]);
-        oferta.value = resOferta.data;
-        variantes.value = resVariantes.data;
-        categoriaInfo.value = listaCategorias.find((c) => c.idCategoria === producto.value.idCategoria) || {};
-        tallasDisponibles.value = resTallas.data;
-
-        let imagenesOrdenadas = [...resImgs.data].sort((a, b) => a.orden - b.orden);
+        let imagenesOrdenadas = [...(detalle.imagenes || [])].sort((a, b) => a.orden - b.orden);
 
         if (imagenesOrdenadas.length === 0 && producto.value.imagenUrl) {
           imagenesOrdenadas = [{ urlImagen: producto.value.imagenUrl, orden: 1 }];
@@ -246,7 +237,7 @@ export default {
         }
 
       } catch (error) {
-        console.error("Error al cargar los detalles del producto:", error);
+        console.error("Error al cargar los detalles del producto:", error.message);
       } finally {
         cargando.value = false;
         window.scrollTo({ top: 0 });
@@ -282,6 +273,23 @@ export default {
       const idUsuario = usuarioActivo.idUsuario || usuarioActivo.id || usuarioActivo.id_usuario;
       if (!idUsuario) {
         alert("Error: No se encontró el ID del usuario activo en la sesión.");
+        return;
+      }
+
+      // Validación de stock con el Broker (productos.consultarStock) ANTES de tocar el carrito
+      try {
+        const enCarrito = (JSON.parse(localStorage.getItem('slam_shoes_cart')) || [])
+          .find(item => item.idVariante === tallaSeleccionada.value.idVariante);
+        const cantidadDeseada = (enCarrito ? enCarrito.cantidad : 0) + 1;
+        const stock = await productosBroker.consultarStock(tallaSeleccionada.value.idVariante, cantidadDeseada);
+        if (!stock.suficiente) {
+          alert(stock.stock > 0
+            ? `Solo quedan ${stock.stock} pieza(s) de esta talla y ya tienes ${cantidadDeseada - 1} en tu carrito.`
+            : 'Esta talla está agotada.');
+          return;
+        }
+      } catch (error) {
+        alert(error.message || 'No se pudo verificar la existencia de este producto.');
         return;
       }
 

@@ -18,11 +18,28 @@ public class Respuesta {
     private final LocalDateTime fechaHora;
 
     private Respuesta(String idSolicitud, Object resultado, EstadoRespuesta estado, String mensajeError) {
+        this(idSolicitud, resultado, estado, mensajeError, LocalDateTime.now());
+    }
+
+    private Respuesta(String idSolicitud, Object resultado, EstadoRespuesta estado, String mensajeError,
+                      LocalDateTime fechaHora) {
         this.idSolicitud = idSolicitud;
         this.resultado = resultado;
         this.estado = estado;
         this.mensajeError = mensajeError;
-        this.fechaHora = LocalDateTime.now();
+        this.fechaHora = fechaHora == null ? LocalDateTime.now() : fechaHora;
+    }
+
+    /** Reconstruye una respuesta recibida por la red (unmarshalling), conservando su fecha original. */
+    public static Respuesta reconstruir(String idSolicitud, Object resultado, EstadoRespuesta estado,
+                                        String mensajeError, LocalDateTime fechaHora) {
+        if (estado == null) {
+            throw new IllegalArgumentException("La respuesta no trae estado");
+        }
+        if (estado == EstadoRespuesta.EXITO) {
+            return new Respuesta(idSolicitud, resultado, estado, null, fechaHora);
+        }
+        return new Respuesta(idSolicitud, null, estado, mensajeError, fechaHora);
     }
 
     /** Respuesta correcta con los datos de la operación. */

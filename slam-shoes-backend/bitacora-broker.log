@@ -1,0 +1,4 @@
+2026-11-14 00:49:51.714 | -------- | EVENTO | Broker iniciado en el puerto 9000
+2026-11-14 00:49:51.739 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
+2026-11-14 00:49:51.740 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
+2026-11-14 00:49:51.741 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
