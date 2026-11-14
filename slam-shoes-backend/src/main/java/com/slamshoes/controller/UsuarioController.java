@@ -5,85 +5,55 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.slamshoes.broker.Respuesta;
 import com.slamshoes.dto.RegistroDTO;
-import com.slamshoes.model.Usuario;
-import com.slamshoes.repository.UsuarioRepository;
-import com.slamshoes.service.UsuarioService;
+import com.slamshoes.service.BrokerGateway;
 
+/**
+ * Controlador de usuarios: AHORA SOLO maneja HTTP. La autenticacion (BCrypt) y el registro (rol
+ * siempre CLIENTE, hash nunca expuesto) viven en el proveedor "usuarios" (ServicioUsuariosJpa).
+ * Las rutas y las respuestas son las mismas de antes.
+ */
 @RestController
 @RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "http://localhost:5173") // Permite la conexión con tu frontend de Vue
 public class UsuarioController {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private BrokerGateway gateway;
 
-    @Autowired
-    private UsuarioService usuarioService;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    // Datos del usuario que se devuelven al frontend (nunca el hash de la contraseña)
-    private Map<String, Object> usuarioPublico(Usuario u) {
-        Map<String, Object> datos = new LinkedHashMap<>();
-        datos.put("idUsuario", u.getIdUsuario());
-        datos.put("nombre", u.getNombre());
-        datos.put("correo", u.getCorreo());
-        datos.put("rol", u.getRol());
-        datos.put("fechaRegistro", u.getFechaRegistro());
-        return datos;
-    }
-
+    // Login -> usuarios.autenticar (200 con el usuario, 401 si las credenciales no coinciden)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String correo = credentials.get("correo");
-        String contrasena = credentials.get("contrasena");
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("correo", credentials == null ? null : credentials.get("correo"));
+        params.put("contrasena", credentials == null ? null : credentials.get("contrasena"));
 
-        // Buscar usuario por correo
-        Usuario usuario = usuarioRepository.findByCorreo(correo);
-        if (usuario == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "El correo no está registrado"));
+        Respuesta respuesta = gateway.enviar("usuarios", "autenticar", params);
+        if (!respuesta.isExitosa()) {
+            return RespuestaHttp.error(respuesta);
         }
-
-        // Validar contraseña encriptada con BCrypt
-        boolean passwordMatch = passwordEncoder.matches(contrasena, usuario.getContrasenaHash());
-        if (!passwordMatch) {
-            return ResponseEntity.status(401).body(Map.of("error", "Contraseña incorrecta"));
-        }
-
-        // Login exitoso: se devuelve el usuario con su rol (CLIENTE o ADMIN) para que el frontend redirija
-        return ResponseEntity.ok(usuarioPublico(usuario));
+        return ResponseEntity.ok(RespuestaHttp.resultadoComoMapa(respuesta));
     }
 
-    // Registro público de clientes nuevos. El rol NO viene del cliente: siempre se asigna CLIENTE.
+    // Registro público de clientes nuevos -> usuarios.registrar (201, 400 o 409 si el correo ya existe)
     @PostMapping("/registro")
     public ResponseEntity<?> registro(@RequestBody RegistroDTO datos) {
-        if (datos.getNombre() == null || datos.getNombre().isBlank()
-                || datos.getCorreo() == null || datos.getCorreo().isBlank()
-                || datos.getContrasena() == null || datos.getContrasena().length() < 6) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Nombre, correo y contraseña (mínimo 6 caracteres) son obligatorios"));
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("nombre", datos == null ? null : datos.getNombre());
+        params.put("correo", datos == null ? null : datos.getCorreo());
+        params.put("contrasena", datos == null ? null : datos.getContrasena());
+
+        Respuesta respuesta = gateway.enviar("usuarios", "registrar", params);
+        if (!respuesta.isExitosa()) {
+            return RespuestaHttp.error(respuesta);
         }
-
-        String correo = datos.getCorreo().trim();
-        if (usuarioRepository.findByCorreo(correo) != null) {
-            return ResponseEntity.status(409).body(Map.of("error", "Ese correo ya está registrado"));
-        }
-
-        Usuario nuevo = new Usuario();
-        nuevo.setNombre(datos.getNombre().trim());
-        nuevo.setCorreo(correo);
-        nuevo.setContrasenaHash(datos.getContrasena()); // el servicio la encripta con BCrypt
-
-        Usuario guardado = usuarioService.registrarUsuario(nuevo); // fuerza rol = CLIENTE
-        return ResponseEntity.status(201).body(usuarioPublico(guardado));
+        return ResponseEntity.status(201).body(RespuestaHttp.resultadoComoMapa(respuesta));
     }
 }

@@ -51,7 +51,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { pedidosBroker } from '@/services/brokerService.js';
 import { useRouter } from 'vue-router';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import CarritoComponent from '@/components/CarritoComponent.vue';
@@ -70,7 +70,8 @@ onMounted(async () => {
     return;
   }
   try {
-    pedidos.value = (await axios.get(`http://localhost:8080/api/pedidos/usuario/${usuario.idUsuario}`)).data;
+    // Broker: pedidos.consultarHistorial
+    pedidos.value = (await pedidosBroker.consultarHistorial(usuario.idUsuario)).pedidos || [];
   } catch (e) {
     console.error('Error al cargar los pedidos:', e);
   } finally {

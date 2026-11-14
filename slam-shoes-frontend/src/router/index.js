@@ -14,6 +14,7 @@ import MiPerfilView from '../views/MiPerfilView.vue'
 import ResumenPedidoView from '../views/ResumenPedidoView.vue'
 import HomeAdminView from '../views/HomeAdminView.vue'
 import AdminModulosView from '../views/AdminModulosView.vue'
+import AdminBrokerView from '../views/AdminBrokerView.vue'
 import AdminPlaceholderView from '../views/AdminPlaceholderView.vue'
 import AdminPedidosView from '../views/AdminPedidosView.vue'
 import MisPedidosView from '../views/MisPedidosView.vue'
@@ -21,6 +22,15 @@ import AdminProductosView from '../views/AdminProductosView.vue'
 import AdminProductoNuevoView from '../views/AdminProductoNuevoView.vue'
 import AdminProductoEditarView from '../views/AdminProductoEditarView.vue'
 import AdminProductoEdicionView from '../views/AdminProductoEdicionView.vue'
+import AdminBannersView from '../views/AdminBannersView.vue'
+import AdminOfertasView from '../views/AdminOfertasView.vue'
+import AdminNovedadesView from '../views/AdminNovedadesView.vue'
+import AdminJugadoresView from '../views/AdminJugadoresView.vue'
+import AdminMarcasView from '../views/AdminMarcasView.vue'
+import AdminColeccionesView from '../views/AdminColeccionesView.vue'
+import AdminColeccionNuevaView from '../views/AdminColeccionNuevaView.vue'
+import AdminColeccionesEditarView from '../views/AdminColeccionesEditarView.vue'
+import AdminColeccionEdicionView from '../views/AdminColeccionEdicionView.vue'
 import { obtenerUsuario } from '../utils/auth.js'
 
 const routes = [
@@ -80,6 +90,16 @@ const routes = [
   { path: '/admin/productos/nuevo', name: 'admin-producto-nuevo', component: AdminProductoNuevoView, meta: { requiereAdmin: true } },
   { path: '/admin/productos/editar', name: 'admin-producto-editar', component: AdminProductoEditarView, meta: { requiereAdmin: true } },
   { path: '/admin/productos/editar/:id', name: 'admin-producto-edicion', component: AdminProductoEdicionView, meta: { requiereAdmin: true } },
+  { path: '/admin/banners', name: 'admin-banners', component: AdminBannersView, meta: { requiereAdmin: true } },
+  { path: '/admin/ofertas', name: 'admin-ofertas', component: AdminOfertasView, meta: { requiereAdmin: true } },
+  { path: '/admin/novedades', name: 'admin-novedades', component: AdminNovedadesView, meta: { requiereAdmin: true } },
+  { path: '/admin/jugadores', name: 'admin-jugadores', component: AdminJugadoresView, meta: { requiereAdmin: true } },
+  { path: '/admin/marcas', name: 'admin-marcas', component: AdminMarcasView, meta: { requiereAdmin: true } },
+  { path: '/admin/colecciones', name: 'admin-colecciones', component: AdminColeccionesView, meta: { requiereAdmin: true } },
+  { path: '/admin/colecciones/nueva', name: 'admin-coleccion-nueva', component: AdminColeccionNuevaView, meta: { requiereAdmin: true } },
+  { path: '/admin/colecciones/editar', name: 'admin-coleccion-editar', component: AdminColeccionesEditarView, meta: { requiereAdmin: true } },
+  { path: '/admin/colecciones/editar/:id', name: 'admin-coleccion-edicion', component: AdminColeccionEdicionView, meta: { requiereAdmin: true } },
+  { path: '/admin/broker', name: 'admin-broker', component: AdminBrokerView, meta: { requiereAdmin: true } },
   { path: '/admin/modulo/:modulo', name: 'admin-modulo', component: AdminPlaceholderView, meta: { requiereAdmin: true } },
   { path: '/admin/pedidos', name: 'admin-pedidos', component: AdminPedidosView, meta: { requiereAdmin: true } },
   {

@@ -17,6 +17,6 @@ import { useRoute } from 'vue-router';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
 const route = useRoute();
-const nombres = { productos: 'Productos', banners: 'Banners de inicio', ofertas: 'Ofertas', colecciones: 'Colecciones' };
+const nombres = { productos: 'Productos', banners: 'Banners de inicio', ofertas: 'Ofertas', colecciones: 'Colecciones', jugadores: 'Jugadores', marcas: 'Marcas', novedades: 'Novedades' };
 const nombre = computed(() => nombres[route.params.modulo] || 'Módulo');
 </script>

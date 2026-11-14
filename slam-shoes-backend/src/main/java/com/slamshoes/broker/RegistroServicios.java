@@ -62,6 +62,23 @@ public class RegistroServicios {
         return anterior;
     }
 
+    /**
+     * Da de baja un servicio, pero solo si el proveedor registrado sigue siendo el mismo
+     * (así un proveedor viejo no puede borrar al que lo sustituyó).
+     *
+     * @return true si se eliminó
+     */
+    public boolean eliminar(String nombre, ProveedorServicio esperado) {
+        if (nombre == null || esperado == null) {
+            return false;
+        }
+        boolean quitado = proveedores.remove(nombre, esperado);
+        if (quitado) {
+            Consola.registro("Proveedor dado de baja: " + nombre + " (" + nombreDe(esperado) + ")");
+        }
+        return quitado;
+    }
+
     /** Nombres de los servicios registrados, ordenados alfabéticamente. */
     public Set<String> listarNombres() {
         return new TreeSet<>(proveedores.keySet());

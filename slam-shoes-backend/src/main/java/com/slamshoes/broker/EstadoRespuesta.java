@@ -24,5 +24,22 @@ public enum EstadoRespuesta {
     PARAMETROS_INVALIDOS,
 
     /** El proveedor lanzó una excepción o devolvió una respuesta inválida. */
-    ERROR_PROVEEDOR
+    ERROR_PROVEEDOR,
+
+    // ---- Estados agregados en el Nivel 2 (Broker distribuido) ----
+
+    /** Credenciales incorrectas (HTTP 401). */
+    NO_AUTORIZADO,
+
+    /** La operación choca con el estado actual: correo ya registrado, sin stock... (HTTP 409). */
+    CONFLICTO,
+
+    /** El proveedor está registrado pero no se pudo contactar (caído o rechazó la conexión). */
+    PROVEEDOR_NO_DISPONIBLE,
+
+    /** El proveedor o el Broker no respondieron dentro del tiempo límite. */
+    TIEMPO_AGOTADO,
+
+    /** El cliente no pudo comunicarse con el Broker (apagado o inalcanzable). */
+    BROKER_NO_DISPONIBLE
 }

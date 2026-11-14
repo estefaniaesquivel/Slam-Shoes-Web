@@ -58,6 +58,12 @@ public class BrokerCentral implements Broker {
         try {
             Consola.broker("Reenviando " + corto + " a " + nombreProveedor);
             respuesta = proveedor.ejecutar(solicitud);
+        } catch (ProveedorNoDisponibleException e) {
+            // Nivel 2: el proveedor remoto no contestó (caído, rechazó la conexión o tardó demasiado)
+            Consola.broker("Proveedor NO DISPONIBLE (" + nombreProveedor + "): " + e.getMessage());
+            return terminar(corto, Respuesta.error(id,
+                    e.isTiempoAgotado() ? EstadoRespuesta.TIEMPO_AGOTADO : EstadoRespuesta.PROVEEDOR_NO_DISPONIBLE,
+                    e.getMessage()));
         } catch (Exception e) {
             Consola.broker("EXCEPCION en " + nombreProveedor + ": " + e);
             return terminar(corto, Respuesta.error(id, EstadoRespuesta.ERROR_PROVEEDOR,

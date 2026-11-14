@@ -10,13 +10,13 @@ import java.util.Map;
  * como IllegalArgumentException y cada proveedor los convierte en una
  * respuesta PARAMETROS_INVALIDOS.
  */
-final class ProveedorUtil {
+public final class ProveedorUtil {
 
     private ProveedorUtil() {
     }
 
     /** Arma un mapa que conserva el orden: mapa("a", 1, "b", 2) -> {a=1, b=2}. */
-    static Map<String, Object> mapa(Object... pares) {
+    public static Map<String, Object> mapa(Object... pares) {
         Map<String, Object> resultado = new LinkedHashMap<>();
         for (int i = 0; i + 1 < pares.length; i += 2) {
             resultado.put((String) pares[i], pares[i + 1]);
@@ -25,7 +25,7 @@ final class ProveedorUtil {
     }
 
     /** Convierte un valor (número o texto numérico) a long, o lanza IllegalArgumentException. */
-    static long convertirALong(Object valor, String nombre) {
+    public static long convertirALong(Object valor, String nombre) {
         if (valor == null) {
             throw new IllegalArgumentException("Falta el parametro '" + nombre + "'");
         }
@@ -45,11 +45,11 @@ final class ProveedorUtil {
         }
     }
 
-    static long obtenerLong(Map<String, Object> parametros, String nombre) {
+    public static long obtenerLong(Map<String, Object> parametros, String nombre) {
         return convertirALong(parametros.get(nombre), nombre);
     }
 
-    static String obtenerTexto(Map<String, Object> parametros, String nombre) {
+    public static String obtenerTexto(Map<String, Object> parametros, String nombre) {
         Object valor = parametros.get(nombre);
         if (valor == null || valor.toString().isBlank()) {
             throw new IllegalArgumentException("Falta el parametro '" + nombre + "'");
@@ -61,7 +61,7 @@ final class ProveedorUtil {
      * Valida el parámetro "items" de crearPedido (lista de mapas con idVariante y
      * cantidad mayor que cero) y devuelve {número de líneas, total de unidades}.
      */
-    static int[] resumirItems(Map<String, Object> parametros) {
+    public static int[] resumirItems(Map<String, Object> parametros) {
         Object crudo = parametros.get("items");
         if (!(crudo instanceof List<?> items) || items.isEmpty()) {
             throw new IllegalArgumentException("El parametro 'items' debe ser una lista con al menos un elemento");

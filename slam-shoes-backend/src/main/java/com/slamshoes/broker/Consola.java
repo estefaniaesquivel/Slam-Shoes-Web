@@ -28,6 +28,11 @@ public final class Consola {
         System.out.println("[REGISTRO] " + mensaje);
     }
 
+    /** Mensaje de un proveedor (Nivel 2): "[PROVEEDOR:productos] ...". */
+    public static void proveedor(String nombreServicio, String mensaje) {
+        System.out.println("[PROVEEDOR:" + nombreServicio + "] " + mensaje);
+    }
+
     /** Encabezado para separar los escenarios de la demo. */
     public static void titulo(String texto) {
         System.out.println();
