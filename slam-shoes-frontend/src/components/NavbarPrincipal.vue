@@ -93,7 +93,18 @@
               </li>
             </ul>
           </li>
-          <li class="nav-item"><router-link class="nav-link text-light" to="/ofertas">Ofertas</router-link></li>
+          <!-- Ofertas: se despliega con los nombres de las ofertas (columna "nombre" de la tabla ofertas) -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-light" href="#" id="dropdownOfertas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Ofertas
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownOfertas">
+              <li><router-link class="dropdown-item fw-bold" to="/ofertas">Todas las ofertas</router-link></li>
+              <li v-for="nombre in nombresOfertas" :key="nombre">
+                <router-link class="dropdown-item" :to="{ path: '/ofertas', query: { nombre } }">{{ nombre }}</router-link>
+              </li>
+            </ul>
+          </li>
         </ul>
       </div>
 
@@ -153,7 +164,7 @@ import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { verificarSesionYAccionar, esAdmin } from '@/utils/auth.js';
-import { obtenerJugadores, obtenerColecciones, obtenerMarcas, obtenerCategorias } from '@/utils/catalogos.js';
+import { obtenerJugadores, obtenerColecciones, obtenerMarcas, obtenerCategorias, obtenerNombresOfertas } from '@/utils/catalogos.js';
 
 export default {
   name: 'NavbarPrincipal',
@@ -220,6 +231,7 @@ export default {
     const categorias = ref([]);
     const cargandoCategorias = ref(true);
     const cargandoColecciones = ref(true);
+    const nombresOfertas = ref([]);
     const favoritos = ref(JSON.parse(localStorage.getItem('slam_shoes_favoritos')) || []);
     const carrito = ref(JSON.parse(localStorage.getItem('slam_shoes_cart')) || []);
 
@@ -242,6 +254,14 @@ export default {
         console.error('Error al cargar las colecciones:', error);
       } finally {
         cargandoColecciones.value = false;
+      }
+    };
+
+    const cargarNombresOfertas = async () => {
+      try {
+        nombresOfertas.value = await obtenerNombresOfertas();
+      } catch (error) {
+        console.error('Error al cargar los nombres de las ofertas:', error);
       }
     };
 
@@ -296,6 +316,7 @@ export default {
     );
 
     onMounted(() => {
+      cargarNombresOfertas();
       cargarJugadores();
       cargarColecciones();
       cargarMarcas();
@@ -332,6 +353,7 @@ export default {
       cargandoJugadores,
       colecciones,
       cargandoColecciones,
+      nombresOfertas,
       marcas,
       cargandoMarcas,
       categorias,

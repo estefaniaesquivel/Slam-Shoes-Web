@@ -37,7 +37,15 @@ public class OfertaService {
 
     // Mejor oferta visible por producto: si tiene una vigente gana esa; si no, la futura de mayor descuento
     public Map<Long, Oferta> mejorVisiblePorProducto() {
-        List<Oferta> todas = visibles();
+        return mejorVisiblePorProducto(null);
+    }
+
+    // Igual, pero solo con las ofertas que se llaman "nombre" (null = todas). Sirve al menú Ofertas > nombre.
+    public Map<Long, Oferta> mejorVisiblePorProducto(String nombre) {
+        List<Oferta> todas = visibles().stream()
+                .filter(o -> nombre == null || nombre.isBlank()
+                        || (o.getNombre() != null && o.getNombre().trim().equalsIgnoreCase(nombre.trim())))
+                .toList();
         Map<Long, Oferta> mejores = new HashMap<>(mejorPorProducto(todas.stream().filter(this::esVigente).toList()));
         mejorPorProducto(todas.stream().filter(o -> !esVigente(o)).toList())
                 .forEach(mejores::putIfAbsent);

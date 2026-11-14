@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.slamshoes.dto.OfertaProductoDTO;
@@ -55,8 +56,9 @@ public class OfertaController {
     // TODAS las ofertas activas que no han terminado (vigentes hoy y programadas), un producto por oferta.
     // Los productos se leen en UNA sola consulta (antes era una consulta por oferta).
     @GetMapping("/productos")
-    public List<OfertaProductoDTO> productosEnOferta() {
-        Map<Long, Oferta> ofertas = ofertaService.mejorVisiblePorProducto();
+    public List<OfertaProductoDTO> productosEnOferta(@RequestParam(required = false) String nombre) {
+        // ?nombre=BUEN FIN limita a las ofertas con ese nombre
+        Map<Long, Oferta> ofertas = ofertaService.mejorVisiblePorProducto(nombre);
         Map<Long, Producto> productos = productosPorId(ofertas.keySet());
         return ofertas.values().stream()
                 .map(o -> {
@@ -95,4 +97,17 @@ public class OfertaController {
                 .map(p -> ResponseEntity.ok(aDTO(oferta, p)))
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    // Nombres distintos de las ofertas visibles (columna ofertas.nombre): alimentan el menú desplegable "Ofertas"
+    @GetMapping("/nombres")
+    public List<String> nombres() {
+        return ofertaService.visibles().stream()
+                .map(Oferta::getNombre)
+                .filter(n -> n != null && !n.isBlank())
+                .map(String::trim)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
 }
+

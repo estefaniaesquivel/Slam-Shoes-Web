@@ -44,7 +44,9 @@ export default {
     const cargando = ref(true);
 
     const esOfertas = computed(() => route.meta.tipo === 'ofertas');
-    const titulo = computed(() => (esOfertas.value ? 'Ofertas' : 'Novedades'));
+    // /ofertas?nombre=BUEN FIN muestra solo las ofertas con ese nombre
+    const nombreOferta = computed(() => (esOfertas.value && route.query.nombre ? String(route.query.nombre) : ''));
+    const titulo = computed(() => (esOfertas.value ? (nombreOferta.value ? `Ofertas: ${nombreOferta.value}` : 'Ofertas') : 'Novedades'));
 
     const cargar = async () => {
       const ruta = route.fullPath;
@@ -53,7 +55,7 @@ export default {
       try {
         if (esOfertas.value) {
           // TODAS las ofertas activas que no han terminado (vigentes y programadas)
-          const res = await axios.get(`${API}/ofertas/productos`);
+          const res = await axios.get(`${API}/ofertas/productos`, { params: nombreOferta.value ? { nombre: nombreOferta.value } : {} });
           if (route.fullPath !== ruta) return;
           items.value = res.data.map((o) => o.producto);
         } else {

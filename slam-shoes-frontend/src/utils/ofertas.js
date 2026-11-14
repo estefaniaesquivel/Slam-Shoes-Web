@@ -30,3 +30,9 @@ export const porcentajeTexto = (o) => Number(o.porcentajeDescuento).toString();
 // "20 nov" para las ofertas que todavía no empiezan
 export const fechaCorta = (iso) =>
   new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }).replace('.', '');
+
+// Fuerza una nueva lectura (se usa tras crear, editar o quitar ofertas desde el administrador)
+export function recargarOfertas() {
+  promesa = null;
+  return cargarOfertas();
+}

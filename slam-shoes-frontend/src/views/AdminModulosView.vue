@@ -26,9 +26,12 @@ import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
 const modulos = [
   { clave: 'productos', ruta: '/admin/productos', nombre: 'Productos', descripcion: 'Crear y editar productos del catálogo', icono: 'bi-box2' },
-  { clave: 'banners', nombre: 'Banners de inicio', descripcion: 'Imágenes del carrusel principal', icono: 'bi-images' },
-  { clave: 'ofertas', nombre: 'Ofertas', descripcion: 'Descuentos por producto y periodo', icono: 'bi-tag' },
-  { clave: 'colecciones', nombre: 'Colecciones', descripcion: 'Colecciones con imagen y banner', icono: 'bi-collection' }
+  { clave: 'banners', ruta: '/admin/banners', nombre: 'Banners de inicio', descripcion: 'Imágenes del carrusel principal', icono: 'bi-images' },
+  { clave: 'ofertas', ruta: '/admin/ofertas', nombre: 'Ofertas', descripcion: 'Descuentos por producto y periodo', icono: 'bi-tag' },
+  { clave: 'colecciones', ruta: '/admin/colecciones', nombre: 'Colecciones', descripcion: 'Agregar y editar colecciones del catálogo', icono: 'bi-collection' },
+  { clave: 'jugadores', ruta: '/admin/jugadores', nombre: 'Jugadores', descripcion: 'Nombre e imagen de los jugadores', icono: 'bi-person-badge' },
+  { clave: 'marcas', ruta: '/admin/marcas', nombre: 'Marcas', descripcion: 'Nombre y logo de las marcas', icono: 'bi-bookmark-star' },
+  { clave: 'novedades', ruta: '/admin/novedades', nombre: 'Novedades', descripcion: 'Productos nuevos por periodo', icono: 'bi-stars' }
 ];
 </script>
 

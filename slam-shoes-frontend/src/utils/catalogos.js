@@ -23,6 +23,8 @@ export const obtenerMarcas = () => pedir('marcas', '/marcas');
 export const obtenerCategorias = () => pedir('categorias', '/categorias');
 export const obtenerProductos = () => pedir('productos', '/productos');
 export const obtenerBanners = () => pedir('banners', '/banners');
+// Nombres de las ofertas visibles (menú desplegable "Ofertas")
+export const obtenerNombresOfertas = () => pedir('nombresOfertas', '/ofertas/nombres');
 
 // Llamar tras crear/editar/eliminar para que las vistas vuelvan a leer del servidor
 export const limpiarCatalogos = () => { Object.keys(cache).forEach((k) => delete cache[k]); };
