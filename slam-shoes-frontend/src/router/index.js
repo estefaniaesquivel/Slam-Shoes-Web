@@ -17,6 +17,8 @@ import AdminModulosView from '../views/AdminModulosView.vue'
 import AdminBrokerView from '../views/AdminBrokerView.vue'
 import AdminPlaceholderView from '../views/AdminPlaceholderView.vue'
 import AdminPedidosView from '../views/AdminPedidosView.vue'
+import AdminPedidosListaView from '../views/AdminPedidosListaView.vue'
+import SobreNosotrosView from '../views/SobreNosotrosView.vue'
 import MisPedidosView from '../views/MisPedidosView.vue'
 import AdminProductosView from '../views/AdminProductosView.vue'
 import AdminProductoNuevoView from '../views/AdminProductoNuevoView.vue'
@@ -80,6 +82,7 @@ const routes = [
   { path: '/novedades', name: 'novedades', component: PromocionesView, meta: { tipo: 'novedades' } },
   { path: '/buscar', name: 'buscar', component: BusquedaView },
   { path: '/registro', name: 'registro', component: RegistroView },
+  { path: '/sobre-nosotros', name: 'sobre-nosotros', component: SobreNosotrosView },
   { path: '/mi-perfil', name: 'mi-perfil', component: MiPerfilView, meta: { requiereSesion: true } },
   { path: '/mis-pedidos', name: 'mis-pedidos', component: MisPedidosView, meta: { requiereSesion: true } },
   { path: '/checkout', name: 'checkout', component: ResumenPedidoView, meta: { requiereSesion: true } },
@@ -102,6 +105,8 @@ const routes = [
   { path: '/admin/broker', name: 'admin-broker', component: AdminBrokerView, meta: { requiereAdmin: true } },
   { path: '/admin/modulo/:modulo', name: 'admin-modulo', component: AdminPlaceholderView, meta: { requiereAdmin: true } },
   { path: '/admin/pedidos', name: 'admin-pedidos', component: AdminPedidosView, meta: { requiereAdmin: true } },
+  { path: '/admin/pedidos/en-proceso', name: 'admin-pedidos-en-proceso', component: AdminPedidosListaView, meta: { requiereAdmin: true, tipo: 'enProceso' } },
+  { path: '/admin/pedidos/concretados', name: 'admin-pedidos-concretados', component: AdminPedidosListaView, meta: { requiereAdmin: true, tipo: 'concretados' } },
   {
     path: '/favoritos',      // <--- 2. Definir la ruta
     name: 'favoritos',
@@ -111,7 +116,12 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  // Al cambiar de vista se vuelve arriba; si la ruta trae #ancla (ej. #aviso-legal) se baja hasta ella
+  scrollBehavior(to) {
+    if (to.hash) return { el: to.hash, top: 90, behavior: 'smooth' };
+    return { top: 0 };
+  }
 })
 
 // Protección de rutas en el frontend (la validación real de roles en el servidor es una mejora pendiente)

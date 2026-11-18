@@ -41,20 +41,6 @@
       </template>
     </div>
 
-    <!-- Pie -->
-    <footer class="border-top border-secondary bg-dark pt-4 pb-2 mt-5 w-100">
-      <div class="container-fluid text-center px-4">
-        <div class="row mb-3">
-          <div class="col">
-            <a href="#" class="mx-2 text-secondary text-decoration-none">[Enlace pie 1]</a>
-            <a href="#" class="mx-2 text-secondary text-decoration-none">[Enlace pie 2]</a>
-            <a href="#" class="mx-2 text-secondary text-decoration-none">[Enlace pie 3]</a>
-          </div>
-        </div>
-        <p class="mb-0 text-muted">[Texto xd sit seven]</p>
-      </div>
-    </footer>
-
     <!-- Componente del Carrito Desplegable -->
     <CarritoComponent />
 

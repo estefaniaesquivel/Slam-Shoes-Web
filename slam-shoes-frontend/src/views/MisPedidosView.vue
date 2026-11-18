@@ -19,7 +19,7 @@
               <span class="text-secondary small">{{ formatearFecha(p.fecha) }}</span>
             </div>
             <div class="text-end">
-              <span class="badge bg-secondary">{{ p.estado }}</span>
+              <span class="badge" :class="p.estado === 'CONCRETADO' ? 'bg-success' : 'bg-warning text-dark'">{{ p.estado }}</span>
               <div class="fs-5 fw-bold text-success">${{ p.total }} MXN</div>
             </div>
           </div>

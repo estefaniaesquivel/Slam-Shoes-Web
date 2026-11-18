@@ -2,62 +2,60 @@
   <div class="bg-dark text-light min-vh-100 w-100 overflow-x-hidden d-flex flex-column">
     <NavbarPrincipal modo-admin />
 
-    <div class="flex-grow-1 container-fluid px-4 my-4">
+    <div class="flex-grow-1 container my-5" style="max-width: 900px;">
       <h2 class="mb-1"><i class="bi bi-box-seam me-2"></i>Pedidos</h2>
-      <p class="text-secondary small mb-3">Tablas <code>pedidos</code> y <code>pedido_detalle</code> unidas: una fila por producto de cada pedido.</p>
+      <p class="text-secondary mb-4">Elige qué pedidos quieres revisar.</p>
 
-      <div v-if="cargando" class="text-muted">Cargando...</div>
-      <div v-else-if="error" class="text-danger">{{ error }}</div>
-      <div v-else-if="filas.length === 0" class="text-center text-muted py-5">Aún no hay pedidos registrados.</div>
+      <div v-if="error" class="alert alert-danger small">{{ error }}</div>
 
-      <div v-else class="table-responsive">
-        <table class="table table-dark table-bordered table-hover align-middle small">
-          <thead>
-            <tr>
-              <th>id_pedido</th><th>id_usuario</th><th>fecha</th><th>total</th><th>estado</th>
-              <th>direccion_envio</th><th>metodo_pago</th>
-              <th>id_detalle</th><th>id_variante</th><th>cantidad</th><th>precio_unitario</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(f, i) in filas" :key="i">
-              <td>{{ f.idPedido }}</td>
-              <td>{{ f.idUsuario }}</td>
-              <td class="text-nowrap">{{ formatearFecha(f.fecha) }}</td>
-              <td>${{ f.total }}</td>
-              <td><span class="badge bg-secondary">{{ f.estado }}</span></td>
-              <td>{{ f.direccionEnvio }}</td>
-              <td>{{ f.metodoPago ?? '—' }}</td>
-              <td>{{ f.idDetalle ?? '—' }}</td>
-              <td>{{ f.idVariante ?? '—' }}</td>
-              <td>{{ f.cantidad ?? '—' }}</td>
-              <td>{{ f.precioUnitario != null ? '$' + f.precioUnitario : '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="row g-4">
+        <div class="col-sm-6" v-for="b in botones" :key="b.ruta">
+          <router-link :to="b.ruta" class="modulo-card d-flex align-items-center gap-3 border border-secondary rounded-3 bg-black p-4 text-decoration-none text-light">
+            <i :class="['bi', b.icono, 'fs-1', b.color]"></i>
+            <div class="flex-grow-1">
+              <h5 class="mb-1">{{ b.nombre }}</h5>
+              <p class="text-secondary small mb-0">{{ b.descripcion }}</p>
+            </div>
+            <span class="badge rounded-pill fs-6" :class="b.fondo">{{ b.total }}</span>
+          </router-link>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 
-const filas = ref([]);
-const cargando = ref(true);
+const conteo = ref({ enProceso: 0, concretados: 0 });
 const error = ref('');
 
-const formatearFecha = (f) => (f ? new Date(f).toLocaleString('es-MX') : '—');
+const botones = computed(() => [
+  {
+    ruta: '/admin/pedidos/en-proceso', nombre: 'Pedidos en proceso', icono: 'bi-hourglass-split', color: 'text-warning',
+    fondo: 'bg-warning text-dark', total: conteo.value.enProceso,
+    descripcion: 'Encargos pendientes: márcalos como concretados o no concretados'
+  },
+  {
+    ruta: '/admin/pedidos/concretados', nombre: 'Pedidos concretados', icono: 'bi-check2-circle', color: 'text-success',
+    fondo: 'bg-success', total: conteo.value.concretados,
+    descripcion: 'Historial de encargos ya concretados'
+  }
+]);
 
 onMounted(async () => {
   try {
-    filas.value = (await axios.get('http://localhost:8080/api/admin/pedidos')).data;
+    const { data } = await axios.get('http://localhost:8080/api/admin/pedidos/conteo');
+    conteo.value = { enProceso: data.enProceso ?? 0, concretados: data.concretados ?? 0 };
   } catch (e) {
-    error.value = 'No se pudieron cargar los pedidos.';
-  } finally {
-    cargando.value = false;
+    error.value = e.response?.data?.error || 'No se pudo consultar el número de pedidos.';
   }
 });
 </script>
+
+<style scoped>
+.modulo-card { transition: transform 0.2s ease, border-color 0.2s ease; }
+.modulo-card:hover { transform: translateY(-4px); border-color: #fff !important; }
+</style>

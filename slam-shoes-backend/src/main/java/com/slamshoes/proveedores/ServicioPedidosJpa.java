@@ -1,9 +1,5 @@
 package com.slamshoes.proveedores;
 
-import static com.slamshoes.providers.ProveedorUtil.convertirALong;
-import static com.slamshoes.providers.ProveedorUtil.mapa;
-import static com.slamshoes.providers.ProveedorUtil.obtenerLong;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +22,9 @@ import com.slamshoes.model.Pedido;
 import com.slamshoes.model.PedidoDetalle;
 import com.slamshoes.model.Producto;
 import com.slamshoes.model.ProductoTalla;
+import static com.slamshoes.providers.ProveedorUtil.convertirALong;
+import static com.slamshoes.providers.ProveedorUtil.mapa;
+import static com.slamshoes.providers.ProveedorUtil.obtenerLong;
 import com.slamshoes.repository.CarritoDetalleRepository;
 import com.slamshoes.repository.CarritoRepository;
 import com.slamshoes.repository.PedidoDetalleRepository;
@@ -47,12 +46,23 @@ import com.slamshoes.service.OfertaService;
  * Operaciones:
  *  - crearPedido        {idUsuario, direccionEnvio, metodoPago?, items:[{idVariante, cantidad}]}
  *  - consultarHistorial {idUsuario}
+ *
+ * Operaciones del panel del administrador (pedidos en proceso y concretados):
+ *  - listarPedidosAdmin {estado: PENDIENTE | CONCRETADO}  pedidos con nombre del cliente y sus productos
+ *  - contarPedidos      {}                                 cuantos hay en proceso y cuantos concretados
+ *  - concretarPedido    {idPedido}   PENDIENTE -> CONCRETADO (el stock descontado se queda descontado)
+ *  - reabrirPedido      {idPedido}   CONCRETADO -> PENDIENTE (corrige un error de dedo)
+ *  - cancelarPedido     {idPedido}   "no concretado": solo si esta PENDIENTE; borra el pedido y
+ *                                    devuelve el stock a la base de datos
  */
 @Component
 public class ServicioPedidosJpa implements ProveedorServicio {
 
     private static final String NOMBRE_CLASE = "ServicioPedidosJpa";
-    private static final Set<String> OPERACIONES = Set.of("crearPedido", "consultarHistorial");
+    private static final String PENDIENTE = "PENDIENTE";
+    private static final String CONCRETADO = "CONCRETADO";
+    private static final Set<String> OPERACIONES = Set.of("crearPedido", "consultarHistorial",
+            "listarPedidosAdmin", "contarPedidos", "concretarPedido", "reabrirPedido", "cancelarPedido");
 
     @Autowired private PedidoRepository pedidoRepository;
     @Autowired private PedidoDetalleRepository pedidoDetalleRepository;
@@ -88,6 +98,16 @@ public class ServicioPedidosJpa implements ProveedorServicio {
                     return crearPedido(id, solicitud.getParametros());
                 case "consultarHistorial":
                     return Respuesta.exito(id, consultarHistorial(solicitud.getParametros()));
+                case "listarPedidosAdmin":
+                    return Respuesta.exito(id, listarPedidosAdmin(solicitud.getParametros()));
+                case "contarPedidos":
+                    return Respuesta.exito(id, contarPedidos());
+                case "concretarPedido":
+                    return cambiarEstado(id, solicitud.getParametros(), PENDIENTE, CONCRETADO);
+                case "reabrirPedido":
+                    return cambiarEstado(id, solicitud.getParametros(), CONCRETADO, PENDIENTE);
+                case "cancelarPedido":
+                    return cancelarPedido(id, solicitud.getParametros());
                 default:
                     return Respuesta.error(id, EstadoRespuesta.OPERACION_NO_SOPORTADA,
                             "Operacion no soportada: " + solicitud.getOperacion());
@@ -207,8 +227,17 @@ public class ServicioPedidosJpa implements ProveedorServicio {
     private Map<String, Object> consultarHistorial(Map<String, Object> parametros) {
         long idUsuario = obtenerLong(parametros, "idUsuario");
         List<Pedido> pedidos = pedidoRepository.findByIdUsuario(idUsuario, Sort.by(Sort.Direction.DESC, "fecha"));
+        List<Map<String, Object>> resultado = armarPedidos(pedidos, false);
+        return mapa("atendidoPor", NOMBRE_CLASE, "idUsuario", idUsuario, "totalPedidos", resultado.size(),
+                "pedidos", resultado);
+    }
 
-        // Detalles de todos los pedidos y luego tallas y productos en bloque (no una consulta por linea)
+    /**
+     * Convierte pedidos en mapas con sus productos (nombre, foto, talla, color, cantidad, precio).
+     * Detalles, tallas y productos se leen en bloque, no una consulta por linea.
+     * Con {@code conCliente} agrega idUsuario y nombreCliente (para el panel del administrador).
+     */
+    private List<Map<String, Object>> armarPedidos(List<Pedido> pedidos, boolean conCliente) {
         Map<Long, List<PedidoDetalle>> detallesPorPedido = new HashMap<>();
         List<Long> idsVariante = new ArrayList<>();
         for (Pedido p : pedidos) {
@@ -221,6 +250,12 @@ public class ServicioPedidosJpa implements ProveedorServicio {
         List<Long> idsProducto = variantes.values().stream().map(ProductoTalla::getIdProducto).distinct().toList();
         Map<Long, Producto> productos = productoRepository.findAllById(idsProducto).stream()
                 .collect(Collectors.toMap(Producto::getIdProducto, p -> p, (a, b) -> a));
+
+        Map<Long, String> nombres = new HashMap<>();
+        if (conCliente) {
+            List<Long> idsUsuario = pedidos.stream().map(Pedido::getIdUsuario).distinct().toList();
+            usuarioRepository.findAllById(idsUsuario).forEach(u -> nombres.put(u.getIdUsuario(), u.getNombre()));
+        }
 
         List<Map<String, Object>> resultado = new ArrayList<>();
         for (Pedido p : pedidos) {
@@ -235,11 +270,82 @@ public class ServicioPedidosJpa implements ProveedorServicio {
                         "color", v == null ? null : v.getColor(),
                         "cantidad", d.getCantidad(), "precioUnitario", d.getPrecioUnitario()));
             }
-            resultado.add(mapa("idPedido", p.getIdPedido(), "fecha", p.getFecha(), "total", p.getTotal(),
+            Map<String, Object> fila = mapa("idPedido", p.getIdPedido(), "fecha", p.getFecha(), "total", p.getTotal(),
                     "estado", p.getEstado(), "direccionEnvio", p.getDireccionEnvio(),
-                    "metodoPago", p.getMetodoPago(), "lineas", lineas));
+                    "metodoPago", p.getMetodoPago(), "lineas", lineas);
+            if (conCliente) {
+                fila.put("idUsuario", p.getIdUsuario());
+                fila.put("nombreCliente", nombres.getOrDefault(p.getIdUsuario(), "Cliente #" + p.getIdUsuario()));
+            }
+            resultado.add(fila);
         }
-        return mapa("atendidoPor", NOMBRE_CLASE, "idUsuario", idUsuario, "totalPedidos", resultado.size(),
-                "pedidos", resultado);
+        return resultado;
+    }
+
+    // ------------------------------------------------------------------ panel del administrador
+
+    private Map<String, Object> listarPedidosAdmin(Map<String, Object> parametros) {
+        String estado = leerEstado(parametros);
+        // En proceso: los mas antiguos primero (se atienden en orden); concretados: los mas recientes primero
+        Sort orden = Sort.by(CONCRETADO.equals(estado) ? Sort.Direction.DESC : Sort.Direction.ASC, "fecha");
+        List<Map<String, Object>> pedidos = armarPedidos(pedidoRepository.findByEstado(estado, orden), true);
+        return mapa("atendidoPor", NOMBRE_CLASE, "estado", estado, "totalPedidos", pedidos.size(), "pedidos", pedidos);
+    }
+
+    private Map<String, Object> contarPedidos() {
+        return mapa("atendidoPor", NOMBRE_CLASE, "enProceso", pedidoRepository.countByEstado(PENDIENTE),
+                "concretados", pedidoRepository.countByEstado(CONCRETADO));
+    }
+
+    /** Cambia el estado de un pedido solo si esta en el estado esperado (si no, CONFLICTO). */
+    private Respuesta cambiarEstado(String id, Map<String, Object> parametros, String esperado, String nuevo) {
+        Pedido pedido = buscarPedido(parametros);
+        if (!esperado.equals(pedido.getEstado())) {
+            return Respuesta.error(id, EstadoRespuesta.CONFLICTO, "El pedido #" + pedido.getIdPedido()
+                    + " no está " + (PENDIENTE.equals(esperado) ? "en proceso" : "concretado")
+                    + " (estado actual: " + pedido.getEstado() + ")");
+        }
+        pedido.setEstado(nuevo);
+        pedidoRepository.save(pedido);
+        return Respuesta.exito(id, mapa("atendidoPor", NOMBRE_CLASE, "idPedido", pedido.getIdPedido(), "estado", nuevo));
+    }
+
+    /** "No concretado": borra un pedido en proceso y devuelve a la base de datos el stock que habia descontado. */
+    private Respuesta cancelarPedido(String id, Map<String, Object> parametros) {
+        Pedido pedido = buscarPedido(parametros);
+        if (!PENDIENTE.equals(pedido.getEstado())) {
+            return Respuesta.error(id, EstadoRespuesta.CONFLICTO, "Solo se pueden eliminar pedidos en proceso. El pedido #"
+                    + pedido.getIdPedido() + " está " + pedido.getEstado());
+        }
+        List<PedidoDetalle> detalles = pedidoDetalleRepository.findByIdPedido(pedido.getIdPedido());
+        int unidades = 0;
+        for (PedidoDetalle d : detalles) {
+            ProductoTalla variante = productoTallaRepository.findById(d.getIdVariante()).orElse(null);
+            if (variante != null) {
+                int actual = variante.getStock() == null ? 0 : variante.getStock();
+                variante.setStock(actual + d.getCantidad());
+                productoTallaRepository.save(variante);
+            }
+            unidades += d.getCantidad();
+        }
+        pedidoDetalleRepository.deleteAll(detalles);
+        pedidoRepository.delete(pedido);
+        return Respuesta.exito(id, mapa("atendidoPor", NOMBRE_CLASE, "idPedido", pedido.getIdPedido(),
+                "eliminado", true, "unidadesDevueltas", unidades));
+    }
+
+    private Pedido buscarPedido(Map<String, Object> parametros) {
+        long idPedido = obtenerLong(parametros, "idPedido");
+        return pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el pedido #" + idPedido));
+    }
+
+    private static String leerEstado(Map<String, Object> parametros) {
+        Object crudo = parametros.get("estado");
+        String estado = crudo == null ? "" : crudo.toString().trim().toUpperCase();
+        if (!PENDIENTE.equals(estado) && !CONCRETADO.equals(estado)) {
+            throw new IllegalArgumentException("El parametro 'estado' debe ser PENDIENTE o CONCRETADO");
+        }
+        return estado;
     }
 }

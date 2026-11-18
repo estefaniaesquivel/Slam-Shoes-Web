@@ -11,3 +11,28 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* ---- Estilo general inspirado en Way of Wade / SoleRetriever ---- */
+:root {
+  --color-acento: #f28c00; /* naranja de los títulos, flechas y enlaces activos */
+}
+
+/* Título de sección: mayúsculas con una línea corta naranja debajo */
+.seccion-titulo {
+  position: relative;
+  margin: 0 0 1.4rem;
+  padding-bottom: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.seccion-titulo::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 52px;
+  height: 3px;
+  background: var(--color-acento);
+}

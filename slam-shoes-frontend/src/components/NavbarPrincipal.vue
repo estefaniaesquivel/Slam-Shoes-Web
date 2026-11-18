@@ -105,6 +105,10 @@
               </li>
             </ul>
           </li>
+          <!-- Aviso: el sitio es un prototipo escolar -->
+          <li class="nav-item">
+            <router-link class="nav-link text-light" to="/sobre-nosotros">Sobre nosotros <span class="text-warning">(Prototipo escolar)</span></router-link>
+          </li>
         </ul>
       </div>
 

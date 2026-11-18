@@ -2,3 +2,111 @@
 2026-11-14 00:49:51.739 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
 2026-11-14 00:49:51.740 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
 2026-11-14 00:49:51.741 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
+2026-11-14 01:28:30.643 | 3da24926 | productos.obtenerDetalle | EXITO | 1251 ms | origen=127.0.0.1
+2026-11-14 01:28:38.212 | 638f7b30 | productos.obtenerDetalle | EXITO | 1019 ms | origen=127.0.0.1
+2026-11-14 01:28:41.144 | cb587abb | productos.obtenerDetalle | EXITO | 1333 ms | origen=127.0.0.1
+2026-11-14 01:28:47.353 | 2c8875d1 | productos.obtenerDetalle | EXITO | 1042 ms | origen=127.0.0.1
+2026-11-14 01:50:00.112 | 942a98b8 | productos.obtenerDetalle | EXITO | 1239 ms | origen=127.0.0.1
+2026-11-14 01:51:17.568 | d93a1709 | productos.obtenerDetalle | EXITO | 1100 ms | origen=127.0.0.1
+2026-11-14 01:58:57.882 | -------- | EVENTO | Proveedor dado de baja: productos @ localhost:9101
+2026-11-14 01:58:57.885 | -------- | EVENTO | Proveedor dado de baja: usuarios @ localhost:9102
+2026-11-14 01:58:57.887 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9103
+2026-11-14 01:58:57.889 | -------- | EVENTO | Broker detenido
+2026-11-14 14:09:03.391 | -------- | EVENTO | Broker iniciado en el puerto 9000
+2026-11-14 14:09:03.413 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
+2026-11-14 14:09:03.414 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
+2026-11-14 14:09:03.416 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
+2026-11-14 14:10:54.048 | 2459ba00 | productos.obtenerDetalle | EXITO | 1040 ms | origen=127.0.0.1
+2026-11-14 14:23:58.157 | 48cf7c35 | envios.calcularCosto | SERVICIO_NO_ENCONTRADO | 0 ms | origen=127.0.0.1 error=No existe un proveedor registrado para el servicio 'envios'
+2026-11-14 14:28:42.302 | 8f15be52 | usuarios.autenticar | NO_AUTORIZADO | 564 ms | origen=127.0.0.1 error=Correo o contraseña incorrectos
+2026-11-14 14:37:38.325 | -------- | EVENTO | Proveedor SUSTITUIDO: pedidos ahora @ localhost:9104
+2026-11-14 14:38:24.350 | 80827058 | usuarios.autenticar | EXITO | 595 ms | origen=127.0.0.1
+2026-11-14 15:15:55.333 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9104
+2026-11-14 15:15:55.886 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
+2026-11-15 00:15:19.616 | -------- | EVENTO | Proveedor dado de baja: productos @ localhost:9101
+2026-11-15 00:15:19.623 | -------- | EVENTO | Proveedor dado de baja: usuarios @ localhost:9102
+2026-11-15 00:15:19.627 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9103
+2026-11-15 00:15:19.631 | -------- | EVENTO | Broker detenido
+2026-11-16 16:04:24.788 | -------- | EVENTO | Broker iniciado en el puerto 9000
+2026-11-16 16:04:24.870 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
+2026-11-16 16:04:24.875 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
+2026-11-16 16:04:24.890 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
+2026-11-17 01:05:32.898 | b27bd183 | usuarios.autenticar | EXITO | 619 ms | origen=127.0.0.1
+2026-11-17 01:05:51.925 | 1b3cfef0 | productos.obtenerDetalle | EXITO | 1157 ms | origen=127.0.0.1
+2026-11-17 01:06:02.202 | 881c8515 | productos.consultarStock | EXITO | 329 ms | origen=127.0.0.1
+2026-11-17 01:30:00.710 | -------- | EVENTO | Proveedor dado de baja: productos @ localhost:9101
+2026-11-17 01:30:00.714 | -------- | EVENTO | Proveedor dado de baja: usuarios @ localhost:9102
+2026-11-17 01:30:00.716 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9103
+2026-11-17 01:30:00.719 | -------- | EVENTO | Broker detenido
+2026-11-17 13:38:32.846 | -------- | EVENTO | Broker iniciado en el puerto 9000
+2026-11-17 13:38:32.861 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
+2026-11-17 13:38:32.863 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
+2026-11-17 13:38:32.864 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
+2026-11-17 13:45:47.963 | 6f478180 | pedidos.consultarHistorial | EXITO | 1077 ms | origen=127.0.0.1
+2026-11-17 13:55:24.632 | 753b2864 | usuarios.autenticar | EXITO | 514 ms | origen=127.0.0.1
+2026-11-17 19:50:19.942 | -------- | EVENTO | Proveedor dado de baja: productos @ localhost:9101
+2026-11-17 19:50:19.945 | -------- | EVENTO | Proveedor dado de baja: usuarios @ localhost:9102
+2026-11-17 19:50:19.948 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9103
+2026-11-17 19:50:19.950 | -------- | EVENTO | Broker detenido
+2026-11-17 19:50:24.286 | -------- | EVENTO | Broker iniciado en el puerto 9000
+2026-11-17 19:50:24.307 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
+2026-11-17 19:50:24.308 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
+2026-11-17 19:50:24.309 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [consultarHistorial, crearPedido]
+2026-11-17 19:50:58.233 | -------- | EVENTO | Proveedor dado de baja: productos @ localhost:9101
+2026-11-17 19:50:58.236 | -------- | EVENTO | Proveedor dado de baja: usuarios @ localhost:9102
+2026-11-17 19:50:58.239 | -------- | EVENTO | Proveedor dado de baja: pedidos @ localhost:9103
+2026-11-17 19:50:58.241 | -------- | EVENTO | Broker detenido
+2026-11-17 19:53:30.557 | -------- | EVENTO | Broker iniciado en el puerto 9000
+2026-11-17 19:53:30.569 | -------- | EVENTO | Proveedor registrado: pedidos @ localhost:9103 [cancelarPedido, concretarPedido, consultarHistorial, contarPedidos, crearPedido, listarPedidosAdmin, reabrirPedido]
+2026-11-17 19:53:30.570 | -------- | EVENTO | Proveedor registrado: productos @ localhost:9101 [consultarStock, listarProductos, obtenerDetalle]
+2026-11-17 19:53:30.571 | -------- | EVENTO | Proveedor registrado: usuarios @ localhost:9102 [autenticar, registrar]
+2026-11-17 20:21:41.189 | ca61d9eb | pedidos.contarPedidos | EXITO | 468 ms | origen=127.0.0.1
+2026-11-17 20:22:34.629 | 698c7cfb | pedidos.contarPedidos | EXITO | 469 ms | origen=127.0.0.1
+2026-11-17 20:22:53.765 | 77e1004a | pedidos.contarPedidos | EXITO | 503 ms | origen=127.0.0.1
+2026-11-17 20:23:27.226 | 0d68dfe3 | pedidos.contarPedidos | EXITO | 426 ms | origen=127.0.0.1
+2026-11-17 20:23:34.871 | a1fd7700 | pedidos.contarPedidos | EXITO | 438 ms | origen=127.0.0.1
+2026-11-17 20:23:49.068 | e6d66153 | pedidos.contarPedidos | EXITO | 419 ms | origen=127.0.0.1
+2026-11-17 20:24:15.128 | 341e24ba | pedidos.contarPedidos | EXITO | 1603 ms | origen=127.0.0.1
+2026-11-17 20:24:16.604 | 82e941d5 | pedidos.contarPedidos | EXITO | 521 ms | origen=127.0.0.1
+2026-11-17 20:24:16.974 | 830aa0dc | pedidos.contarPedidos | EXITO | 365 ms | origen=127.0.0.1
+2026-11-17 20:24:21.370 | 23cfe47d | pedidos.contarPedidos | EXITO | 434 ms | origen=127.0.0.1
+2026-11-17 20:24:22.224 | 3be35778 | pedidos.listarPedidosAdmin | EXITO | 1284 ms | origen=127.0.0.1
+2026-11-17 20:24:33.866 | 0f473d12 | pedidos.concretarPedido | EXITO | 550 ms | origen=127.0.0.1
+2026-11-17 20:24:34.808 | fe05bd7f | pedidos.listarPedidosAdmin | EXITO | 936 ms | origen=127.0.0.1
+2026-11-17 20:24:42.171 | 1f0fe70f | pedidos.contarPedidos | EXITO | 440 ms | origen=127.0.0.1
+2026-11-17 20:24:42.540 | a2cc72d0 | pedidos.contarPedidos | EXITO | 365 ms | origen=127.0.0.1
+2026-11-17 20:24:43.257 | adc31042 | pedidos.contarPedidos | EXITO | 338 ms | origen=127.0.0.1
+2026-11-17 20:24:43.743 | 5d27941a | pedidos.listarPedidosAdmin | EXITO | 822 ms | origen=127.0.0.1
+2026-11-17 20:25:01.743 | e18fc46e | pedidos.contarPedidos | EXITO | 453 ms | origen=127.0.0.1
+2026-11-17 20:25:44.379 | f62ebc2e | pedidos.contarPedidos | EXITO | 451 ms | origen=127.0.0.1
+2026-11-17 20:25:44.795 | 6ea3ebde | pedidos.contarPedidos | EXITO | 411 ms | origen=127.0.0.1
+2026-11-17 20:25:47.296 | e3062c0b | pedidos.contarPedidos | EXITO | 553 ms | origen=127.0.0.1
+2026-11-17 20:25:47.941 | c1b29217 | pedidos.listarPedidosAdmin | EXITO | 1195 ms | origen=127.0.0.1
+2026-11-17 20:25:57.338 | 026ba84f | pedidos.contarPedidos | EXITO | 587 ms | origen=127.0.0.1
+2026-11-17 20:25:57.654 | 9202897c | pedidos.contarPedidos | EXITO | 311 ms | origen=127.0.0.1
+2026-11-17 20:25:59.136 | 90820f75 | pedidos.contarPedidos | EXITO | 630 ms | origen=127.0.0.1
+2026-11-17 20:25:59.608 | 10f946e0 | pedidos.listarPedidosAdmin | EXITO | 1099 ms | origen=127.0.0.1
+2026-11-17 20:26:04.041 | 7fa0529d | pedidos.contarPedidos | EXITO | 437 ms | origen=127.0.0.1
+2026-11-17 20:26:11.886 | 64c2e0af | pedidos.contarPedidos | EXITO | 421 ms | origen=127.0.0.1
+2026-11-17 20:26:23.236 | 66428dba | pedidos.contarPedidos | EXITO | 618 ms | origen=127.0.0.1
+2026-11-17 20:32:19.894 | e36bf0e9 | usuarios.autenticar | EXITO | 541 ms | origen=127.0.0.1
+2026-11-17 20:33:22.233 | 032998a3 | pedidos.consultarHistorial | EXITO | 1154 ms | origen=127.0.0.1
+2026-11-17 20:36:01.939 | cd482113 | productos.obtenerDetalle | EXITO | 1048 ms | origen=127.0.0.1
+2026-11-17 20:36:07.919 | e6d19eb3 | productos.obtenerDetalle | EXITO | 1049 ms | origen=127.0.0.1
+2026-11-17 20:36:12.171 | 407add9f | productos.obtenerDetalle | EXITO | 943 ms | origen=127.0.0.1
+2026-11-17 20:38:48.206 | 215cb048 | usuarios.autenticar | EXITO | 494 ms | origen=127.0.0.1
+2026-11-17 20:38:50.016 | 90168439 | pedidos.contarPedidos | EXITO | 437 ms | origen=127.0.0.1
+2026-11-17 20:38:55.595 | 4341d089 | pedidos.contarPedidos | EXITO | 414 ms | origen=127.0.0.1
+2026-11-17 20:38:55.911 | 598cef16 | pedidos.contarPedidos | EXITO | 312 ms | origen=127.0.0.1
+2026-11-17 20:38:59.405 | eb356671 | pedidos.contarPedidos | EXITO | 481 ms | origen=127.0.0.1
+2026-11-17 20:39:05.063 | 86ab1fe9 | pedidos.contarPedidos | EXITO | 412 ms | origen=127.0.0.1
+2026-11-17 20:39:08.019 | 4063c30e | pedidos.contarPedidos | EXITO | 482 ms | origen=127.0.0.1
+2026-11-17 20:39:10.873 | 2846d626 | pedidos.contarPedidos | EXITO | 428 ms | origen=127.0.0.1
+2026-11-17 20:39:44.171 | 19cfd26b | pedidos.contarPedidos | EXITO | 698 ms | origen=127.0.0.1
+2026-11-17 20:41:30.482 | d00964e9 | pedidos.contarPedidos | EXITO | 452 ms | origen=127.0.0.1
+2026-11-17 20:41:53.019 | 657e5fdc | pedidos.contarPedidos | EXITO | 512 ms | origen=127.0.0.1
+2026-11-17 20:42:11.311 | d9b9cc88 | pedidos.contarPedidos | EXITO | 485 ms | origen=127.0.0.1
+2026-11-17 20:42:32.001 | d9b62bc6 | pedidos.contarPedidos | EXITO | 440 ms | origen=127.0.0.1
+2026-11-17 20:42:48.743 | 74956bec | pedidos.contarPedidos | EXITO | 481 ms | origen=127.0.0.1
+2026-11-17 20:42:49.285 | f6e0dcc2 | productos.obtenerDetalle | EXITO | 1023 ms | origen=127.0.0.1
+2026-11-17 20:42:50.338 | ea38d7e0 | pedidos.contarPedidos | EXITO | 476 ms | origen=127.0.0.1
