@@ -1,11 +1,16 @@
 <template>
-  <!-- Aquí se inyecta automáticamente HomeView.vue -->
+  <!-- Aquí se inyecta la vista de cada ruta -->
   <router-view />
+  <!-- Pie de página compartido por todas las vistas (incluye el aviso de prototipo escolar) -->
+  <PieSitio />
 </template>
 
 <script>
+import PieSitio from '@/components/PieSitio.vue';
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: { PieSitio }
 }
 </script>
 

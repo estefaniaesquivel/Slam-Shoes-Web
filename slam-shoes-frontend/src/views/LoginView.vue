@@ -17,6 +17,11 @@
       <div class="login-form-container">
         <div class="login-card">
           <h2>Iniciar Sesión</h2>
+
+          <!-- Aparece al volver de "Crear cuenta" -->
+          <div v-if="cuentaCreada" class="alert alert-success small" role="alert">
+            ¡Cuenta creada! Ingresa con tu correo y contraseña para iniciar sesión.
+          </div>
           
           <form @submit.prevent="handleLogin">
             <div class="input-group">
@@ -52,10 +57,12 @@ import NavbarPrincipal from '@/components/NavbarPrincipal.vue'
 import CarritoComponent from '@/components/CarritoComponent.vue'
 import { ref } from 'vue'
 import { usuariosBroker } from '@/services/brokerService.js'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { iniciarSesionLocal } from '@/utils/sesion.js'
 
 const router = useRouter()
+const route = useRoute()
+const cuentaCreada = route.query.registro === 'ok'
 const correoInput = ref('')
 const contrasenaInput = ref('')
 

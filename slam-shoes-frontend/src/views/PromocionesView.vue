@@ -14,11 +14,6 @@
       />
     </div>
 
-    <footer class="border-top border-secondary bg-dark pt-4 pb-2 mt-5 w-100">
-      <div class="container-fluid text-center px-4">
-        <p class="mb-0 text-muted">[Texto xd sit seven]</p>
-      </div>
-    </footer>
 
     <CarritoComponent />
   </div>

@@ -1,14 +1,15 @@
 <template>
-  <!-- Marcas: cuadros 1:1 con el logo (2000x2000) a todo el recuadro, sin nombre; clic → catálogo de la marca -->
+  <!-- Marcas (al final de la página, como SoleRetriever): recuadros pequeños con el logo y el nombre debajo -->
   <div class="container-fluid px-4 my-5" v-if="marcas.length > 0">
-    <h3 class="fw-bold mb-4">Encuentra tenis por marca</h3>
-    <div class="row g-3">
-      <div class="col-6 col-md-3" v-for="marca in marcas" :key="marca.idMarca">
-        <router-link :to="`/marca/${marca.idMarca}`" class="marca-cuadro d-block rounded overflow-hidden" :title="marca.nombre">
-          <img v-if="marca.logoUrl" :src="marca.logoUrl" class="d-block w-100" :alt="marca.nombre" />
-          <div v-else class="marca-sin-logo d-flex align-items-center justify-content-center text-white fw-bold fs-4">{{ marca.nombre }}</div>
-        </router-link>
-      </div>
+    <h3 class="seccion-titulo">Encuentra tenis por marca</h3>
+    <div class="marcas-grid">
+      <router-link v-for="marca in marcas" :key="marca.idMarca" :to="`/marca/${marca.idMarca}`" class="marca-item" :title="marca.nombre">
+        <div class="marca-cuadro">
+          <img v-if="marca.logoUrl" :src="marca.logoUrl" :alt="marca.nombre" />
+          <span v-else class="marca-sin-logo">{{ marca.nombre }}</span>
+        </div>
+        <span class="marca-nombre">{{ marca.nombre }}</span>
+      </router-link>
     </div>
   </div>
 </template>
@@ -34,8 +35,14 @@ export default {
 </script>
 
 <style scoped>
-.marca-cuadro { aspect-ratio: 1 / 1; transition: transform 0.2s ease, filter 0.2s ease; }
-.marca-cuadro:hover { transform: translateY(-4px); filter: brightness(1.15); }
-.marca-cuadro img { aspect-ratio: 1 / 1; object-fit: cover; }
-.marca-sin-logo { aspect-ratio: 1 / 1; background-color: #2b2b3b; }
+.marcas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem 0.9rem; }
+.marca-item { text-decoration: none; color: #fff; }
+.marca-cuadro {
+  aspect-ratio: 2 / 1; background-color: #2b2b3b; border-radius: 3px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; transition: filter 0.2s ease, transform 0.2s ease;
+}
+.marca-item:hover .marca-cuadro { filter: brightness(1.2); transform: translateY(-2px); }
+.marca-cuadro img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.marca-sin-logo { font-weight: 700; padding: 0 0.5rem; text-align: center; font-size: 0.95rem; }
+.marca-nombre { display: block; margin-top: 0.45rem; font-size: 0.85rem; font-weight: 500; text-align: left; }
 </style>
