@@ -19,22 +19,14 @@
 
       <template v-else>
 
-        <!-- Encabezado de la colección: nombre y descripción (la imagen se ve completa en el Home) -->
-        <div class="container-fluid px-4 my-4">
-          <div class="text-center border border-secondary rounded bg-black py-5 px-4">
-            <span class="badge bg-secondary text-uppercase mb-2">{{ etiquetaTipo }}</span>
-            <h1 class="text-white fw-bold text-uppercase mb-2">{{ coleccion.nombre }}</h1>
-            <p v-if="coleccion.descripcion" class="text-light opacity-75 mb-1">{{ coleccion.descripcion }}</p>
-            <p class="text-secondary small mb-0">
-              {{ productos.length }} {{ productos.length === 1 ? 'modelo disponible' : 'modelos disponibles' }}
-            </p>
-          </div>
+        <!-- Título y descripción, sin recuadros -->
+        <div class="container-fluid px-4 mt-4">
+          <h1 class="h2 text-white fw-bold text-uppercase mb-1">{{ coleccion.nombre }}</h1>
+          <p v-if="coleccion.descripcion" class="text-secondary small mb-0">{{ coleccion.descripcion }}</p>
         </div>
 
-        <!-- Catálogo de tenis indexados a la colección -->
-        <div class="container-fluid px-4 my-5 pt-3">
-          <h2 class="mb-4 text-center text-uppercase">{{ coleccion.nombre }}</h2>
-
+        <!-- Catálogo de tenis (con buscador, filtros y conteo en existencia) -->
+        <div class="container-fluid px-4 mt-4 mb-5">
           <CatalogoFiltrable :productos="productos" vacio="Aún no hay tenis registrados aquí." />
         </div>
 
@@ -67,9 +59,28 @@ export default {
 
     const coleccion = ref(null); // marca o categoría que se está mostrando
     const tipo = computed(() => route.meta.tipo); // 'marca' | 'categoria'
-    const etiquetaTipo = computed(() => (tipo.value === 'marca' ? 'Marca' : 'Categoría'));
     const productos = ref([]);
     const cargando = ref(true);
+
+    // "Ver todo": todo el catálogo activo, sin marca ni categoría
+    const cargarTodo = async () => {
+      const ruta = route.fullPath;
+      cargando.value = true;
+      productos.value = [];
+      coleccion.value = { nombre: 'Ver todo' };
+      try {
+        const res = await axios.get('http://localhost:8080/api/productos');
+        if (route.fullPath !== ruta) return;
+        productos.value = res.data.filter((p) => p.activo !== false);
+      } catch (error) {
+        console.error('Error al cargar el catálogo:', error);
+      } finally {
+        if (route.fullPath === ruta) {
+          cargando.value = false;
+          window.scrollTo({ top: 0 });
+        }
+      }
+    };
 
     const cargarColeccion = async (id) => {
       const ruta = route.fullPath;
@@ -103,14 +114,14 @@ export default {
     watch(
       () => route.fullPath,
       () => {
-        if (route.params.id) cargarColeccion(route.params.id);
+        if (tipo.value === 'todo') cargarTodo();
+        else if (route.params.id) cargarColeccion(route.params.id);
       },
       { immediate: true }
     );
 
     return {
       coleccion,
-      etiquetaTipo,
       productos,
       cargando
     };

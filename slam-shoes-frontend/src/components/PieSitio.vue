@@ -31,20 +31,8 @@
           </ul>
         </div>
 
-        <!-- Cuenta -->
-        <div class="col-6 col-md-3 col-lg-2">
-          <h6 class="pie-titulo">Mi cuenta</h6>
-          <ul class="pie-lista">
-            <li><router-link to="/login">Iniciar sesión</router-link></li>
-            <li><router-link to="/registro">Crear cuenta</router-link></li>
-            <li><router-link to="/mi-perfil">Mi perfil</router-link></li>
-            <li><router-link to="/mis-pedidos">Mis pedidos</router-link></li>
-            <li><router-link to="/favoritos">Favoritos</router-link></li>
-          </ul>
-        </div>
-
         <!-- Aviso de prototipo escolar -->
-        <div class="col-12 col-md-6 col-lg-3">
+        <div class="col-12 col-md-6 col-lg-4">
           <h6 class="pie-titulo">Aviso de prototipo escolar</h6>
           <p class="pie-texto mb-0">
             Slam Shoes es un prototipo académico de la UADY, sin fines comerciales. Los productos, pagos y envíos

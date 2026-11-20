@@ -12,8 +12,8 @@
         catálogo y órdenes.
       </p>
 
-      <div id="aviso-legal" class="aviso border border-warning rounded-3 p-4 mt-5">
-        <h2 class="h4 text-warning mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Aviso Legal y de Prototipo Escolar</h2>
+      <div id="aviso-legal" class="aviso border border-danger rounded-3 p-4 mt-5">
+        <h2 class="h4 text-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Aviso Legal y de Prototipo Escolar</h2>
         <ul class="mb-0 ps-3">
           <li class="mb-3">
             <strong>Sin fines comerciales:</strong> Este sitio no opera como un mercado real ni realiza transacciones

@@ -72,6 +72,7 @@ const routes = [
     component: CatalogoView,
     meta: { tipo: 'marca' }
   },
+  { path: '/catalogo', name: 'catalogo-todo', component: CatalogoView, meta: { tipo: 'todo' } },
   {
     path: '/categoria/:id',
     name: 'categoria',

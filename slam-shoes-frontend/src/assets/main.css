@@ -14,10 +14,10 @@ body {
 
 /* ---- Estilo general inspirado en Way of Wade / SoleRetriever ---- */
 :root {
-  --color-acento: #f28c00; /* naranja de los títulos, flechas y enlaces activos */
+  --color-acento: #dc3545; /* rojo de los títulos, flechas y enlaces activos */
 }
 
-/* Título de sección: mayúsculas con una línea corta naranja debajo */
+/* Título de sección: mayúsculas con una línea corta roja debajo */
 .seccion-titulo {
   position: relative;
   margin: 0 0 1.4rem;

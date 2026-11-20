@@ -1,11 +1,16 @@
 <template>
   <!-- Rejilla de productos con buscador y barra de filtros (tallas y colores) desplegable a la izquierda -->
   <div>
-    <div v-if="buscador || filtros" class="d-flex flex-wrap align-items-center gap-2 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
       <button v-if="filtros" type="button" class="btn btn-outline-light" @click="abierto = !abierto">
         <i class="bi bi-sliders me-1"></i>Filtros
         <span v-if="totalFiltros" class="badge bg-danger ms-1">{{ totalFiltros }}</span>
       </button>
+
+      <!-- Conteo junto al botón de filtros: tenis con existencia (stock) que se están mostrando -->
+      <span class="text-light small conteo-existencia">
+        <strong>{{ enExistencia }}</strong> tenis en existencia
+      </span>
 
       <div v-if="buscador" class="input-group buscador">
         <span class="input-group-text bg-black text-secondary border-secondary"><i class="bi bi-search"></i></span>
@@ -15,7 +20,6 @@
         />
       </div>
 
-      <span class="text-secondary small ms-auto">{{ filtrados.length }} de {{ productos.length }} productos</span>
     </div>
 
     <div class="d-flex flex-column flex-lg-row gap-4 align-items-lg-start">
@@ -79,6 +83,11 @@ const filtrados = computed(() => {
   );
 });
 
+// Con las variantes cargadas se cuentan solo los tenis que tienen alguna talla con stock
+const enExistencia = computed(() =>
+  variantesCargadas.value ? filtrados.value.filter((p) => variantesDe(p.idProducto).length > 0).length : filtrados.value.length
+);
+
 function limpiar(tambienTexto = false) {
   tallasSel.value = [];
   coloresSel.value = [];
@@ -88,6 +97,7 @@ function limpiar(tambienTexto = false) {
 
 <style scoped>
 .buscador { max-width: 420px; }
+.conteo-existencia { white-space: nowrap; }
 .columna-filtros { flex: 0 0 270px; width: 270px; max-width: 100%; }
 @media (max-width: 991.98px) { .columna-filtros { width: 100%; flex-basis: auto; } }
 </style>

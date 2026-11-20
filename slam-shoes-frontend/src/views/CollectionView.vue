@@ -19,22 +19,14 @@
 
       <template v-else>
 
-        <!-- Encabezado de la colección: nombre y descripción (la imagen se ve completa en el Home) -->
-        <div class="container-fluid px-4 my-4">
-          <div class="text-center border border-secondary rounded bg-black py-5 px-4">
-            <span class="badge bg-secondary text-uppercase mb-2">Colección</span>
-            <h1 class="text-white fw-bold text-uppercase mb-2">{{ coleccion.nombre }}</h1>
-            <p v-if="coleccion.descripcion" class="text-light opacity-75 mb-1">{{ coleccion.descripcion }}</p>
-            <p class="text-secondary small mb-0">
-              {{ productos.length }} {{ productos.length === 1 ? 'modelo disponible' : 'modelos disponibles' }}
-            </p>
-          </div>
+        <!-- Título y descripción, sin recuadros -->
+        <div class="container-fluid px-4 mt-4">
+          <h1 class="h2 text-white fw-bold text-uppercase mb-1">{{ coleccion.nombre }}</h1>
+          <p v-if="coleccion.descripcion" class="text-secondary small mb-0">{{ coleccion.descripcion }}</p>
         </div>
 
         <!-- Catálogo de tenis indexados a la colección -->
-        <div class="container-fluid px-4 my-5 pt-3">
-          <h2 class="mb-4 text-center text-uppercase">{{ coleccion.nombre }}</h2>
-
+        <div class="container-fluid px-4 mt-4 mb-5">
           <CatalogoFiltrable :productos="productos" vacio="Aún no hay tenis registrados aquí." />
         </div>
 
