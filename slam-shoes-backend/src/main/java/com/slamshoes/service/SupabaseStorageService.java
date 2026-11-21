@@ -7,33 +7,67 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.Normalizer;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-// Sube y borra imágenes en Supabase Storage usando su API REST.
-// Las "carpetas" de Storage se crean solas al subir un archivo con ruta "carpeta/archivo".
+import com.slamshoes.exception.ValidacionException;
+
+/**
+ * Implementación de {@link IStorageService} respaldada por la API REST de Supabase Storage.
+ * Las carpetas de Storage se crean automáticamente al subir un objeto con ruta {@code carpeta/archivo}.
+ */
 @Service
-public class SupabaseStorageService {
+public class SupabaseStorageService implements IStorageService {
 
-    @Value("${supabase.url:https://ckparlqrfkzofsvskmbw.supabase.co}")
-    private String url;
+    private static final Logger LOG = Logger.getLogger(SupabaseStorageService.class.getName());
 
-    @Value("${supabase.bucket:slam-shoes-storage}")
-    private String bucket;
+    private final String url;
+    private final String bucket;
+    private final String serviceKey;
+    private final HttpClient http;
 
-    @Value("${supabase.service-key:}")
-    private String serviceKey;
+    /**
+     * Constructor principal usado por Spring con la configuración de propiedades.
+     *
+     * @param url URL base del proyecto Supabase
+     * @param bucket nombre del bucket de almacenamiento
+     * @param serviceKey llave de servicio para autenticación Bearer
+     */
+    @Autowired
+    public SupabaseStorageService(
+            @Value("${supabase.url:https://ckparlqrfkzofsvskmbw.supabase.co}") String url,
+            @Value("${supabase.bucket:slam-shoes-storage}") String bucket,
+            @Value("${supabase.service-key:}") String serviceKey) {
+        this(url, bucket, serviceKey, HttpClient.newHttpClient());
+    }
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    /**
+     * Constructor auxiliar para inyectar un {@link HttpClient} en pruebas unitarias.
+     *
+     * @param url URL base del proyecto Supabase
+     * @param bucket nombre del bucket de almacenamiento
+     * @param serviceKey llave de servicio para autenticación Bearer
+     * @param http cliente HTTP a utilizar
+     */
+    public SupabaseStorageService(String url, String bucket, String serviceKey, HttpClient http) {
+        this.url = url;
+        this.bucket = bucket;
+        this.serviceKey = serviceKey;
+        this.http = http;
+    }
 
+    @Override
     public boolean estaConfigurado() {
         return serviceKey != null && !serviceKey.isBlank();
     }
 
-    // Sube un archivo a "carpeta/archivo" y devuelve su URL pública. No sobrescribe archivos existentes.
+    @Override
     public String subir(String carpeta, String archivo, byte[] contenido, String contentType)
             throws IOException, InterruptedException {
         String ruta = carpeta + "/" + archivo;
@@ -53,47 +87,63 @@ public class SupabaseStorageService {
         return urlPublica(ruta);
     }
 
-    // Valida que sea un .webp, lo sube a "carpeta/<nombre>-<marca de tiempo>.webp" y devuelve su URL pública
+    @Override
     public String subirWebp(String carpeta, String nombreBase, MultipartFile archivo)
             throws IOException, InterruptedException {
-        if (!esWebp(archivo)) throw new IllegalArgumentException("La imagen debe estar en formato .webp");
+        if (!esWebp(archivo)) {
+            throw new ValidacionException("La imagen debe estar en formato .webp");
+        }
         String nombre = slug(nombreBase) + "-" + System.currentTimeMillis() + ".webp";
         return subir(carpeta, nombre, archivo.getBytes(), "image/webp");
     }
 
+    /**
+     * Verifica si el archivo recibido no está vacío y corresponde al formato WebP.
+     *
+     * @param f archivo multipart a inspeccionar
+     * @return {@code true} si tiene tipo MIME {@code image/webp} o extensión {@code .webp}
+     */
     public static boolean esWebp(MultipartFile f) {
         if (f == null || f.isEmpty()) return false;
         String nombre = f.getOriginalFilename() == null ? "" : f.getOriginalFilename().toLowerCase();
         return "image/webp".equals(f.getContentType()) || nombre.endsWith(".webp");
     }
 
-    // De una URL pública del bucket obtiene la ruta "carpeta/archivo" (null si no es de Storage)
+    @Override
     public String rutaDesdeUrl(String url) {
         if (url == null) return null;
         String prefijo = urlPublica("");
         return url.startsWith(prefijo) ? url.substring(prefijo.length()) : null;
     }
 
-    // Borra una imagen a partir de su URL pública (mejor esfuerzo)
+    @Override
     public void eliminarPorUrl(String url) {
         String ruta = rutaDesdeUrl(url);
-        if (ruta != null && estaConfigurado()) eliminar(List.of(ruta));
+        if (ruta != null && estaConfigurado()) {
+            eliminar(List.of(ruta));
+        }
     }
 
-    // "Nike Kyrie 8 N7" -> "nike-kyrie-8-n7" (sin acentos ni caracteres que Storage no acepta)
+    /**
+     * Normaliza un texto eliminando acentos y caracteres especiales para usarlo como nombre de ruta.
+     *
+     * @param texto texto de entrada
+     * @return identificador seguro en minúsculas y separado por guiones
+     */
     public static String slug(String texto) {
         String s = Normalizer.normalize(texto == null ? "" : texto.trim(), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         s = s.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
         return s.isEmpty() ? "imagen" : s;
     }
 
+    @Override
     public String urlPublica(String ruta) {
         return url + "/storage/v1/object/public/" + bucket + "/" + ruta;
     }
 
-    // Borra archivos subidos (limpieza si algo falla). Mejor esfuerzo: los errores se ignoran.
+    @Override
     public void eliminar(List<String> rutas) {
-        if (rutas.isEmpty()) return;
+        if (rutas == null || rutas.isEmpty()) return;
         try {
             String cuerpo = "{\"prefixes\":[" + rutas.stream()
                     .map(r -> "\"" + r + "\"").collect(Collectors.joining(",")) + "]}";
@@ -104,9 +154,15 @@ public class SupabaseStorageService {
                     .header("Content-Type", "application/json")
                     .method("DELETE", HttpRequest.BodyPublishers.ofString(cuerpo))
                     .build();
-            http.send(peticion, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> resp = http.send(peticion, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() >= 400) {
+                LOG.log(Level.WARNING, "Supabase no pudo eliminar {0}: HTTP {1}", new Object[]{rutas, resp.statusCode()});
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.log(Level.WARNING, "Interrupción al limpiar archivos en Supabase", e);
         } catch (Exception e) {
-            // se ignora a propósito
+            LOG.log(Level.WARNING, "No se pudieron eliminar archivos en Supabase: " + rutas, e);
         }
     }
 }

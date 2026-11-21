@@ -14,4 +14,4 @@ public record ProductoNuevoDTO(
         Boolean activo,
         String modelo,
         Boolean esTendencia,
-        List<ColorTallasDTO> colores) {}
+        List<ColorTallasDTO> colores) implements ProductoBaseDTO {}
