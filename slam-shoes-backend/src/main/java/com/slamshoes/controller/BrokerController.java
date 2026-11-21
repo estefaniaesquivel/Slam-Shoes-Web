@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.slamshoes.broker.EstadoRespuesta;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
+import com.slamshoes.broker.http.Json;
+import com.slamshoes.broker.http.NucleoBroker;
 import com.slamshoes.service.BrokerGateway;
 
 /**
@@ -42,6 +44,10 @@ public class BrokerController {
 
     @Autowired
     private BrokerGateway gateway;
+
+    /** Solo existe en la instancia que ES el Broker; si falta, el estado se pide al Broker remoto (BROKER_URL). */
+    @Autowired(required = false)
+    private NucleoBroker nucleo;
 
     @PostMapping("/{servicio}/{operacion}")
     public ResponseEntity<Map<String, Object>> enviar(@PathVariable String servicio,
@@ -83,6 +89,10 @@ public class BrokerController {
     @GetMapping("/estado")
     public ResponseEntity<Map<String, Object>> estado() {
         try {
+            if (nucleo != null) {
+                // Se pasa por JSON para entregar solo textos, numeros y listas (sin LocalDateTime ni enums)
+                return ResponseEntity.ok(Json.leerObjeto(Json.escribir(nucleo.estado())));
+            }
             return ResponseEntity.ok(gateway.estado());
         } catch (IOException e) {
             return ResponseEntity.status(503).body(Map.of("error", "El Broker no esta disponible: " + e.getMessage(),

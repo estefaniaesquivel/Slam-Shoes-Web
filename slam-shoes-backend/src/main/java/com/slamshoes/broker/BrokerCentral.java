@@ -2,6 +2,7 @@ package com.slamshoes.broker;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Intermediario entre el cliente y los proveedores.
@@ -46,7 +47,10 @@ public class BrokerCentral implements Broker {
         Consola.broker("Proveedor localizado: " + nombreProveedor);
 
         // Rechazar operaciones que el proveedor no ofrece
-        if (!proveedor.getOperacionesSoportadas().contains(operacion)) {
+        // Un proveedor HTTP puede registrarse sin lista de operaciones (por ejemplo {"servicio","url"}): entonces el
+        // Broker no pre-valida y el propio proveedor responde OPERACION_NO_SOPORTADA si no la conoce.
+        Set<String> ofrecidas = proveedor.getOperacionesSoportadas();
+        if (!ofrecidas.isEmpty() && !ofrecidas.contains(operacion)) {
             Consola.broker("Solicitud " + corto + ": " + nombreProveedor + " no ofrece '" + operacion + "'");
             return terminar(corto, Respuesta.error(id, EstadoRespuesta.OPERACION_NO_SOPORTADA,
                     "El servicio '" + servicio + "' no ofrece la operacion '" + operacion
@@ -59,7 +63,7 @@ public class BrokerCentral implements Broker {
             Consola.broker("Reenviando " + corto + " a " + nombreProveedor);
             respuesta = proveedor.ejecutar(solicitud);
         } catch (ProveedorNoDisponibleException e) {
-            // Nivel 2: el proveedor remoto no contestó (caído, rechazó la conexión o tardó demasiado)
+            // El proveedor remoto no contestó (caído, dormido, rechazó la conexión o tardó demasiado)
             Consola.broker("Proveedor NO DISPONIBLE (" + nombreProveedor + "): " + e.getMessage());
             return terminar(corto, Respuesta.error(id,
                     e.isTiempoAgotado() ? EstadoRespuesta.TIEMPO_AGOTADO : EstadoRespuesta.PROVEEDOR_NO_DISPONIBLE,

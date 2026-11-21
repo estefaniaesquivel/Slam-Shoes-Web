@@ -35,7 +35,7 @@
             <tbody>
               <tr v-for="s in estado.servicios" :key="s.servicio">
                 <td class="fw-bold">{{ s.servicio }}</td>
-                <td>{{ s.host ? `${s.host}:${s.puerto}` : s.clase }}</td>
+                <td>{{ s.url || s.clase }}</td>
                 <td class="small">{{ (s.operaciones || []).join(', ') }}</td>
                 <td><span :class="['badge', s.fallosConsecutivos ? 'bg-danger' : 'bg-success']">{{ s.fallosConsecutivos ?? 0 }}</span></td>
                 <td class="small text-secondary">{{ formatearHora(s.ultimoContacto) }}</td>

@@ -57,7 +57,7 @@ public class Solicitud {
 
     /**
      * Reconstruye una solicitud que ya tiene identificador y fecha (la que llega como JSON por
-     * un socket, o la que el cliente quiere reenviar con el MISMO id para evitar duplicados).
+     * HTTP, o la que el cliente quiere reenviar con el MISMO id para evitar duplicados).
      *
      * @throws IllegalArgumentException si falta el id, el servicio o la operación
      */

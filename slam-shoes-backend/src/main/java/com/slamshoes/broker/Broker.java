@@ -4,9 +4,9 @@ package com.slamshoes.broker;
  * Lo único que el cliente necesita saber del Broker: enviarle una solicitud y
  * recibir una respuesta.
  *
- * En el Nivel 1 la implementa {@link BrokerCentral} (misma aplicación). En el
- * Nivel 2 se podrá agregar otra implementación que hable por sockets, sin
- * cambiar el código del cliente.
+ * La implementa {@link BrokerCentral} (dentro del propio Broker) y
+ * {@link com.slamshoes.broker.http.ClienteHttp} (desde otra aplicación, por HTTP/HTTPS),
+ * sin cambiar el código del cliente.
  */
 public interface Broker {
 

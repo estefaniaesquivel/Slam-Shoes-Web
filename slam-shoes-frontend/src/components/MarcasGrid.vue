@@ -38,7 +38,7 @@ export default {
 .marcas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem 0.9rem; }
 .marca-item { text-decoration: none; color: #fff; }
 .marca-cuadro {
-  aspect-ratio: 2 / 1; background-color: #2b2b3b; border-radius: 3px; overflow: hidden;
+  aspect-ratio: 2 / 1; background-color: #000; border-radius: 3px; overflow: hidden;
   display: flex; align-items: center; justify-content: center; transition: filter 0.2s ease, transform 0.2s ease;
 }
 .marca-item:hover .marca-cuadro { filter: brightness(1.2); transform: translateY(-2px); }

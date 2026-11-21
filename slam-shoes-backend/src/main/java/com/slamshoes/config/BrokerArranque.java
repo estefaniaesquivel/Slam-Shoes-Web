@@ -1,95 +1,95 @@
 package com.slamshoes.config;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.slamshoes.broker.Consola;
 import com.slamshoes.broker.ProveedorServicio;
-import com.slamshoes.broker.red.BrokerServidor;
-import com.slamshoes.broker.red.ProveedorServidor;
-import com.slamshoes.proveedores.ServicioPedidosJpa;
-import com.slamshoes.proveedores.ServicioProductosJpa;
-import com.slamshoes.proveedores.ServicioUsuariosJpa;
+import com.slamshoes.broker.http.ExposicionProveedores;
+import com.slamshoes.broker.http.RegistroAutomatico;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 /**
- * Pone en marcha la parte del Broker que vive dentro de la aplicacion web:
+ * Auto-registro de los proveedores de esta aplicación en el Broker, por HTTP, cuando la aplicación ya está lista
+ * ({@link ApplicationReadyEvent}: el servidor web ya atiende peticiones, así que el Broker puede contestar de vuelta).
  *
- *  1. (opcional) Un Broker local, solo si todavia no hay uno escuchando en el puerto. Si ya corres
- *     BrokerMain en otra terminal, esta aplicacion lo detecta (puerto ocupado) y usa ese.
- *  2. Los tres proveedores reales (productos, usuarios, pedidos), cada uno con su propio socket TCP,
- *     que se registran SOLOS en el Broker y repiten el aviso cada 5 s (si el Broker se reinicia,
- *     vuelven a aparecer sin reiniciar la aplicacion).
+ * Variables de entorno (todas opcionales en desarrollo):
+ * <ul>
+ *   <li>{@code BROKER_URL}: URL HTTPS del Broker desplegado. Por omisión, esta misma aplicación.</li>
+ *   <li>{@code SERVICE_PUBLIC_URL}: URL pública con la que el Broker alcanza a ESTA aplicación; sirve aunque Render
+ *       asigne cualquier puerto interno ({@code $PORT}). Por omisión {@code http://localhost:<server.port>}.</li>
+ *   <li>{@code BROKER_TOKEN}: secreto compartido opcional entre Broker y proveedores.</li>
+ * </ul>
  *
- * Nada de esto detiene el arranque de la aplicacion: si algo falla solo se avisa en consola.
+ * Nada de esto detiene el arranque: si el Broker no responde, el registro se reintenta solo cada segundo.
+ *
+ * REFACTOR: Extract Function / Substitute Algorithm
+ * RAZÓN: el arranque anterior abría tres puertos TCP (9101-9103) y un Broker local en el 9000, y fallaba o se
+ * quedaba mudo cuando un puerto estaba ocupado o bloqueado. Ahora solo calcula una URL pública y delega en
+ * {@link RegistroAutomatico}, que hace un POST HTTP: no hay puertos propios que abrir.
  */
 @Component
+@ConditionalOnProperty(name = "broker.proveedores.activo", havingValue = "true", matchIfMissing = true)
 public class BrokerArranque {
 
-    @Value("${broker.host:localhost}") private String brokerHost;
-    @Value("${broker.puerto:9000}") private int brokerPuerto;
-    @Value("${broker.local.activo:true}") private boolean brokerLocalActivo;
-    @Value("${broker.bitacora:bitacora-broker.log}") private String archivoBitacora;
-    @Value("${broker.proveedores.puerto-base:9101}") private int puertoBase;
+    /** Raíz REST de cada servicio para el proxy /api/gateway/{servicio}/**. */
+    private static final Map<String, String> RUTA_REST = Map.of(
+            "productos", "/api/productos",
+            "usuarios", "/api/usuarios",
+            "pedidos", "/api/pedidos");
 
-    @Autowired private ServicioProductosJpa productos;
-    @Autowired private ServicioUsuariosJpa usuarios;
-    @Autowired private ServicioPedidosJpa pedidos;
+    private final ExposicionProveedores exposicion;
+    private final String urlBroker;
+    private final String urlPublica;
+    private final String token;
+    private final boolean reemplazar;
+    private final long msLatido;
 
-    private BrokerServidor brokerLocal;
-    private final List<ProveedorServidor> servidores = new ArrayList<>();
+    private final List<RegistroAutomatico> registros = new ArrayList<>();
 
-    @PostConstruct
+    public BrokerArranque(ExposicionProveedores exposicion,
+                          @Value("${broker.url:http://localhost:${server.port:8080}}") String urlBroker,
+                          @Value("${service.public.url:http://localhost:${server.port:8080}}") String urlPublica,
+                          @Value("${broker.token:}") String token,
+                          @Value("${broker.proveedores.reemplazar:false}") boolean reemplazar,
+                          @Value("${broker.latido-ms:15000}") long msLatido) {
+        this.exposicion = exposicion;
+        this.urlBroker = urlBroker;
+        this.urlPublica = urlPublica;
+        this.token = token;
+        this.reemplazar = reemplazar;
+        this.msLatido = msLatido;
+    }
+
+    /** Se ejecuta una vez, cuando la aplicación terminó de arrancar. */
+    @EventListener(ApplicationReadyEvent.class)
     public void iniciar() {
-        try {
-            if (brokerLocalActivo && esLocal(brokerHost)) {
-                BrokerServidor candidato = new BrokerServidor(brokerPuerto, Paths.get(archivoBitacora));
-                try {
-                    candidato.iniciar();
-                    brokerLocal = candidato;
-                } catch (IOException e) {
-                    Consola.broker("Ya hay un Broker en el puerto " + brokerPuerto
-                            + " (" + e.getMessage() + "): se usara ese");
-                }
+        for (ProveedorServicio proveedor : exposicion.getProveedores()) {
+            try {
+                RegistroAutomatico registro = new RegistroAutomatico(proveedor, urlPublica,
+                        RUTA_REST.getOrDefault(proveedor.getNombreServicio(), ""), urlBroker, token, reemplazar, msLatido);
+                registro.iniciar();
+                registros.add(registro);
+            } catch (RuntimeException e) {
+                Consola.proveedor(proveedor.getNombreServicio(),
+                        "No se pudo iniciar el auto-registro (revisa BROKER_URL y SERVICE_PUBLIC_URL): " + e.getMessage());
             }
-            ProveedorServicio[] reales = { productos, usuarios, pedidos };
-            for (int i = 0; i < reales.length; i++) {
-                ProveedorServidor servidor = new ProveedorServidor(reales[i], "localhost", puertoBase + i,
-                        brokerHost, brokerPuerto, false, 5000);
-                try {
-                    servidor.iniciar();
-                    servidores.add(servidor);
-                } catch (IOException e) {
-                    Consola.proveedor(reales[i].getNombreServicio(), "No se pudo abrir el puerto " + (puertoBase + i)
-                            + ": " + e.getMessage());
-                }
-            }
-        } catch (RuntimeException e) {
-            Consola.broker("No se pudo iniciar la integracion con el Broker: " + e);
         }
     }
 
     @PreDestroy
     public void detener() {
-        for (ProveedorServidor s : servidores) {
-            s.detener();
+        for (RegistroAutomatico registro : registros) {
+            registro.detener();
         }
-        servidores.clear();
-        if (brokerLocal != null) {
-            brokerLocal.detener();
-            brokerLocal = null;
-        }
-    }
-
-    private static boolean esLocal(String host) {
-        return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+        registros.clear();
     }
 }

@@ -1,7 +1,5 @@
 package com.slamshoes.proveedores;
 
-import static com.slamshoes.providers.ProveedorUtil.mapa;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +12,7 @@ import com.slamshoes.broker.ProveedorServicio;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
 import com.slamshoes.model.Usuario;
+import static com.slamshoes.providers.ProveedorUtil.mapa;
 import com.slamshoes.repository.UsuarioRepository;
 import com.slamshoes.service.UsuarioService;
 

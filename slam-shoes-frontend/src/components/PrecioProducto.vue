@@ -7,7 +7,7 @@
     </template>
     <span v-else class="text-success">${{ precio }} MXN</span>
   </p>
-  <p v-if="oferta" class="small text-warning mb-0">{{ leyenda }}</p>
+  <p v-if="oferta" class="small text-danger mb-0">{{ leyenda }}</p>
 </template>
 
 <script setup>

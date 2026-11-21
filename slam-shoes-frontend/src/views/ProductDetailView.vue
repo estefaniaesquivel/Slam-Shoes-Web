@@ -87,18 +87,19 @@
 
           <hr class="border-secondary mb-4">
 
-          <!-- Estilos: el actual y los demás tenis del mismo modelo (portada = imagen de orden 1) -->
+          <!-- Otros modelos (estilo Way of Wade): tarjetas con imagen y nombre debajo, en una barra horizontal -->
           <div class="mb-4">
-            <span class="text-muted small text-uppercase d-block mb-2">STYLE: {{ producto.nombre }}</span>
-            <div class="d-flex flex-wrap gap-2">
+            <span class="text-light small text-uppercase fw-bold d-block mb-2">STYLE: {{ producto.nombre }}</span>
+            <div class="estilos-barra">
               <router-link
                 v-for="v in estilos" :key="v.idProducto"
                 :to="`/producto/${v.idProducto}`"
-                class="style-box"
-                :class="{ 'style-activo': v.idProducto === producto.idProducto }"
+                class="estilo-card"
+                :class="{ 'estilo-activo': v.idProducto === producto.idProducto }"
                 :title="v.nombre"
               >
-                <img :src="v.imagenUrl || '/logo-slamshoes-blanco.png'" class="img-fill" :alt="v.nombre">
+                <span class="estilo-img"><img :src="v.imagenUrl || '/logo-slamshoes-blanco.png'" :alt="v.nombre"></span>
+                <span class="estilo-nombre">{{ v.nombre }}</span>
               </router-link>
             </div>
           </div>
@@ -108,7 +109,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <label class="text-light fw-semibold small">
                 TALLA:
-                <span class="text-muted">
+                <span class="text-secondary">
                   {{ tallaSeleccionada ? tallaSeleccionada.talla + ' cm' : 'Por favor seleccione una talla' }}
                 </span>
               </label>
@@ -145,14 +146,26 @@
             </div>
           </div>
 
-          <!-- Botón de Añadir al Carrito -->
-          <button
-            class="btn btn-light w-100 py-3 fw-bold shadow text-uppercase"
-            :disabled="!tallaSeleccionada || tallaSeleccionada.stock <= 0"
-            @click="agregarAlCarritoConTalla"
-          >
-            Añadir al carrito
-          </button>
+          <!-- Añadir al carrito + favoritos (favoritos no requiere elegir talla) -->
+          <div class="d-flex gap-2">
+            <button
+              class="btn btn-light flex-grow-1 py-3 fw-bold shadow text-uppercase"
+              :disabled="!tallaSeleccionada || tallaSeleccionada.stock <= 0"
+              @click="agregarAlCarritoConTalla"
+            >
+              Añadir al carrito
+            </button>
+            <button
+              v-if="!admin"
+              type="button"
+              class="btn btn-outline-light px-4 boton-fav"
+              :title="esFav ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+              :aria-label="esFav ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+              @click="alternarFav"
+            >
+              <i :class="esFav ? 'bi bi-heart-fill text-danger' : 'bi bi-heart'" class="fs-5"></i>
+            </button>
+          </div>
         </div>
 
       </div>
@@ -169,10 +182,11 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import { verificarSesionYAccionar } from '@/utils/auth.js';
+import { verificarSesionYAccionar, esAdmin } from '@/utils/auth.js';
+import { alternarFavorito, esFavorito } from '@/utils/favoritos.js';
 import CarritoComponent from '@/components/CarritoComponent.vue';
 import NavbarPrincipal from '@/components/NavbarPrincipal.vue';
 import { porcentajeTexto, fechaCorta } from '@/utils/ofertas.js';
@@ -204,6 +218,24 @@ export default {
     const imagenSeleccionada = ref('');
     const indiceActualImagen = ref(0);
     const cargando = ref(true);
+
+    // Favoritos: funciona sin elegir talla
+    const admin = esAdmin();
+    const esFav = ref(false);
+    const refrescarFav = () => { esFav.value = producto.value ? esFavorito(producto.value.idProducto) : false; };
+    const alternarFav = async () => {
+      if (!producto.value) return;
+      await alternarFavorito({
+        idProducto: producto.value.idProducto,
+        nombre: producto.value.nombre,
+        imagenUrl: producto.value.imagenUrl,
+        precio: producto.value.precio,
+        marca: producto.value.marca
+      });
+      refrescarFav();
+    };
+    onMounted(() => window.addEventListener('storage', refrescarFav));
+    onBeforeUnmount(() => window.removeEventListener('storage', refrescarFav));
 
     const cargarDatosProducto = async () => {
       const idProducto = route.params.id;
@@ -240,6 +272,7 @@ export default {
         console.error("Error al cargar los detalles del producto:", error.message);
       } finally {
         cargando.value = false;
+        refrescarFav();
         window.scrollTo({ top: 0 });
       }
     };
@@ -350,6 +383,9 @@ export default {
       tallaSeleccionada,
       imagenSeleccionada,
       cargando,
+      admin,
+      esFav,
+      alternarFav,
       seleccionarImagen,
       cambiarImagen,
       mostrarGuiaTallas,
@@ -430,20 +466,38 @@ export default {
   border-width: 2px;
 }
 
-/* Cuadro de estilo actual */
-.style-box {
-  display: block;
-  width: 72px;
-  height: 72px;
-  background: #fff;
-  border: 1px solid #6c757d;
-  border-radius: 0.375rem;
-  overflow: hidden;
-  opacity: 0.75;
-  transition: opacity 0.2s ease, border-color 0.2s ease;
+/* Otros modelos: barra horizontal con tarjetas (imagen cuadrada + nombre), como Way of Wade */
+.estilos-barra {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding-bottom: 0.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: #6c757d transparent;
 }
-.style-box:hover { opacity: 1; border-color: #fff; }
-.style-activo { opacity: 1; border: 2px solid #fff; }
+.estilo-card {
+  flex: 0 0 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  border: 1px solid #6c757d;
+  border-radius: 0.4rem;
+  text-decoration: none;
+  color: #adb5bd;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.estilo-card:hover { border-color: #fff; color: #fff; }
+.estilo-activo { border-color: #fff; border-width: 2px; color: #fff; }
+.estilo-img { display: block; aspect-ratio: 1 / 1; background: #fff; border-radius: 0.2rem; overflow: hidden; }
+.estilo-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.estilo-nombre {
+  font-size: 0.78rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* Flechas centradas verticalmente sobre la imagen */
 .nav-arrow {

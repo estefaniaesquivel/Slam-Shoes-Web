@@ -20,9 +20,8 @@
       <template v-else>
 
         <!-- Portada del jugador (jugadores.imagen_url): pegada al encabezado, a todo el ancho, imagen completa 3:1 sin recortar -->
-        <div class="player-banner position-relative w-100 bg-black">
+        <div v-if="jugador.imagenUrl && !bannerFallido" class="player-banner position-relative w-100 bg-black">
           <img
-            v-if="jugador.imagenUrl && !bannerFallido"
             :src="jugador.imagenUrl"
             :alt="'Portada de ' + jugador.nombre"
             class="player-banner-img d-block w-100"
@@ -31,8 +30,13 @@
           <div class="player-banner-shade position-absolute top-0 start-0 w-100 h-100"></div>
         </div>
 
+        <!-- Sin portada: solo el nombre, sin recuadro vacío -->
+        <div v-else class="container-fluid px-4 mt-4">
+          <h1 class="h2 text-white fw-bold text-uppercase mb-0">{{ jugador.nombre }}</h1>
+        </div>
+
         <!-- Catálogo de tenis indexados al jugador -->
-        <div class="container-fluid px-4 my-5 pt-3">
+        <div class="container-fluid px-4 mt-4 mb-5">
           <CatalogoFiltrable :productos="productos" vacio="Aún no hay tenis registrados para este jugador." />
         </div>
 

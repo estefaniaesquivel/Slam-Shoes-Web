@@ -25,6 +25,7 @@
               Catálogo
             </a>
             <ul class="dropdown-menu dropdown-menu-dark bg-dark border-secondary" aria-labelledby="dropdownCatalogo">
+              <li><router-link class="dropdown-item fw-bold" to="/catalogo">Ver todo</router-link></li>
               <li v-for="categoria in categorias" :key="categoria.idCategoria">
                 <router-link class="dropdown-item" :to="`/categoria/${categoria.idCategoria}`">
                   {{ categoria.nombre }}
@@ -107,7 +108,7 @@
           </li>
           <!-- Aviso: el sitio es un prototipo escolar -->
           <li class="nav-item">
-            <router-link class="nav-link text-light" to="/sobre-nosotros">Sobre nosotros <span class="text-warning">(Prototipo escolar)</span></router-link>
+            <router-link class="nav-link text-light" to="/sobre-nosotros">Sobre nosotros <span class="text-danger">(Prototipo escolar)</span></router-link>
           </li>
         </ul>
       </div>
