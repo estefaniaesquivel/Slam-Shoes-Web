@@ -1,4 +1,4 @@
-package com.slamshoes.broker.red;
+package com.slamshoes.broker.http;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;

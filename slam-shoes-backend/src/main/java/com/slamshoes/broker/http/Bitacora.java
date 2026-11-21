@@ -1,4 +1,4 @@
-package com.slamshoes.broker.red;
+package com.slamshoes.broker.http;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

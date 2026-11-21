@@ -1,4 +1,4 @@
-package com.slamshoes.broker.red;
+package com.slamshoes.broker.http;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -13,14 +13,19 @@ import com.slamshoes.broker.Solicitud;
  * MARSHALLING y UNMARSHALLING del Broker.
  *
  * <ul>
- *   <li><b>marshal</b>: objeto Java ({@link Solicitud} / {@link Respuesta}) -> línea de texto JSON
- *       que viaja por el socket.</li>
- *   <li><b>unmarshal</b>: línea de texto JSON recibida -> objeto Java.</li>
+ *   <li><b>marshal</b>: objeto Java ({@link Solicitud} / {@link Respuesta}) -> texto JSON que viaja
+ *       en el CUERPO de una petición/respuesta HTTP.</li>
+ *   <li><b>unmarshal</b>: texto JSON recibido -> objeto Java.</li>
  * </ul>
  *
- * Se hace en TRES lugares, siempre con esta clase: el cliente ({@link ClienteSocket}), el Broker
- * ({@link BrokerServidor}, {@link ProveedorRemoto}) y el proveedor ({@link ProveedorServidor}).
+ * Se hace en TRES lugares, siempre con esta clase: el cliente ({@link ClienteHttp}), el Broker
+ * ({@link NucleoBroker}, {@link ProveedorHttp}) y el proveedor ({@link ExposicionProveedores}).
  * Ninguna otra clase sabe cómo luce el JSON.
+ *
+ * REFACTOR: Remove Dead Code (se quitó el campo "tipo" de los mensajes)
+ * RAZÓN: con sockets crudos el campo "tipo" era el único modo de saber qué clase de mensaje llegaba por
+ * la misma conexión. En HTTP lo dice la URL (/register, /solicitar...), así que el campo sobraba y
+ * obligaba a esta clase a conocer el vocabulario del protocolo de sockets (Protocolo).
  */
 public final class Marshalling {
 
@@ -32,7 +37,6 @@ public final class Marshalling {
     /** Solicitud -> JSON. */
     public static String marshalSolicitud(Solicitud solicitud) {
         Map<String, Object> json = new LinkedHashMap<>();
-        json.put(Protocolo.TIPO, Protocolo.SOLICITUD);
         json.put("idSolicitud", solicitud.getIdSolicitud());
         json.put("servicio", solicitud.getServicio());
         json.put("operacion", solicitud.getOperacion());
@@ -69,7 +73,6 @@ public final class Marshalling {
     /** Respuesta -> JSON. */
     public static String marshalRespuesta(Respuesta respuesta) {
         Map<String, Object> json = new LinkedHashMap<>();
-        json.put(Protocolo.TIPO, Protocolo.RESPUESTA);
         json.put("idSolicitud", respuesta.getIdSolicitud());
         json.put("estado", respuesta.getEstado());
         json.put("resultado", respuesta.getResultado());
@@ -99,7 +102,7 @@ public final class Marshalling {
 
     // ------------------------------------------------------------------ utilidades
 
-    /** Lee una línea de texto y la convierte en mapa; lanza IllegalArgumentException si no es JSON válido. */
+    /** Lee el texto JSON recibido y lo convierte en mapa; lanza IllegalArgumentException si no es JSON válido. */
     public static Map<String, Object> leerMensaje(String linea) {
         try {
             return Json.leerObjeto(linea);

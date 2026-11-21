@@ -1,8 +1,5 @@
 package com.slamshoes.proveedores;
 
-import static com.slamshoes.providers.ProveedorUtil.mapa;
-import static com.slamshoes.providers.ProveedorUtil.obtenerLong;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +18,8 @@ import com.slamshoes.model.Oferta;
 import com.slamshoes.model.Producto;
 import com.slamshoes.model.ProductoImagen;
 import com.slamshoes.model.ProductoTalla;
+import static com.slamshoes.providers.ProveedorUtil.mapa;
+import static com.slamshoes.providers.ProveedorUtil.obtenerLong;
 import com.slamshoes.repository.CategoriaRepository;
 import com.slamshoes.repository.ProductoImagenRepository;
 import com.slamshoes.repository.ProductoRepository;
