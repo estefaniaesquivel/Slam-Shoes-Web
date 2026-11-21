@@ -38,6 +38,10 @@ import com.slamshoes.repository.NovedadRepository;
 import com.slamshoes.repository.OfertaRepository;
 import com.slamshoes.repository.ProductoRepository;
 
+/**
+ * Servicio centralizado para operaciones administrativas de catálogo:
+ * colecciones, banners, jugadores, marcas, novedades y ofertas.
+ */
 @Service
 public class AdminCatalogoService {
 
@@ -50,6 +54,18 @@ public class AdminCatalogoService {
     private final OfertaRepository ofertaRepository;
     private final IStorageService storageService;
 
+    /**
+     * Inicializa el servicio con los repositorios de catálogo y almacenamiento.
+     *
+     * @param coleccionRepository repositorio de colecciones
+     * @param productoRepository repositorio de productos
+     * @param jugadorRepository repositorio de jugadores
+     * @param marcaRepository repositorio de marcas
+     * @param bannerRepository repositorio de banners
+     * @param novedadRepository repositorio de novedades
+     * @param ofertaRepository repositorio de ofertas
+     * @param storageService servicio de almacenamiento de imágenes
+     */
     @Autowired
     public AdminCatalogoService(
             ColeccionRepository coleccionRepository,
@@ -70,11 +86,21 @@ public class AdminCatalogoService {
         this.storageService = storageService;
     }
 
-    // ---------------------------------------------------------------- Colecciones
+    /**
+     * Lista todas las colecciones ordenadas alfabéticamente por nombre.
+     *
+     * @return lista completa de colecciones
+     */
     public List<Coleccion> listarColecciones() {
         return coleccionRepository.findAll(Sort.by("nombre").ascending());
     }
 
+    /**
+     * Obtiene el detalle de una colección junto con los productos asignados a ella.
+     *
+     * @param id identificador de la colección
+     * @return DTO de detalle administrativo de colección
+     */
     public ColeccionAdminDetalleDTO detalleColeccion(Long id) {
         Coleccion c = coleccionRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("La colección no existe"));
@@ -86,6 +112,13 @@ public class AdminCatalogoService {
                 c.getIdColeccion(), c.getNombre(), c.getDescripcion(), c.getImagenUrl(), productos);
     }
 
+    /**
+     * Crea una colección subiendo su portada WebP y asignando sus productos.
+     *
+     * @param datos metadatos y lista de identificadores de productos
+     * @param imagen archivo WebP de portada
+     * @return colección persistida
+     */
     @Transactional
     public Coleccion crearColeccion(ColeccionAdminDTO datos, MultipartFile imagen) {
         validarNombre(datos.nombre(), "El nombre de la colección es obligatorio");
@@ -99,6 +132,14 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Actualiza una colección existente y reemplaza su portada si se envía nueva imagen.
+     *
+     * @param id identificador de la colección
+     * @param datos datos actualizados de la colección
+     * @param imagen portada WebP opcional
+     * @return colección actualizada
+     */
     @Transactional
     public Coleccion actualizarColeccion(Long id, ColeccionAdminDTO datos, MultipartFile imagen) {
         Coleccion actual = coleccionRepository.findById(id)
@@ -117,6 +158,11 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Elimina una colección desvinculando sus productos sin eliminarlos.
+     *
+     * @param id identificador de la colección
+     */
     @Transactional
     public void eliminarColeccion(Long id) {
         Coleccion c = coleccionRepository.findById(id)
@@ -129,6 +175,16 @@ public class AdminCatalogoService {
         storageService.eliminarPorUrl(c.getImagenUrl());
     }
 
+    /**
+     * Crea ({@code id == null}) o actualiza una colección dejando asignados exactamente los productos indicados.
+     *
+     * @param id identificador de la colección o {@code null} para crear
+     * @param nombre nombre de la colección
+     * @param descripcion descripción opcional
+     * @param idsProductos lista de identificadores de productos asignados
+     * @param imagenUrl URL de portada o {@code null} para conservar la existente
+     * @return colección guardada
+     */
     @Transactional
     public Coleccion guardarColeccion(Long id, String nombre, String descripcion, List<Long> idsProductos, String imagenUrl) {
         validarNombre(nombre, "El nombre de la colección es obligatorio");
@@ -171,11 +227,22 @@ public class AdminCatalogoService {
         return c;
     }
 
-    // ---------------------------------------------------------------- Banners
+    /**
+     * Lista todos los banners ordenados por {@code orden} e {@code idBanner}.
+     *
+     * @return lista completa de banners
+     */
     public List<Banner> listarBanners() {
         return bannerRepository.findAll(Sort.by("orden").ascending().and(Sort.by("idBanner").ascending()));
     }
 
+    /**
+     * Crea un banner subiendo su imagen WebP y calculando el orden siguiente si no se especifica.
+     *
+     * @param datos metadatos del banner
+     * @param imagen imagen WebP del banner
+     * @return banner guardado
+     */
     @Transactional
     public Banner crearBanner(BannerAdminDTO datos, MultipartFile imagen) {
         validarNombre(datos.titulo(), "El título del banner es obligatorio");
@@ -196,6 +263,14 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Actualiza un banner existente y reemplaza su imagen si se proporciona una nueva.
+     *
+     * @param id identificador del banner
+     * @param datos metadatos actualizados
+     * @param imagen nueva imagen WebP opcional
+     * @return banner actualizado
+     */
     @Transactional
     public Banner actualizarBanner(Long id, BannerAdminDTO datos, MultipartFile imagen) {
         Banner b = bannerRepository.findById(id)
@@ -216,6 +291,11 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Elimina un banner y borra su imagen asociada en el almacenamiento.
+     *
+     * @param id identificador del banner
+     */
     @Transactional
     public void eliminarBanner(Long id) {
         Banner b = bannerRepository.findById(id)
@@ -232,11 +312,22 @@ public class AdminCatalogoService {
         b.setActivo(d.activo() == null || d.activo());
     }
 
-    // ---------------------------------------------------------------- Jugadores
+    /**
+     * Lista todos los jugadores ordenados alfabéticamente.
+     *
+     * @return lista completa de jugadores
+     */
     public List<Jugador> listarJugadores() {
         return jugadorRepository.findAll(Sort.by("nombre").ascending());
     }
 
+    /**
+     * Crea un jugador subiendo su imagen WebP.
+     *
+     * @param datos nombre del jugador
+     * @param imagen archivo WebP
+     * @return jugador persistido
+     */
     @Transactional
     public Jugador crearJugador(NombreImagenAdminDTO datos, MultipartFile imagen) {
         validarNombre(datos.nombre(), "El nombre es obligatorio");
@@ -253,6 +344,14 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Actualiza un jugador existente y opcionalmente reemplaza su imagen.
+     *
+     * @param id identificador del jugador
+     * @param datos datos actualizados
+     * @param imagen nueva imagen WebP opcional
+     * @return jugador actualizado
+     */
     @Transactional
     public Jugador actualizarJugador(Long id, NombreImagenAdminDTO datos, MultipartFile imagen) {
         Jugador actual = jugadorRepository.findById(id)
@@ -273,6 +372,12 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Elimina un jugador sin borrar sus productos asociados y limpia su imagen.
+     *
+     * @param id identificador del jugador
+     * @return URL de la imagen eliminada
+     */
     @Transactional
     public String eliminarJugador(Long id) {
         var jugador = jugadorRepository.findById(id)
@@ -286,11 +391,22 @@ public class AdminCatalogoService {
         return jugador.getImagenUrl();
     }
 
-    // ---------------------------------------------------------------- Marcas
+    /**
+     * Lista todas las marcas ordenadas alfabéticamente.
+     *
+     * @return lista completa de marcas
+     */
     public List<Marca> listarMarcas() {
         return marcaRepository.findAll(Sort.by("nombre").ascending());
     }
 
+    /**
+     * Crea una marca subiendo su logotipo WebP.
+     *
+     * @param datos nombre de la marca
+     * @param imagen logotipo en formato WebP
+     * @return marca persistida
+     */
     @Transactional
     public Marca crearMarca(NombreImagenAdminDTO datos, MultipartFile imagen) {
         validarNombre(datos.nombre(), "El nombre es obligatorio");
@@ -308,6 +424,14 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Actualiza una marca existente y opcionalmente reemplaza su logotipo.
+     *
+     * @param id identificador de la marca
+     * @param datos datos actualizados
+     * @param imagen nuevo logotipo WebP opcional
+     * @return marca actualizada
+     */
     @Transactional
     public Marca actualizarMarca(Long id, NombreImagenAdminDTO datos, MultipartFile imagen) {
         Marca actual = marcaRepository.findById(id)
@@ -328,6 +452,12 @@ public class AdminCatalogoService {
         }
     }
 
+    /**
+     * Elimina una marca sin borrar sus productos asociados y limpia su logotipo.
+     *
+     * @param id identificador de la marca
+     * @return URL del logotipo eliminado
+     */
     @Transactional
     public String eliminarMarca(Long id) {
         var marca = marcaRepository.findById(id)
@@ -341,11 +471,21 @@ public class AdminCatalogoService {
         return marca.getLogoUrl();
     }
 
-    // ---------------------------------------------------------------- Novedades
+    /**
+     * Lista todas las novedades ordenadas por identificador ascendente.
+     *
+     * @return lista completa de novedades
+     */
     public List<Novedad> listarNovedades() {
         return novedadRepository.findAll(Sort.by("idNovedad").ascending());
     }
 
+    /**
+     * Crea una novedad validando la existencia del producto y el rango de fechas.
+     *
+     * @param d datos de la novedad
+     * @return novedad persistida
+     */
     @Transactional
     public Novedad crearNovedad(NovedadAdminDTO d) {
         if (d.idProducto() == null || !productoRepository.existsById(d.idProducto())) {
@@ -359,6 +499,13 @@ public class AdminCatalogoService {
         return novedadRepository.save(n);
     }
 
+    /**
+     * Actualiza las fechas de vigencia de una novedad existente.
+     *
+     * @param id identificador de la novedad
+     * @param d datos actualizados
+     * @return novedad actualizada
+     */
     @Transactional
     public Novedad actualizarNovedad(Long id, NovedadAdminDTO d) {
         Novedad n = novedadRepository.findById(id)
@@ -369,6 +516,11 @@ public class AdminCatalogoService {
         return novedadRepository.save(n);
     }
 
+    /**
+     * Elimina una novedad sin modificar el producto asociado.
+     *
+     * @param id identificador de la novedad
+     */
     @Transactional
     public void eliminarNovedad(Long id) {
         if (!novedadRepository.existsById(id)) {
@@ -377,11 +529,21 @@ public class AdminCatalogoService {
         novedadRepository.deleteById(id);
     }
 
-    // ---------------------------------------------------------------- Ofertas
+    /**
+     * Lista todas las ofertas ordenadas por identificador ascendente.
+     *
+     * @return lista completa de ofertas
+     */
     public List<Oferta> listarOfertas() {
         return ofertaRepository.findAll(Sort.by("idOferta").ascending());
     }
 
+    /**
+     * Crea una oferta validando el producto, porcentaje de descuento y rango de fechas.
+     *
+     * @param d datos de la oferta
+     * @return oferta persistida
+     */
     @Transactional
     public Oferta crearOferta(OfertaAdminDTO d) {
         if (d.idProducto() == null || !productoRepository.existsById(d.idProducto())) {
@@ -395,6 +557,13 @@ public class AdminCatalogoService {
         return ofertaRepository.save(o);
     }
 
+    /**
+     * Actualiza una oferta existente.
+     *
+     * @param id identificador de la oferta
+     * @param d datos actualizados
+     * @return oferta actualizada
+     */
     @Transactional
     public Oferta actualizarOferta(Long id, OfertaAdminDTO d) {
         Oferta o = ofertaRepository.findById(id)
@@ -404,6 +573,11 @@ public class AdminCatalogoService {
         return ofertaRepository.save(o);
     }
 
+    /**
+     * Elimina una oferta sin modificar el producto asociado.
+     *
+     * @param id identificador de la oferta
+     */
     @Transactional
     public void eliminarOferta(Long id) {
         if (!ofertaRepository.existsById(id)) {
@@ -427,7 +601,6 @@ public class AdminCatalogoService {
         o.setFechaFin(d.fechaFin());
     }
 
-    // ---------------------------------------------------------------- Helpers compartidos
     private void validarNombre(String valor, String mensaje) {
         if (valor == null || valor.isBlank()) {
             throw new ValidacionException(mensaje);

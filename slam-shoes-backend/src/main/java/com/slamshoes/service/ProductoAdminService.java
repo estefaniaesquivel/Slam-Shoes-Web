@@ -39,9 +39,13 @@ import com.slamshoes.repository.ProductoImagenRepository;
 import com.slamshoes.repository.ProductoRepository;
 import com.slamshoes.repository.ProductoTallaRepository;
 
+/**
+ * Servicio transaccional encargado de la creación, edición, detalle y baja de productos administrativos.
+ */
 @Service
 public class ProductoAdminService implements IProductoAdminService {
 
+    /** Etiqueta utilizada en el formulario cuando una variante no especifica color. */
     public static final String SIN_COLOR = "Sin color";
 
     private static final List<String> COLORES_PERMITIDOS = List.of(
@@ -60,6 +64,19 @@ public class ProductoAdminService implements IProductoAdminService {
 
     private record RelacionesResueltas(String nombreMarca, Long idColeccion, Long idJugador) {}
 
+    /**
+     * Inicializa el servicio con los repositorios de catálogo/pedidos y el servicio de almacenamiento.
+     *
+     * @param productoRepository repositorio de productos
+     * @param productoTallaRepository repositorio de variantes talla/color
+     * @param productoImagenRepository repositorio de galería de imágenes
+     * @param pedidoDetalleRepository repositorio de detalles de pedido para validar historial
+     * @param categoriaRepository repositorio de categorías
+     * @param marcaRepository repositorio de marcas
+     * @param coleccionRepository repositorio de colecciones
+     * @param jugadorRepository repositorio de jugadores
+     * @param storageService servicio de almacenamiento de imágenes
+     */
     @Autowired
     public ProductoAdminService(
             ProductoRepository productoRepository,
@@ -170,6 +187,16 @@ public class ProductoAdminService implements IProductoAdminService {
         }
     }
 
+    /**
+     * Persiste un producto nuevo junto con sus variantes y galería de imágenes en una transacción.
+     *
+     * @param d datos del nuevo producto
+     * @param nombreMarca nombre resuelto de la marca
+     * @param idColeccion identificador de colección opcional
+     * @param idJugador identificador de jugador opcional
+     * @param urlsImagenes URLs públicas de la galería en orden
+     * @return entidad {@link Producto} guardada
+     */
     @Transactional
     public Producto guardar(ProductoNuevoDTO d, String nombreMarca, Long idColeccion, Long idJugador, List<String> urlsImagenes) {
         Producto p = new Producto();
@@ -190,6 +217,17 @@ public class ProductoAdminService implements IProductoAdminService {
         return p;
     }
 
+    /**
+     * Actualiza un producto existente, sincroniza sus variantes y reemplaza su galería de imágenes.
+     *
+     * @param idProducto identificador del producto
+     * @param d datos actualizados del producto
+     * @param nombreMarca nombre resuelto de la marca
+     * @param idColeccion identificador de colección opcional
+     * @param idJugador identificador de jugador opcional
+     * @param urlsImagenes URLs finales de la galería en orden
+     * @return entidad {@link Producto} actualizada
+     */
     @Transactional
     public Producto actualizar(Long idProducto, ProductoEdicionDTO d, String nombreMarca, Long idColeccion,
                                Long idJugador, List<String> urlsImagenes) {
