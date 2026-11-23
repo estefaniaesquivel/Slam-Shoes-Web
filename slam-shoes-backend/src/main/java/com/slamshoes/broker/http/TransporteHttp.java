@@ -43,6 +43,11 @@ public final class TransporteHttp {
      * @throws HttpTimeoutException si no conectó o no respondió a tiempo
      * @throws IOException          si la conexión se rechazó o se cortó
      */
+    // REFACTOR: Change Function Declaration
+    // RAZON: antes {@code Canal.intercambiar(host, puerto, linea, msConexion, msLectura)} solo sabia enviar UNA
+    // linea de texto a un host:puerto TCP. Ahora la firma recibe metodo, URI, cuerpo y cabeceras y devuelve un
+    // MensajeHttp (codigo + tipo + cuerpo), que es lo que HTTP necesita para decidir reintentos y para que el
+    // proxy reenvie el codigo del proveedor sin perderlo.
     public static MensajeHttp enviar(String metodo, URI uri, String cuerpo, Map<String, String> cabeceras,
                                      int msConexion, int msLectura) throws IOException {
         HttpRequest.Builder peticion = HttpRequest.newBuilder(uri)
@@ -71,6 +76,9 @@ public final class TransporteHttp {
     }
 
     /** POST de un JSON; atajo muy usado por el Broker, los proveedores y el cliente. */
+    // REFACTOR: Extract Function
+    // RAZON: armar el POST con Content-Type y Accept JSON se repetia en cada llamador (cliente, Broker y auto-
+    // registro). Un solo atajo garantiza las mismas cabeceras en todos y deja a cada llamador solo con su logica.
     public static MensajeHttp postJson(URI uri, String json, Map<String, String> cabeceras,
                                        int msConexion, int msLectura) throws IOException {
         Map<String, String> todas = new LinkedHashMap<>();
@@ -83,6 +91,11 @@ public final class TransporteHttp {
     }
 
     /** true si la excepción significa "tardó demasiado" (y no "no se pudo conectar"). */
+    // REFACTOR: Extract Function
+    // RAZON: antes cada clase comprobaba {@code e instanceof SocketTimeoutException} por su cuenta
+    // (ProveedorRemoto y ClienteSocket). Al cambiar el tipo de excepcion de HTTP ({@code HttpTimeoutException})
+    // habria que corregirlo en varios lugares; ahora la pregunta 'tardo demasiado o no se pudo conectar' se
+    // responde en un unico metodo.
     public static boolean esTiempoAgotado(IOException e) {
         return e instanceof HttpTimeoutException;
     }
@@ -90,6 +103,10 @@ public final class TransporteHttp {
     // El timeout de conexión se fija al construir el cliente; se reutiliza uno por cada valor distinto.
     private static final ConcurrentHashMap<Integer, HttpClient> POR_CONEXION = new ConcurrentHashMap<>();
 
+    // REFACTOR: Substitute Algorithm
+    // RAZON: {@code Canal} abria un Socket nuevo por cada mensaje y lo cerraba. Aqui se reutiliza un HttpClient
+    // por valor de timeout de conexion, con lo que se aprovechan las conexiones persistentes y no se crea un
+    // cliente por peticion; el resultado para quien llama es el mismo.
     private static HttpClient clienteConConexion(int msConexion) {
         return POR_CONEXION.computeIfAbsent(Math.max(1, msConexion), ms -> HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
