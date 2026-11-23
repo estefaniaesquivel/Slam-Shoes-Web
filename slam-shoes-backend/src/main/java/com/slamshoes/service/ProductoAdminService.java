@@ -39,6 +39,14 @@ import com.slamshoes.repository.ProductoImagenRepository;
 import com.slamshoes.repository.ProductoRepository;
 import com.slamshoes.repository.ProductoTallaRepository;
 
+// REFACTOR: Move Method
+// RAZON: Antes este servicio (164 líneas) solo guardaba/actualizar/eliminaba filas y AdminProductoController hacía el resto
+// (detalle, validaciones, subida de imágenes, rollback). Ahora absorbe obtenerDetalle, crearCompleto, editarCompleto y
+// las validaciones (467 líneas), y el controlador queda como una delgada capa HTTP.
+// REFACTOR: Extract Interface
+// RAZON: Antes el controlador usaba la clase concreta ProductoAdminService. Ahora esta clase implementa
+// IProductoAdminService (obtenerDetalle, crearCompleto, editarCompleto, eliminar) y el controlador depende de la
+// interfaz, lo que permite sustituirla por un mock en las pruebas.
 /**
  * Servicio transaccional encargado de la creación, edición, detalle y baja de productos administrativos.
  */
@@ -62,8 +70,16 @@ public class ProductoAdminService implements IProductoAdminService {
     private final JugadorRepository jugadorRepository;
     private final IStorageService storageService;
 
+    // REFACTOR: Replace Primitive with Object
+    // RAZON: Antes el controlador devolvía los tres datos resueltos de validarComunes en el record privado Resueltos junto
+    // a 8 parámetros sueltos. Ahora este record (RelacionesResueltas: nombreMarca, idColeccion, idJugador) viaja dentro
+    // del servicio como resultado único de validarComunes.
     private record RelacionesResueltas(String nombreMarca, Long idColeccion, Long idJugador) {}
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las 4 dependencias del servicio eran campos @Autowired privados y el controlador cargaba otras 5.
+    // Ahora las 9 (repositorios e IStorageService) son campos final asignados solo por constructor, y
+    // ProductoAdminServiceTest crea el servicio con mocks sin levantar Spring.
     /**
      * Inicializa el servicio con los repositorios de catálogo/pedidos y el servicio de almacenamiento.
      *
@@ -99,6 +115,10 @@ public class ProductoAdminService implements IProductoAdminService {
         this.storageService = storageService;
     }
 
+    // REFACTOR: Move Method
+    // RAZON: Antes AdminProductoController.detalle() armaba el DTO consultando 5 repositorios y devolvía
+    // ResponseEntity.notFound() si el producto no existía. Ahora la construcción vive aquí y lanza
+    // RecursoNoEncontradoException (Replace Error Code with Exception), que GlobalExceptionHandler convierte en 404.
     @Override
     public ProductoAdminDetalleDTO obtenerDetalle(Long id) {
         Producto p = productoRepository.findById(id)
@@ -129,6 +149,10 @@ public class ProductoAdminService implements IProductoAdminService {
                 Boolean.TRUE.equals(p.getEsTendencia()), colores, imagenes);
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes AdminProductoController.crear era un método de unas 40 líneas con try/catch anidados que validaba, subía
+    // imágenes, guardaba y devolvía códigos HTTP. Ahora crearCompleto se lee como una secuencia de pasos con nombre:
+    // validarComunes, validarWebp, subirImagenesNuevas y guardar, y si guardar falla elimina las imágenes ya subidas.
     @Override
     @Transactional
     public Map<String, Object> crearCompleto(ProductoNuevoDTO datos, List<MultipartFile> imagenes) {
@@ -154,6 +178,10 @@ public class ProductoAdminService implements IProductoAdminService {
         }
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes AdminProductoController.editar mezclaba en un solo método la validación de la galería, la subida de
+    // las imágenes nuevas y el borrado de las quitadas. Ahora editarCompleto delega en validarGaleriaEdicion,
+    // resolverUrlsEdicion y limpiarImagenesQuitadas, y conserva el rollback de las imágenes nuevas si actualizar falla.
     @Override
     @Transactional
     public Map<String, Object> editarCompleto(Long id, ProductoEdicionDTO datos, List<MultipartFile> nuevas) {
@@ -243,6 +271,10 @@ public class ProductoAdminService implements IProductoAdminService {
         return p;
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes eliminar lanzaba IllegalStateException genérica cuando el producto ya estaba en pedidos y no comprobaba
+    // que existiera. Ahora lanza ConflictoEliminacionException (HTTP 409) o RecursoNoEncontradoException (404) y,
+    // además, borra de Storage las imágenes del producto eliminado.
     @Override
     @Transactional
     public void eliminar(Long idProducto) {
@@ -266,6 +298,10 @@ public class ProductoAdminService implements IProductoAdminService {
         }
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes guardar() y actualizar() repetían el mismo bloque de 12 líneas p.setNombre/setDescripcion/setPrecio...
+    // (una copia por cada método). Ahora un solo método lo aplica y recibe un ProductoBaseDTO (Introduce Parameter
+    // Object / Extract Interface), de modo que sirve tanto a ProductoNuevoDTO como a ProductoEdicionDTO.
     private void aplicarDatosComunes(Producto p, ProductoBaseDTO d, String nombreMarca,
                                      Long idColeccion, Long idJugador, String urlPortada) {
         p.setNombre(d.nombre().trim());
@@ -282,6 +318,10 @@ public class ProductoAdminService implements IProductoAdminService {
         p.setImagenUrl(urlPortada);
     }
 
+    // REFACTOR: Introduce Parameter Object
+    // RAZON: Antes validarComunes(nombre, precio, idCategoria, idMarca, coleccion, jugador, colores, coloresActuales)
+    // recibía 8 parámetros sueltos en el controlador y devolvía el record Resueltos. Ahora recibe un ProductoBaseDTO más
+    // la lista de colores permitidos extra (2 parámetros), y lanza ValidacionException en lugar de IllegalArgumentException.
     private RelacionesResueltas validarComunes(ProductoBaseDTO d, List<String> coloresPermitidosExtra) {
         if (d.nombre() == null || d.nombre().isBlank()) throw new ValidacionException("El nombre es obligatorio");
         if (d.precio() == null || d.precio() <= 0) throw new ValidacionException("El precio debe ser mayor a 0");
@@ -297,6 +337,9 @@ public class ProductoAdminService implements IProductoAdminService {
         return new RelacionesResueltas(marca.getNombre(), idColeccion, idJugador);
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes la búsqueda de la colección por nombre (y su error si no existe) estaba incrustada en validarComunes del
+    // controlador. Ahora resolverColeccion y resolverJugador son métodos pequeños y paralelos que devuelven el id o null.
     private Long resolverColeccion(String coleccion) {
         if (coleccion == null || coleccion.isBlank()) return null;
         return coleccionRepository.findByNombreIgnoreCase(coleccion.trim())
@@ -311,6 +354,10 @@ public class ProductoAdminService implements IProductoAdminService {
                 .getIdJugador();
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes las reglas de colores permitidos, tallas obligatorias y stock no negativo formaban parte del mismo
+    // validarComunes de 8 parámetros. Ahora validarColoresYTallas las agrupa en un método con nombre propio y
+    // la constante COLORES_PERMITIDOS (antes COLORES en el controlador) vive junto a la lógica que la usa.
     private void validarColoresYTallas(List<ColorTallasDTO> colores, List<String> coloresPermitidosExtra) {
         if (colores == null || colores.isEmpty()) throw new ValidacionException("Selecciona al menos un color");
         for (ColorTallasDTO c : colores) {
@@ -414,6 +461,10 @@ public class ProductoAdminService implements IProductoAdminService {
         }
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes sincronizarVariantes tenía en un solo cuerpo de ~35 líneas el índice de variantes actuales, el alta o
+    // actualización de stock y la baja de las obsoletas. Ahora solo arma el índice y delega en
+    // actualizarVariantesExistentesYNuevas y limpiarVariantesObsoletas.
     private void sincronizarVariantes(Long idProducto, List<ColorTallasDTO> colores) {
         Map<String, ProductoTalla> actuales = new HashMap<>();
         for (ProductoTalla v : productoTallaRepository.findByIdProducto(idProducto)) {
@@ -444,6 +495,10 @@ public class ProductoAdminService implements IProductoAdminService {
         return deseadas;
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes el bucle final de sincronizarVariantes decidía inline entre poner stock 0 (variante con pedidos) o
+    // borrarla. Ahora esa decisión tiene nombre propio y se prueba con ProductoAdminServiceTest
+    // (actualizarDejaStockCeroEnVarianteConPedidos).
     private void limpiarVariantesObsoletas(Map<String, ProductoTalla> actuales, Set<String> deseadas) {
         for (Map.Entry<String, ProductoTalla> e : actuales.entrySet()) {
             if (deseadas.contains(e.getKey())) continue;
