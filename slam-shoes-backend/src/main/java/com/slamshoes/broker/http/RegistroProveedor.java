@@ -47,6 +47,11 @@ public record RegistroProveedor(String servicio, URI url, String rutaBase, Set<S
      *
      * @throws IllegalArgumentException con un mensaje legible si falta algo o es inválido
      */
+    // REFACTOR: Extract Function
+    // RAZON: las validaciones de {@code registrarProveedor} (servicio vacio, host vacio, puerto fuera de 1-65535,
+    // sin operaciones) estaban mezcladas con la decision de registrar. Se extrajeron a este metodo, que devuelve
+    // un objeto valido o lanza IllegalArgumentException con un mensaje legible; asi NucleoBroker.registrar queda
+    // solo con la logica de decidir y las pruebas validan el JSON sin levantar nada.
     public static RegistroProveedor desdeMapa(Map<String, Object> json) {
         if (json == null) {
             throw new IllegalArgumentException("El cuerpo del registro es obligatorio");
@@ -87,6 +92,11 @@ public record RegistroProveedor(String servicio, URI url, String rutaBase, Set<S
     }
 
     /** Valida y normaliza una URL base: http/https, con servidor, sin credenciales, parámetros ni barra final. */
+    // REFACTOR: Extract Function
+    // RAZON: validar y normalizar una URL (http/https, sin credenciales, sin parametros, sin barra final) se
+    // necesita en el registro, en el cliente del Broker, en el auto-registro y en la baja. Un solo metodo evita
+    // cuatro validaciones distintas y pone la regla de seguridad (no aceptar userinfo ni esquemas raros) en un
+    // unico lugar.
     static URI urlBase(String texto) {
         if (texto == null) {
             throw new IllegalArgumentException("El campo 'url' es obligatorio (por ejemplo https://mi-servicio.onrender.com)");
