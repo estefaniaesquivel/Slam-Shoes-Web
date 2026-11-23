@@ -28,15 +28,32 @@ import com.slamshoes.broker.EstadoRespuesta;
 public final class Bitacora {
 
     private static final int MAXIMO_EN_MEMORIA = 100;
+    // REFACTOR: Replace Magic Literal
+    // RAZON: Antes el archivo crecia sin limite (cada solicitud agregaba una linea para siempre). El limite es una
+    // constante con nombre: al pasar de 2 MB el archivo se mueve a '<archivo>.1' y se empieza uno nuevo, asi el disco
+    // (efimero y pequeno en Render) nunca se llena por la bitacora.
+    private static final long MAXIMO_BYTES_ARCHIVO = 2L * 1024 * 1024;
+
     private static final DateTimeFormatter FORMATO = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private final Path archivo;
     private final Deque<String> recientes = new ArrayDeque<>();
     private boolean archivoFallo = false;
 
+    private final long maximoBytes;
+
     /** @param archivo ruta del archivo de bitácora; null para llevarla solo en memoria */
     public Bitacora(Path archivo) {
+        this(archivo, MAXIMO_BYTES_ARCHIVO);
+    }
+
+    /**
+     * @param archivo     ruta del archivo de bitácora; null para llevarla solo en memoria
+     * @param maximoBytes tamaño a partir del cual el archivo se rota a {@code <archivo>.1}
+     */
+    public Bitacora(Path archivo, long maximoBytes) {
         this.archivo = archivo;
+        this.maximoBytes = maximoBytes;
     }
 
     public void registrar(String idCorto, String servicio, String operacion, EstadoRespuesta estado,
