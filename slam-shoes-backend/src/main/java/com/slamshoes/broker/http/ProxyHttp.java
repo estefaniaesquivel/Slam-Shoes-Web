@@ -61,6 +61,10 @@ public class ProxyHttp {
      * @param aceptar      cabecera Accept original (puede ser null)
      * @return lo que respondió el proveedor, o un 4xx/5xx JSON si no se pudo reenviar
      */
+    // REFACTOR: Replace Nested Conditional with Guard Clauses
+    // RAZON: las validaciones (metodo permitido, ruta segura sin '..' ni separadores codificados, servicio
+    // registrado, proveedor remoto) se resuelven con retornos tempranos de error 405/400/404/501. El camino feliz
+    // (reenviar y devolver la respuesta del proveedor) queda al final, sin condicionales anidados.
     public MensajeHttp reenviar(String servicio, String metodo, String resto, String query, String cuerpo,
                                 String tipoContenido, String aceptar) {
         String metodoNormal = metodo == null ? "" : metodo.toUpperCase();
@@ -125,11 +129,18 @@ public class ProxyHttp {
         }
     }
 
+    // REFACTOR: Extract Function
+    // RAZON: dejar rastro en la bitacora de cada reenvio (servicio, ruta, estado, duracion) es una tarea aparte de
+    // reenviar; aislarla permite llamarla desde todos los finales del metodo sin repetir la construccion del
+    // detalle.
     private void anotar(String servicio, String metodo, String ruta, EstadoRespuesta estado, long inicioNanos, String detalle) {
         bitacora.registrar("proxy", servicio, metodo + " " + (ruta.isEmpty() ? "/" : ruta), estado,
                 (System.nanoTime() - inicioNanos) / 1_000_000, detalle);
     }
 
+    // REFACTOR: Extract Function
+    // RAZON: construir la respuesta JSON de error (codigo, estado, mensaje) se repetia en cada guarda; un metodo
+    // unico asegura el mismo formato para todos los fallos del proxy.
     private static MensajeHttp error(int codigo, EstadoRespuesta estado, String mensaje) {
         Map<String, Object> cuerpo = new LinkedHashMap<>();
         cuerpo.put("estado", estado.name());
