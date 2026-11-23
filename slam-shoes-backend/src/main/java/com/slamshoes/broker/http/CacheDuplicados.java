@@ -16,6 +16,11 @@ import java.util.function.Supplier;
  *
  * Solo se recuerdan las respuestas que el llamador marque como guardables (las exitosas); un error
  * se vuelve a intentar normalmente. Guarda un máximo de entradas y descarta las más viejas.
+ * 
+ * REFACTOR: Move Function (la clase completa pasa de broker.red a broker.http)
+ * RAZON: el archivo estaba en el paquete {@code broker.red}, que era el 'paquete de sockets'. Esta clase no
+ * depende de ninguna red: se movio a {@code broker.http} junto al resto del transporte actual, sin cambiar su
+ * comportamiento, para poder borrar el paquete {@code red} completo.
  */
 public final class CacheDuplicados<V> {
 
