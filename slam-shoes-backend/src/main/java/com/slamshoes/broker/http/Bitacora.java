@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -82,12 +83,24 @@ public final class Bitacora {
             return;
         }
         try {
+            rotarSiHaceFalta();// REFACTOR: Extract Function (uso del metodo)
             Files.writeString(archivo, linea + System.lineSeparator(), StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             // Un problema con el archivo no debe tumbar al Broker: se avisa una vez y sigue en memoria
             archivoFallo = true;
             System.out.println("[BROKER]   No se pudo escribir la bitacora en " + archivo + ": " + e.getMessage());
+        }
+    }
+
+    // REFACTOR: Extract Function
+    // RAZON: Antes escribir() solo hacia append; la regla "no dejar crecer el archivo" no existia. Al extraerla en un
+    // metodo con nombre, escribir() sigue siendo corto y la rotacion se puede probar por separado (BitacoraTest).
+    /** Si el archivo ya pasó del tamaño máximo lo mueve a {@code <archivo>.1}, reemplazando el anterior. */
+    private void rotarSiHaceFalta() throws IOException {
+        if (Files.exists(archivo) && Files.size(archivo) >= maximoBytes) {
+            Files.move(archivo, archivo.resolveSibling(archivo.getFileName() + ".1"),
+                    StandardCopyOption.REPLACE_EXISTING);
         }
     }
 }
