@@ -61,6 +61,13 @@ public class Solicitud {
      *
      * @throws IllegalArgumentException si falta el id, el servicio o la operación
      */
+
+    // REFACTOR: Replace Constructor with Factory Function (no hubo cambio de codigo pero aplico el patron de fabrica)
+    // RAZON: Permite reconstruir una solicitud existente conservando su {@code idSolicitud} y {@code fechaHora}
+    // originales (por ejemplo, al deserializar un mensaje HTTP o recuperar un registro), validando antes los
+    // datos obligatorios y normalizando valores nulos o espacios, algo que el constructor privado no expresa
+    // por si solo ni diferencia de la creacion de una solicitud nueva
+  
     public static Solicitud reconstruir(String idSolicitud, String servicio, String operacion,
                                         Map<String, Object> parametros, LocalDateTime fechaHora) {
         if (idSolicitud == null || idSolicitud.isBlank() || idSolicitud.length() > 100) {
