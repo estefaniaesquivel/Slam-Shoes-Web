@@ -5,6 +5,11 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+// REFACTOR: Extract Interface
+// RAZON: Antes ProductoAdminService, AdminCatalogoService y los controladores usaban la clase concreta
+// SupabaseStorageService, que creaba su propio HttpClient y llamaba a Internet, por lo que no se podía probar sin red.
+// Ahora los servicios dependen de IStorageService (estaConfigurado, subir, subirWebp, rutaDesdeUrl, eliminarPorUrl,
+// urlPublica, eliminar) y las pruebas la sustituyen por un mock.
 /**
  * Contrato para el servicio de almacenamiento de archivos e imágenes del catálogo.
  */
