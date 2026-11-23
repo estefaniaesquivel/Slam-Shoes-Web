@@ -22,6 +22,14 @@ import com.slamshoes.dto.ColeccionAdminDetalleDTO;
 import com.slamshoes.model.Coleccion;
 import com.slamshoes.service.AdminCatalogoService;
 
+// REFACTOR: Move Method
+// RAZON: Antes el controlador inyectaba 4 dependencias (@Autowired) y contenía validación, subida de portada, rollback
+// y armado de respuestas en 126 líneas. Ahora cada endpoint delega en AdminCatalogoService (listarColecciones,
+// detalleColeccion, crearColeccion, actualizarColeccion, eliminarColeccion) y la clase queda en 107 líneas.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes los métodos devolvían ResponseEntity<?> y armaban a mano los 400/404/500/502 con error() y sinLlave().
+// Ahora el servicio lanza ValidacionException, RecursoNoEncontradoException, StorageNoConfiguradoException o
+// StorageException y GlobalExceptionHandler produce la respuesta HTTP.
 /**
  * Controlador REST para la administración de colecciones y sus productos vinculados.
  */
@@ -32,6 +40,10 @@ public class AdminColeccionController {
 
     private final AdminCatalogoService catalogoService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las dependencias eran campos @Autowired privados, inyectados por reflexión y sin forma de crear el
+    // controlador fuera de Spring. Ahora es un campo final asignado solo en el constructor, y las pruebas hacen
+    // new AdminColeccionController(catalogoService) sin levantar contexto.
     /**
      * Inicializa el controlador con el servicio administrativo de catálogo.
      *
@@ -93,6 +105,10 @@ public class AdminColeccionController {
         return ResponseEntity.ok(Map.of("idColeccion", c.getIdColeccion(), "nombre", c.getNombre()));
     }
 
+    // REFACTOR: Move Method
+    // RAZON: Antes el controlador no tenía endpoint DELETE para colecciones (faltante señalado en el plan, Integrante 5).
+    // Ahora eliminar() solo delega en AdminCatalogoService.eliminarColeccion, que desvincula los productos y borra la
+    // portada, igual que ya hacían jugadores y marcas, sin lógica de negocio en el controlador.
     /**
      * Elimina una colección desvinculando sus productos sin borrarlos.
      *

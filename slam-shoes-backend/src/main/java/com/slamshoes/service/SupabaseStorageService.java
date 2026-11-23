@@ -18,6 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.slamshoes.exception.ValidacionException;
 
+// REFACTOR: Extract Interface
+// RAZON: Antes esta clase era la única dependencia concreta de Storage, con tres campos @Value privados y un HttpClient
+// creado dentro. Ahora implementa IStorageService y el HttpClient entra por constructor, de modo que
+// SupabaseStorageServiceTest lo reemplaza por un mock de HttpClient sin tocar la red.
 /**
  * Implementación de {@link IStorageService} respaldada por la API REST de Supabase Storage.
  * Las carpetas de Storage se crean automáticamente al subir un objeto con ruta {@code carpeta/archivo}.
@@ -47,6 +51,10 @@ public class SupabaseStorageService implements IStorageService {
         this(url, bucket, serviceKey, HttpClient.newHttpClient());
     }
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes url, bucket y serviceKey eran campos @Value privados mutables y http se creaba en la declaración
+    // (private final HttpClient http = HttpClient.newHttpClient()). Ahora los cuatro son campos final asignados por
+    // constructor; este constructor existe para entregar un HttpClient simulado en las pruebas.
     /**
      * Constructor auxiliar para inyectar un {@link HttpClient} en pruebas unitarias.
      *
@@ -87,6 +95,9 @@ public class SupabaseStorageService implements IStorageService {
         return urlPublica(ruta);
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes un archivo que no era WebP lanzaba IllegalArgumentException, que cada controlador capturaba para devolver 400.
+    // Ahora lanza ValidacionException, que GlobalExceptionHandler convierte en HTTP 400 sin código en los controladores.
     @Override
     public String subirWebp(String carpeta, String nombreBase, MultipartFile archivo)
             throws IOException, InterruptedException {
@@ -124,6 +135,11 @@ public class SupabaseStorageService implements IStorageService {
         }
     }
 
+    // REFACTOR: Move Method
+    // RAZON: Antes la normalización de nombres a rutas existía duplicada como aCarpeta(...) dentro de AdminProductoController y
+    // como slug(...) aquí, y rutaDesdeUrl también estaba copiada en el controlador. Ahora slug, rutaDesdeUrl y
+    // urlPublica viven solo en el servicio de Storage y ProductoAdminService los reutiliza (la cadena vacía produce
+    // "imagen" en lugar de "producto").
     /**
      * Normaliza un texto eliminando acentos y caracteres especiales para usarlo como nombre de ruta.
      *
@@ -141,6 +157,11 @@ public class SupabaseStorageService implements IStorageService {
         return url + "/storage/v1/object/public/" + bucket + "/" + ruta;
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes eliminar ignoraba en silencio cualquier error (catch vacío con el comentario "se ignora a propósito"). Ahora
+    // sigue sin propagar el fallo (es una limpieza de mejor esfuerzo que no debe romper la operación principal), pero
+    // lo registra con Logger (WARNING) y restaura la bandera de interrupción del hilo. Se prueba con
+    // eliminarNoPropagaExcepcionSiFallaRed.
     @Override
     public void eliminar(List<String> rutas) {
         if (rutas == null || rutas.isEmpty()) return;

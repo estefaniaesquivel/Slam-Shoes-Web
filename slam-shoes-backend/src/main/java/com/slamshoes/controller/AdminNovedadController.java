@@ -18,6 +18,14 @@ import com.slamshoes.dto.NovedadAdminDTO;
 import com.slamshoes.model.Novedad;
 import com.slamshoes.service.AdminCatalogoService;
 
+// REFACTOR: Move Method
+// RAZON: Antes el controlador inyectaba NovedadRepository y ProductoRepository (2 @Autowired) y hacía el CRUD directo
+// contra los repositorios, con su propio validar(). Ahora delega en AdminCatalogoService (listarNovedades,
+// crearNovedad, actualizarNovedad, eliminarNovedad) y no conoce repositorios.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes validar(NovedadAdminDTO) devolvía un String con el problema (o null) y error(String) armaba el 400; la
+// ausencia de la novedad se resolvía con ResponseEntity.notFound(). Ahora el servicio lanza ValidacionException o
+// RecursoNoEncontradoException y GlobalExceptionHandler responde 400/404.
 /**
  * Controlador REST para administrar las vigencias de productos marcados como novedad.
  */
@@ -28,6 +36,10 @@ public class AdminNovedadController {
 
     private final AdminCatalogoService catalogoService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las dependencias eran campos @Autowired privados, inyectados por reflexión y sin forma de crear el
+    // controlador fuera de Spring. Ahora es un campo final asignado solo en el constructor, y las pruebas hacen
+    // new AdminNovedadController(catalogoService) sin levantar contexto.
     /**
      * Inicializa el controlador con el servicio administrativo de catálogo.
      *

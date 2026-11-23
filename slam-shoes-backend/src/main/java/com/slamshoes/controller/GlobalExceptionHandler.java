@@ -12,6 +12,8 @@ import com.slamshoes.exception.StorageException;
 import com.slamshoes.exception.StorageNoConfiguradoException;
 import com.slamshoes.exception.ValidacionException;
 
+// REFACTOR: Extract Class
+// RAZON: Antes cada controlador Admin* repetia los metodos privados error(String) y sinLlave() y armaba a mano los ResponseEntity 400/404/409/500/502. Ahora se centralizan en este @RestControllerAdvice.
 /**
  * Manejador global de excepciones REST que traduce errores de dominio a respuestas JSON uniformes.
  */

@@ -20,6 +20,14 @@ import com.slamshoes.dto.BannerAdminDTO;
 import com.slamshoes.model.Banner;
 import com.slamshoes.service.AdminCatalogoService;
 
+// REFACTOR: Move Method
+// RAZON: Antes el controlador inyectaba BannerRepository y SupabaseStorageService (2 @Autowired) y contenía validación,
+// subida WebP, rollback de imagen y armado de respuestas en 127 líneas. Ahora cada endpoint solo delega en
+// AdminCatalogoService (listarBanners, crearBanner, actualizarBanner, eliminarBanner) y la clase queda en 92 líneas.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes crear/actualizar devolvían ResponseEntity<?> y armaban a mano los 400/404/500/502 con los métodos privados
+// error() y sinLlave(). Ahora el servicio lanza ValidacionException, RecursoNoEncontradoException,
+// StorageNoConfiguradoException o StorageException, GlobalExceptionHandler responde, y los métodos devuelven tipos concretos.
 /**
  * Controlador REST para la administración de banners del carrusel principal.
  */
@@ -30,6 +38,10 @@ public class AdminBannerController {
 
     private final AdminCatalogoService catalogoService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes la dependencia era un campo @Autowired privado, inyectado por reflexión y sin forma de crear el
+    // controlador fuera de Spring. Ahora es un campo final asignado solo en el constructor, y las pruebas hacen
+    // new AdminBannerController(catalogoService) sin levantar contexto.
     /**
      * Inicializa el controlador con el servicio administrativo de catálogo.
      *

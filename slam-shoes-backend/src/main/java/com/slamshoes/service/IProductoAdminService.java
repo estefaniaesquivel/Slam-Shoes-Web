@@ -9,6 +9,10 @@ import com.slamshoes.dto.ProductoAdminDetalleDTO;
 import com.slamshoes.dto.ProductoEdicionDTO;
 import com.slamshoes.dto.ProductoNuevoDTO;
 
+// REFACTOR: Extract Interface
+// RAZON: Antes AdminProductoController dependía de la clase concreta ProductoAdminService (más 8 repositorios y el servicio
+// de Storage), por lo que no se podía probar sin ellos. Ahora el controlador depende de esta interfaz de 4 operaciones
+// (obtenerDetalle, crearCompleto, editarCompleto, eliminar) y ProductoAdminService es solo una implementación.
 /**
  * Contrato para la gestión administrativa completa de productos, variantes y galería.
  */
