@@ -32,16 +32,31 @@ public class BrokerHttpConfig {
 
     @Bean
     @ConditionalOnProperty(name = "broker.servidor.activo", havingValue = "true", matchIfMissing = true)
-    public NucleoBroker nucleoBroker(@Value("${broker.bitacora:bitacora-broker.log}") String archivoBitacora,
+    // REFACTOR: Replace Constructor with Factory Function
+    // RAZON: {@code BrokerArranque} hacia {@code new BrokerServidor(puerto, ruta)} a mano y manejaba el caso
+    // 'puerto ocupado'. Ahora un metodo {@code @Bean} lee las propiedades (timeout, reintentos, max-fallos, token)
+    // y crea el NucleoBroker; Spring lo comparte con los controladores y no hay puerto que pueda estar ocupado.
+    // REFACTOR: Replace Magic Literal
+    // RAZON: Antes el archivo "bitacora-broker.log" estaba escrito como valor por defecto: en cada despliegue (Render, con
+    // disco efimero) se escribia una linea por solicitud en un archivo que se pierde al reiniciar, y en local ensuciaba
+    // git. Ahora el valor por defecto es vacio = bitacora solo en memoria (el panel /api/broker/estado y la consola
+    // siguen mostrando todo); para tener archivo basta definir BROKER_BITACORA=bitacora-broker.log.
+    public NucleoBroker nucleoBroker(@Value("${broker.bitacora:}") String archivoBitacora,
                                      @Value("${broker.timeout-ms:20000}") int timeoutMs,
                                      @Value("${broker.reintentos:1}") int reintentos,
                                      @Value("${broker.max-fallos:3}") int maximoFallos,
                                      @Value("${broker.token:}") String token) {
-        return new NucleoBroker(Paths.get(archivoBitacora), 2000, timeoutMs, reintentos, maximoFallos, token);
+        boolean enArchivo = archivoBitacora != null && !archivoBitacora.isBlank();
+        return new NucleoBroker(enArchivo ? Paths.get(archivoBitacora.trim()) : null, 2000, timeoutMs, reintentos,
+                maximoFallos, token);
     }
 
     @Bean
     @ConditionalOnProperty(name = "broker.proveedores.activo", havingValue = "true", matchIfMissing = true)
+    // REFACTOR: Replace Constructor with Factory Function
+    // RAZON: los tres proveedores se inyectaban uno por uno como campos concretos en BrokerArranque. Ahora Spring
+    // entrega la lista de {@link ProveedorServicio} y este metodo arma la exposicion, de modo que un proveedor
+    // nuevo se publica solo con anotarlo como componente.
     public ExposicionProveedores exposicionProveedores(List<ProveedorServicio> proveedores,
                                                         @Value("${broker.token:}") String token) {
         return new ExposicionProveedores(proveedores, token);

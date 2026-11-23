@@ -41,6 +41,10 @@ import jakarta.annotation.PreDestroy;
 public class BrokerArranque {
 
     /** Raíz REST de cada servicio para el proxy /api/gateway/{servicio}/**. */
+    // REFACTOR: Replace Magic Literal
+    // RAZON: el proxy necesita saber la ruta REST de cada servicio. Antes los puertos 9101, 9102 y 9103 eran
+    // numeros sueltos en el codigo; ahora el mapa servicio -> ruta es una constante con nombre y es el unico lugar
+    // que hay que editar al agregar un servicio.
     private static final Map<String, String> RUTA_REST = Map.of(
             "productos", "/api/productos",
             "usuarios", "/api/usuarios",
@@ -55,6 +59,11 @@ public class BrokerArranque {
 
     private final List<RegistroAutomatico> registros = new ArrayList<>();
 
+    // REFACTOR: Change Function Declaration
+    // RAZON: antes los datos llegaban por campos {@code @Value} y {@code @Autowired} de las clases concretas
+    // ServicioProductosJpa, ServicioUsuariosJpa y ServicioPedidosJpa. Ahora el constructor recibe
+    // ExposicionProveedores y las URLs, de modo que la clase no conoce proveedores concretos y se puede crear en
+    // una prueba sin Spring.
     public BrokerArranque(ExposicionProveedores exposicion,
                           @Value("${broker.url:http://localhost:${server.port:8080}}") String urlBroker,
                           @Value("${service.public.url:http://localhost:${server.port:8080}}") String urlPublica,
@@ -71,6 +80,10 @@ public class BrokerArranque {
 
     /** Se ejecuta una vez, cuando la aplicación terminó de arrancar. */
     @EventListener(ApplicationReadyEvent.class)
+    // REFACTOR: Extract Function
+    // RAZON: el {@code iniciar()} anterior levantaba un Broker local, comprobaba puertos ocupados y abria tres
+    // servidores. Ahora el metodo solo recorre los proveedores y le pide a cada {@code RegistroAutomatico} que se
+    // anuncie; el trabajo de red salio a esa clase.
     public void iniciar() {
         for (ProveedorServicio proveedor : exposicion.getProveedores()) {
             try {
