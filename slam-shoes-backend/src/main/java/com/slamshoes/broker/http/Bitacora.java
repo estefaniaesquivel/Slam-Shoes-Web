@@ -19,6 +19,11 @@ import com.slamshoes.broker.EstadoRespuesta;
  * (si se indicó) y en memoria (las últimas 100, para el monitoreo).
  *
  * Formato:  fecha | id | servicio.operacion | estado | duración | detalle
+ * 
+ * REFACTOR: Move Function (la clase completa pasa de broker.red a broker.http)
+ * RAZON: el archivo estaba en el paquete {@code broker.red}, que era el 'paquete de sockets'. Esta clase no
+ * depende de ninguna red: se movio a {@code broker.http} junto al resto del transporte actual, sin cambiar su
+ * comportamiento, para poder borrar el paquete {@code red} completo.
  */
 public final class Bitacora {
 
