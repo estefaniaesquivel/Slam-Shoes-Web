@@ -52,6 +52,9 @@ public class ExposicionProveedores {
     }
 
     /** true si no hay secreto configurado o el enviado coincide (comparación en tiempo constante). */
+    // REFACTOR: Extract Function
+    // RAZON: valida el secreto compartido en un solo metodo (el lado proveedor de {@code
+    // NucleoBroker.autorizado}); el controlador solo pregunta si esta autorizado y responde 401 si no.
     public boolean autorizado(String enviado) {
         if (token == null) {
             return true;
@@ -76,6 +79,11 @@ public class ExposicionProveedores {
      * @param json     cuerpo JSON recibido (la {@link Solicitud} serializada por el Broker)
      * @return siempre una Respuesta: de éxito, o de error con su estado
      */
+    // REFACTOR: Move Function
+    // RAZON: {@code ProveedorServidor.procesar(linea)} leia la linea del socket, la parseaba y ejecutaba. La parte
+    // de 'atender la solicitud' se movio a esta clase, que recibe el texto JSON ya leido por Spring; solo se
+    // conservo lo que decide (validar, evitar duplicados, ejecutar) y se eliminaron los hilos y el cierre de
+    // conexiones.
     public Respuesta atender(String servicio, String json) {
         ProveedorServicio proveedor = proveedores.get(servicio);
         if (proveedor == null) {
@@ -108,6 +116,10 @@ public class ExposicionProveedores {
     }
 
     /** Ejecuta la operación; cualquier excepción se convierte en una respuesta ERROR_PROVEEDOR. */
+    // REFACTOR: Move Function
+    // RAZON: el metodo existia como {@code ProveedorServidor.ejecutarSeguro} y se movio sin cambiar su
+    // comportamiento: convertir cualquier excepcion del proveedor en ERROR_PROVEEDOR para que el Broker siempre
+    // reciba una Respuesta valida.
     private Respuesta ejecutarSeguro(ProveedorServicio proveedor, Solicitud solicitud) {
         String id = solicitud.getIdSolicitud();
         String servicio = proveedor.getNombreServicio();

@@ -40,6 +40,12 @@ import com.slamshoes.repository.ProductoImagenRepository;
 import com.slamshoes.repository.ProductoRepository;
 import com.slamshoes.repository.ProductoTallaRepository;
 
+// REFACTOR: Extract Interface
+// RAZON: Antes AdminProductoController dependia de 9 beans concretos; ahora depende de IProductoAdminService y esta clase prueba la
+// implementacion ProductoAdminService con Mockito, sin contexto de Spring (RF-10).
+// REFACTOR: Extract Method
+// RAZON: Antes guardar/actualizar/sincronizarVariantes eran bloques largos; ahora se prueban por su comportamiento publico
+// (detalle, crearCompleto, actualizar, eliminar) y quedan cubiertos los metodos privados extraidos.
 @ExtendWith(MockitoExtension.class)
 class ProductoAdminServiceTest {
 
@@ -123,6 +129,8 @@ class ProductoAdminServiceTest {
         verify(productoImagenRepository).save(any(ProductoImagen.class));
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Cubre la rama extraida que protege variantes con pedidos (PedidoDetalleRepository.existsByIdVariante): no se borran, se deja stock 0 (RF-10).
     @Test
     void actualizarDejaStockCeroEnVarianteConPedidos() {
         Producto p = new Producto();
@@ -150,6 +158,8 @@ class ProductoAdminServiceTest {
         verify(productoTallaRepository, never()).delete(existenteConPedido);
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes el conflicto se informaba con un codigo/mensaje en el controlador; ahora se lanza ConflictoEliminacionException y la prueba lo exige.
     @Test
     void eliminarLanzaConflictoSiTienePedidos() {
         ProductoTalla pt = new ProductoTalla();

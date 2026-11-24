@@ -48,6 +48,10 @@ import com.slamshoes.broker.Solicitud;
 public class NucleoBroker {
 
     /** Resultado de registrar/dar de baja: código HTTP sugerido, si fue aceptado y un mensaje legible. */
+    // REFACTOR: Replace Primitive with Object
+    // RAZON: {@code BrokerServidor.ack(boolean, String)} construia a mano un String JSON con el campo tipo=ACK.
+    // Ahora el resultado de registrar o dar de baja es un objeto con codigo HTTP, ok y mensaje; el controlador lo
+    // traduce a 200/400/401/404/409 sin parsear texto.
     public record Acuse(int codigo, boolean ok, String mensaje) {
         /** Mapa JSON-friendly para el cuerpo de la respuesta HTTP. */
         public Map<String, Object> aMapa() {
@@ -117,6 +121,10 @@ public class NucleoBroker {
      * Respuesta del health check de Render ({@code GET /api/broker/health}): no toca la base de datos ni
      * contacta a los proveedores, solo confirma que el proceso está vivo.
      */
+    // REFACTOR: Extract Function
+    // RAZON: con sockets la unica forma de saber si el Broker vivia era pedir ESTADO, que arma metricas y lista de
+    // solicitudes. Render necesita un health check barato y sin base de datos: se separo en un metodo propio que
+    // solo confirma que el proceso responde.
     public Map<String, Object> salud() {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("status", "UP");
@@ -130,6 +138,11 @@ public class NucleoBroker {
     // ------------------------------------------------------------------ autenticación
 
     /** true si no hay secreto configurado o el enviado coincide (comparación en tiempo constante). */
+    // REFACTOR: Extract Function
+    // RAZON: la decision 'este llamador conoce el secreto' se necesita en el registro, la baja y los proveedores.
+    // Un metodo unico, con comparacion en tiempo constante ({@code MessageDigest.isEqual}), evita repetir la
+    // comprobacion y hace que el token sea opcional (sin BROKER_TOKEN todo se acepta). El protocolo de sockets no
+    // tenia ninguna autenticacion.
     public boolean autorizado(String enviado) {
         if (token == null) {
             return true;
@@ -146,6 +159,10 @@ public class NucleoBroker {
      * Procesa el cuerpo JSON de {@code POST /api/broker/solicitar}: lo convierte en {@link Solicitud},
      * la enruta y devuelve SIEMPRE una {@link Respuesta} (los errores van dentro, con su estado).
      */
+    // REFACTOR: Split Phase
+    // RAZON: {@code procesarSolicitud} hacia dos cosas seguidas: leer y validar el mensaje, y enrutarlo. Ahora la
+    // fase 1 (unmarshalling + rechazo si esta mal formado) vive aqui y la fase 2 (enrutar) es {@code
+    // solicitar(Solicitud, String)}, que ya recibe un objeto valido.
     public Respuesta solicitar(Map<String, Object> json, String origen) {
         Solicitud solicitud;
         try {
@@ -159,6 +176,10 @@ public class NucleoBroker {
     }
 
     /** Enruta una solicitud ya construida (por ejemplo, la que arma {@code POST /api/broker/{servicio}/{operacion}}). */
+    // REFACTOR: Change Function Declaration
+    // RAZON: antes devolvia un String con la respuesta ya convertida a JSON (porque debia escribirla en el
+    // socket). Ahora devuelve la {@link Respuesta} y el marshalling lo hace quien responde por HTTP; asi el nucleo
+    // no sabe como viaja la respuesta y tambien lo usa {@code BrokerController} sin convertir ida y vuelta.
     public Respuesta solicitar(Solicitud solicitud, String origen) {
         long inicio = System.nanoTime();
         CacheDuplicados.Resultado<Respuesta> resultado = duplicados.ejecutar(
@@ -182,6 +203,9 @@ public class NucleoBroker {
         return respuesta;
     }
 
+    // REFACTOR: Change Function Declaration
+    // RAZON: {@code rechazarSolicitud} devolvia el JSON ya escrito; ahora devuelve una Respuesta (estado
+    // SOLICITUD_INVALIDA) y sigue contando y anotando el rechazo en la bitacora.
     private Respuesta rechazar(String id, String mensaje, String origen) {
         Consola.broker("Solicitud rechazada (" + origen + "): " + mensaje);
         contar(EstadoRespuesta.SOLICITUD_INVALIDA, 0);
@@ -221,6 +245,11 @@ public class NucleoBroker {
      * @param json         cuerpo ya convertido a mapa
      * @param origen       dirección de quien llama, solo para la bitácora
      */
+    // REFACTOR: Change Function Declaration
+    // RAZON: {@code registrarProveedor(Map)} recibia host y puerto TCP y devolvia un String JSON. Ahora recibe el
+    // token, el mapa y el origen y devuelve un {@link Acuse} (200 alta/latido/sustitucion, 400 invalido, 401 sin
+    // token, 409 conflicto). Los cinco casos de decision (alta, latido, actualizacion, sustitucion, rechazo) se
+    // conservaron tal cual; solo cambia como se informa el resultado.
     public Acuse registrar(String tokenEnviado, Map<String, Object> json, String origen) {
         if (!autorizado(tokenEnviado)) {
             Consola.registro("REGISTRO RECHAZADO (" + origen + "): token invalido");
@@ -273,6 +302,10 @@ public class NucleoBroker {
     }
 
     /** Baja de un proveedor ({@code POST /api/broker/unregister}); solo la acepta quien está registrado con esa URL. */
+    // REFACTOR: Change Function Declaration
+    // RAZON: la baja anterior ({@code darDeBaja(Map)}) aceptaba un host:puerto y respondia un String. Ahora valida
+    // el token y la URL, solo retira al proveedor que se registro con esa misma URL (nadie puede dar de baja a
+    // otro) y responde con un Acuse (200/400/401/404).
     public Acuse darDeBaja(String tokenEnviado, Map<String, Object> json, String origen) {
         if (!autorizado(tokenEnviado)) {
             return new Acuse(401, false, "No autorizado: falta o es incorrecto el token del Broker");
@@ -302,6 +335,10 @@ public class NucleoBroker {
     // ------------------------------------------------------------------ monitoreo
 
     /** Foto del estado del Broker: servicios registrados, métricas y últimas solicitudes. */
+    // REFACTOR: Remove Dead Code
+    // RAZON: el estado devolvia los campos {@code tipo} (ESTADO) y {@code puerto}, que solo tenian sentido para el
+    // protocolo de sockets. Ahora informa {@code transporte: HTTP} y, por servicio, su url, ruta base, fallos y
+    // ultimo contacto; el resto de las metricas no cambio.
     public Map<String, Object> estado() {
         Map<String, Object> raiz = new LinkedHashMap<>();
         raiz.put("transporte", "HTTP");

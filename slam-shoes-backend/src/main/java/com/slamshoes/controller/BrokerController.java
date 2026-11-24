@@ -89,6 +89,10 @@ public class BrokerController {
     @GetMapping("/estado")
     public ResponseEntity<Map<String, Object>> estado() {
         try {
+            // REFACTOR: Remove Middle Man
+            // RAZON: si esta instancia ES el Broker, pedirse el estado a si misma por HTTP (BrokerGateway -> ClienteHttp
+            // -> la misma aplicacion) era un intermediario inutil. Se lee directo de {@code NucleoBroker}; solo cuando el
+            // Broker esta en otro servicio (BROKER_URL) se consulta por HTTP.
             if (nucleo != null) {
                 // Se pasa por JSON para entregar solo textos, numeros y listas (sin LocalDateTime ni enums)
                 return ResponseEntity.ok(Json.leerObjeto(Json.escribir(nucleo.estado())));

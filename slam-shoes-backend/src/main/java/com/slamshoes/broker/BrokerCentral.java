@@ -49,6 +49,12 @@ public class BrokerCentral implements Broker {
         // Rechazar operaciones que el proveedor no ofrece
         // Un proveedor HTTP puede registrarse sin lista de operaciones (por ejemplo {"servicio","url"}): entonces el
         // Broker no pre-valida y el propio proveedor responde OPERACION_NO_SOPORTADA si no la conoce.
+
+        // REFACTOR: Extract Variable
+        // RAZON: Evaluar directamente {@code proveedor.getOperacionesSoportadas().contains(operacion)} rechazaba
+        // llamadas cuando un proveedor HTTP se registraba sin catalogo de operaciones (solo servicio y url).
+        // Extraer {@code ofrecidas} deja claro que una lista vacia significa "sin catalogo declarado": el Broker
+        // omite la pre-validacion y el proveedor resuelve si soporta la operacion o devuelve OPERACION_NO_SOPORTADA.
         Set<String> ofrecidas = proveedor.getOperacionesSoportadas();
         if (!ofrecidas.isEmpty() && !ofrecidas.contains(operacion)) {
             Consola.broker("Solicitud " + corto + ": " + nombreProveedor + " no ofrece '" + operacion + "'");

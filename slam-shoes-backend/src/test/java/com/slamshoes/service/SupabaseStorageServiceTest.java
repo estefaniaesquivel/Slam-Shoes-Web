@@ -19,6 +19,11 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import com.slamshoes.exception.ValidacionException;
 
+// REFACTOR: Extract Interface
+// RAZON: Antes los servicios usaban directamente SupabaseStorageService con HttpClient incrustado; ahora existe IStorageService y esta clase
+// prueba la implementacion con un HttpClient simulado, sin red (RF-10).
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes un archivo que no era WebP lanzaba IllegalArgumentException (el controlador la atrapaba y armaba el 400 a mano); ahora el servicio lanza ValidacionException, que GlobalExceptionHandler convierte en 400, y la prueba lo comprueba.
 class SupabaseStorageServiceTest {
 
     private HttpClient httpClient;
@@ -74,6 +79,8 @@ class SupabaseStorageServiceTest {
         assertThat(url).endsWith(".webp");
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes IllegalArgumentException atrapada en el controlador; ahora ValidacionException lanzada por subirWebp.
     @Test
     void subirWebpRechazaArchivoNoWebp() {
         MockMultipartFile archivo = new MockMultipartFile("imagen", "tenis.jpg", "image/jpeg", new byte[]{10});
