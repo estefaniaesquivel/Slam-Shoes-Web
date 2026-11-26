@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,8 +30,14 @@ import com.slamshoes.service.BrokerGateway;
 @CrossOrigin(origins = "*")
 public class PedidoController {
 
-    @Autowired
-    private BrokerGateway gateway;
+    /*REFACTOR: Remove Setting Method
+    RAZON: La dependencia se inyecta por constructor y queda inmutable, lo que permite crear el controlador con un gateway simulado en pruebas sin iniciar Spring.
+    */
+    private final BrokerGateway gateway;
+
+    public PedidoController(BrokerGateway gateway) {
+        this.gateway = gateway;
+    }
 
     // Confirmar compra -> pedidos.crearPedido
     @PostMapping
