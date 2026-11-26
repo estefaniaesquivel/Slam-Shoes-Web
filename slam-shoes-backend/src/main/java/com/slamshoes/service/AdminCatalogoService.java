@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -279,7 +280,10 @@ public class AdminCatalogoService {
             aplicarBanner(b, datos);
             if (b.getOrden() == null) {
                 b.setOrden(bannerRepository.findAll().stream()
-                        .map(x -> x.getOrden() == null ? 0 : x.getOrden()).max(Integer::compare).orElse(0) + 1);
+                        .map(Banner::getOrden)
+                        .filter(Objects::nonNull)
+                        .mapToInt(Integer::intValue)
+                        .max().orElse(0) + 1);
             }
             b.setImagenUrl(url);
             return bannerRepository.save(b);

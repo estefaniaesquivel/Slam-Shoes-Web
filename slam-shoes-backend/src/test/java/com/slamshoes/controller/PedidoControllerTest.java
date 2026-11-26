@@ -1,20 +1,18 @@
 package com.slamshoes.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.anyMap;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.slamshoes.exception.StockInsuficienteException;
@@ -29,7 +27,6 @@ class PedidoControllerTest {
 
     private MockMvc mockMvc;
 
-    @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(new PedidoController(gateway))
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -38,6 +35,8 @@ class PedidoControllerTest {
 
     @Test
     void pedidoSinProductosRetorna400ConMensajeDeError() throws Exception {
+                setUp();
+
         mockMvc.perform(post("/api/pedidos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"idUsuario\":1,\"direccionEnvio\":\"Calle 1\",\"items\":[]}"))
@@ -55,6 +54,8 @@ class PedidoControllerTest {
 
     @Test
     void stockInsuficienteRetorna409ConMensajeDeError() throws Exception {
+                setUp();
+
         when(gateway.crearPedido(anyMap()))
                 .thenThrow(new StockInsuficienteException("Sin stock suficiente de \"Runner\" talla 27 (disponibles: 0)"));
 
@@ -67,6 +68,8 @@ class PedidoControllerTest {
 
     @Test
     void transicionDeEstadoInvalidaRetorna409ConMensajeDeError() {
+                setUp();
+
         var response = new GlobalExceptionHandler().manejarTransicionEstadoInvalida(
                 new TransicionEstadoInvalidaException("El pedido no está en proceso"));
 
