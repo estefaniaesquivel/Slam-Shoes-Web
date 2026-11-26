@@ -45,6 +45,7 @@ public class Pedido {
     @Column(name = "metodo_pago")
     private String metodoPago;
 
+    /** Constructor vacío requerido por JPA. Para crear pedidos nuevos usar {@Link #crearPendiente()}. */
     public Pedido() {}
 
     // REFACTOR: Replace Constructor with Factory Method
@@ -59,7 +60,7 @@ public class Pedido {
      * @param metodoPago     método de pago, o {@code null} si no se indicó
      * @return pedido listo para guardar
      */
-    public static Pedido crearPedido(Long idUsuario, Double total, String direccionEnvio, String metodoPago) {
+    public static Pedido crearPendiente(Long idUsuario, Double total, String direccionEnvio, String metodoPago) {
         Pedido p = new Pedido();
         p.idUsuario = idUsuario;
         p.fecha = LocalDateTime.now();
