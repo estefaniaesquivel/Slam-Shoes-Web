@@ -1,5 +1,6 @@
 package com.slamshoes.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.slamshoes.exception.StockInsuficienteException;
+import com.slamshoes.exception.TransicionEstadoInvalidaException;
 import com.slamshoes.service.BrokerGateway;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,5 +63,14 @@ class PedidoControllerTest {
                         .content("{\"idUsuario\":1,\"direccionEnvio\":\"Calle 1\",\"items\":[{\"idVariante\":2,\"cantidad\":1}]}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("Sin stock suficiente de \"Runner\" talla 27 (disponibles: 0)"));
+    }
+
+    @Test
+    void transicionDeEstadoInvalidaRetorna409ConMensajeDeError() {
+        var response = new GlobalExceptionHandler().manejarTransicionEstadoInvalida(
+                new TransicionEstadoInvalidaException("El pedido no está en proceso"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody()).containsEntry("error", "El pedido no está en proceso");
     }
 }

@@ -11,6 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.slamshoes.exception.TransicionEstadoInvalidaException;
+
 @Entity
 @Table(name = "pedidos")
 public class Pedido {
@@ -59,6 +61,22 @@ public class Pedido {
 
     public EstadoPedido getEstado() { return estado; }
     public void setEstado(EstadoPedido estado) { this.estado = estado; }
+
+    public void transicionarA(EstadoPedido nuevoEstado) {
+        if (nuevoEstado == null) {
+            throw new TransicionEstadoInvalidaException("El estado de destino del pedido no es válido");
+        }
+
+        EstadoPedido esperado = nuevoEstado == EstadoPedido.CONCRETADO
+                ? EstadoPedido.PENDIENTE
+                : EstadoPedido.CONCRETADO;
+        if (estado != esperado) {
+            String estadoEsperado = esperado == EstadoPedido.PENDIENTE ? "en proceso" : "concretado";
+            throw new TransicionEstadoInvalidaException("El pedido #" + idPedido + " no está " + estadoEsperado
+                    + " (estado actual: " + estado + ")");
+        }
+        estado = nuevoEstado;
+    }
 
     public String getDireccionEnvio() { return direccionEnvio; }
     public void setDireccionEnvio(String direccionEnvio) { this.direccionEnvio = direccionEnvio; }

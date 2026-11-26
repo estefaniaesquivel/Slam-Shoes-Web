@@ -105,9 +105,9 @@ public class ServicioPedidosJpa implements ProveedorServicio {
                 case "contarPedidos":
                     return Respuesta.exito(id, contarPedidos());
                 case "concretarPedido":
-                    return cambiarEstado(id, solicitud.getParametros(), PENDIENTE, CONCRETADO);
+                    return cambiarEstado(id, solicitud.getParametros(), Pedido.EstadoPedido.CONCRETADO);
                 case "reabrirPedido":
-                    return cambiarEstado(id, solicitud.getParametros(), CONCRETADO, PENDIENTE);
+                    return cambiarEstado(id, solicitud.getParametros(), Pedido.EstadoPedido.PENDIENTE);
                 case "cancelarPedido":
                     return cancelarPedido(id, solicitud.getParametros());
                 default:
@@ -310,17 +310,12 @@ public class ServicioPedidosJpa implements ProveedorServicio {
     }
 
     /** Cambia el estado de un pedido solo si esta en el estado esperado (si no, CONFLICTO). */
-    private Respuesta cambiarEstado(String id, Map<String, Object> parametros, String esperado, String nuevo) {
+    private Respuesta cambiarEstado(String id, Map<String, Object> parametros, Pedido.EstadoPedido nuevoEstado) {
         Pedido pedido = buscarPedido(parametros);
-        String estadoActual = pedido.getEstado().name();
-        if (!esperado.equals(estadoActual)) {
-            return Respuesta.error(id, EstadoRespuesta.CONFLICTO, "El pedido #" + pedido.getIdPedido()
-                    + " no está " + (PENDIENTE.equals(esperado) ? "en proceso" : "concretado")
-                    + " (estado actual: " + estadoActual + ")");
-        }
-        pedido.setEstado(Pedido.EstadoPedido.valueOf(nuevo));
+        pedido.transicionarA(nuevoEstado);
         pedidoRepository.save(pedido);
-        return Respuesta.exito(id, mapa("atendidoPor", NOMBRE_CLASE, "idPedido", pedido.getIdPedido(), "estado", nuevo));
+        return Respuesta.exito(id, mapa("atendidoPor", NOMBRE_CLASE, "idPedido", pedido.getIdPedido(),
+                "estado", nuevoEstado.name()));
     }
 
     /** "No concretado": borra un pedido en proceso y devuelve a la base de datos el stock que habia descontado. */

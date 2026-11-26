@@ -16,6 +16,7 @@ import com.slamshoes.broker.ProveedorServicio;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
 import com.slamshoes.exception.StockInsuficienteException;
+import com.slamshoes.exception.TransicionEstadoInvalidaException;
 
 /** Pruebas del lado proveedor: lo que pasa cuando llega {@code POST /api/proveedor/{servicio}} (sin red). */
 class ExposicionProveedoresTest {
@@ -99,6 +100,35 @@ class ExposicionProveedoresTest {
 
         assertEquals(EstadoRespuesta.CONFLICTO, respuesta.getEstado());
         assertEquals("Stock insuficiente", respuesta.getMensajeError());
+    }
+
+    @Test
+    @DisplayName("Una transicion de estado invalida conserva el estado CONFLICTO al cruzar el proveedor HTTP")
+    void transicionInvalidaConservaConflicto() {
+        ProveedorServicio pedidos = new ProveedorServicio() {
+            @Override
+            public Respuesta ejecutar(Solicitud solicitud) {
+                throw new TransicionEstadoInvalidaException("El pedido no está en proceso");
+            }
+
+            @Override
+            public String getNombreServicio() {
+                return "pedidos";
+            }
+
+            @Override
+            public Set<String> getOperacionesSoportadas() {
+                return Set.of("concretarPedido");
+            }
+        };
+        ExposicionProveedores exposicionPedidos = new ExposicionProveedores(List.of(pedidos), null);
+        Solicitud solicitud = new Solicitud("pedidos", "concretarPedido", null);
+
+        Respuesta respuesta = exposicionPedidos.atender(
+                "pedidos", Marshalling.marshalSolicitud(solicitud));
+
+        assertEquals(EstadoRespuesta.CONFLICTO, respuesta.getEstado());
+        assertEquals("El pedido no está en proceso", respuesta.getMensajeError());
     }
 
     @Test

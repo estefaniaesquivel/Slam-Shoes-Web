@@ -12,6 +12,7 @@ import com.slamshoes.exception.RecursoNoEncontradoException;
 import com.slamshoes.exception.StorageException;
 import com.slamshoes.exception.StorageNoConfiguradoException;
 import com.slamshoes.exception.StockInsuficienteException;
+import com.slamshoes.exception.TransicionEstadoInvalidaException;
 import com.slamshoes.exception.ValidacionException;
 
 // REFACTOR: Extract Class
@@ -74,6 +75,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(StockInsuficienteException.class)
     public ResponseEntity<Map<String, String>> manejarStockInsuficiente(StockInsuficienteException ex) {
+        return ResponseEntity.status(409).body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
+     * Responde HTTP 409 cuando no es válida la transición solicitada para un pedido.
+     *
+     * @param ex excepción de transición inválida
+     * @return respuesta con código 409 y cuerpo {@code {"error": mensaje}}
+     */
+    @ExceptionHandler(TransicionEstadoInvalidaException.class)
+    public ResponseEntity<Map<String, String>> manejarTransicionEstadoInvalida(TransicionEstadoInvalidaException ex) {
         return ResponseEntity.status(409).body(Map.of("error", ex.getMessage()));
     }
 

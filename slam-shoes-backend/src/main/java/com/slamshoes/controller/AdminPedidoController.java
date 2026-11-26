@@ -66,19 +66,29 @@ public class AdminPedidoController {
 
     @PutMapping("/{idPedido}/concretar")
     public ResponseEntity<?> concretar(@PathVariable Long idPedido) {
-        return ejecutar("concretarPedido", idPedido);
+        return cambiarEstado("concretarPedido", idPedido);
     }
 
     // Deshace "concretado" (error de dedo): el pedido vuelve a la lista de en proceso
     @PutMapping("/{idPedido}/reabrir")
     public ResponseEntity<?> reabrir(@PathVariable Long idPedido) {
-        return ejecutar("reabrirPedido", idPedido);
+        return cambiarEstado("reabrirPedido", idPedido);
     }
 
     // "No concretado": se elimina el pedido y el stock regresa a la base de datos
     @DeleteMapping("/{idPedido}")
     public ResponseEntity<?> noConcretado(@PathVariable Long idPedido) {
         return ejecutar("cancelarPedido", idPedido);
+    }
+
+    private ResponseEntity<?> cambiarEstado(String operacion, Long idPedido) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("idPedido", idPedido);
+        Respuesta respuesta = gateway.transicionarPedido(operacion, params);
+        if (!respuesta.isExitosa()) {
+            return RespuestaHttp.error(respuesta);
+        }
+        return ResponseEntity.ok(RespuestaHttp.resultadoComoMapa(respuesta));
     }
 
     private ResponseEntity<?> ejecutar(String operacion, Long idPedido) {

@@ -12,6 +12,7 @@ import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
 import com.slamshoes.broker.http.ClienteHttp;
 import com.slamshoes.exception.StockInsuficienteException;
+import com.slamshoes.exception.TransicionEstadoInvalidaException;
 
 /**
  * UNICA puerta de la aplicacion web hacia el Broker. Los controladores ya no conocen repositorios
@@ -49,6 +50,20 @@ public class BrokerGateway {
                     ? "No se pudo completar el pedido por falta de stock"
                     : respuesta.getMensajeError();
             throw new StockInsuficienteException(mensaje);
+        }
+        return respuesta;
+    }
+
+    /**
+     * Cambia el estado de un pedido y restaura la excepción de transición que viaja como conflicto por el Broker.
+     */
+    public Respuesta transicionarPedido(String operacion, Map<String, Object> parametros) {
+        Respuesta respuesta = enviar("pedidos", operacion, parametros);
+        if (respuesta.getEstado() == EstadoRespuesta.CONFLICTO) {
+            String mensaje = respuesta.getMensajeError() == null
+                    ? "La transición de estado del pedido no es válida"
+                    : respuesta.getMensajeError();
+            throw new TransicionEstadoInvalidaException(mensaje);
         }
         return respuesta;
     }
