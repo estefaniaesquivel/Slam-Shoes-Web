@@ -78,7 +78,7 @@ public class AdminPedidoController {
     // "No concretado": se elimina el pedido y el stock regresa a la base de datos
     @DeleteMapping("/{idPedido}")
     public ResponseEntity<?> noConcretado(@PathVariable Long idPedido) {
-        return ejecutar("cancelarPedido", idPedido);
+        return cambiarEstado("cancelarPedido", idPedido);
     }
 
     private ResponseEntity<?> cambiarEstado(String operacion, Long idPedido) {
@@ -91,13 +91,4 @@ public class AdminPedidoController {
         return ResponseEntity.ok(RespuestaHttp.resultadoComoMapa(respuesta));
     }
 
-    private ResponseEntity<?> ejecutar(String operacion, Long idPedido) {
-        Map<String, Object> params = new LinkedHashMap<>();
-        params.put("idPedido", idPedido);
-        Respuesta respuesta = gateway.enviar("pedidos", operacion, params);
-        if (!respuesta.isExitosa()) {
-            return RespuestaHttp.error(respuesta);
-        }
-        return ResponseEntity.ok(RespuestaHttp.resultadoComoMapa(respuesta));
-    }
 }

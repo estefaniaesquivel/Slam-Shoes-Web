@@ -24,6 +24,7 @@ import com.slamshoes.model.Pedido;
 import com.slamshoes.model.PedidoDetalle;
 import com.slamshoes.model.Producto;
 import com.slamshoes.model.ProductoTalla;
+import com.slamshoes.model.enums.EstadoPedido;
 import static com.slamshoes.providers.ProveedorUtil.convertirALong;
 import static com.slamshoes.providers.ProveedorUtil.mapa;
 import static com.slamshoes.providers.ProveedorUtil.obtenerLong;
@@ -105,9 +106,9 @@ public class ServicioPedidosJpa implements ProveedorServicio {
                 case "contarPedidos":
                     return Respuesta.exito(id, contarPedidos());
                 case "concretarPedido":
-                    return cambiarEstado(id, solicitud.getParametros(), Pedido.EstadoPedido.CONCRETADO);
+                    return cambiarEstado(id, solicitud.getParametros(), EstadoPedido.CONCRETADO);
                 case "reabrirPedido":
-                    return cambiarEstado(id, solicitud.getParametros(), Pedido.EstadoPedido.PENDIENTE);
+                    return cambiarEstado(id, solicitud.getParametros(), EstadoPedido.PENDIENTE);
                 case "cancelarPedido":
                     return cancelarPedido(id, solicitud.getParametros());
                 default:
@@ -173,7 +174,6 @@ public class ServicioPedidosJpa implements ProveedorServicio {
         pedido.setIdUsuario(idUsuario);
         pedido.setFecha(LocalDateTime.now());
         pedido.setTotal(Math.round(total * 100.0) / 100.0);
-        pedido.setEstado(Pedido.EstadoPedido.PENDIENTE);
         pedido.setDireccionEnvio(direccion);
         pedido.setMetodoPago(metodoPago);
         pedido = pedidoRepository.save(pedido);
@@ -300,19 +300,23 @@ public class ServicioPedidosJpa implements ProveedorServicio {
     private Map<String, Object> contarPedidos() {
         List<Pedido> pedidos = pedidoRepository.findAll();
         long enProceso = pedidos.stream()
-                .filter(p -> p.getEstado() == Pedido.EstadoPedido.PENDIENTE)
+                .filter(p -> p.getEstado() == EstadoPedido.PENDIENTE)
                 .count();
         long concretados = pedidos.stream()
-                .filter(p -> p.getEstado() == Pedido.EstadoPedido.CONCRETADO)
+                .filter(p -> p.getEstado() == EstadoPedido.CONCRETADO)
                 .count();
         return mapa("atendidoPor", NOMBRE_CLASE, "enProceso", enProceso,
                 "concretados", concretados);
     }
 
     /** Cambia el estado de un pedido solo si esta en el estado esperado (si no, CONFLICTO). */
-    private Respuesta cambiarEstado(String id, Map<String, Object> parametros, Pedido.EstadoPedido nuevoEstado) {
+    private Respuesta cambiarEstado(String id, Map<String, Object> parametros, EstadoPedido nuevoEstado) {
         Pedido pedido = buscarPedido(parametros);
-        pedido.transicionarA(nuevoEstado);
+        if (nuevoEstado == EstadoPedido.CONCRETADO) {
+            pedido.concretar();
+        } else {
+            pedido.reabrir();
+        }
         pedidoRepository.save(pedido);
         return Respuesta.exito(id, mapa("atendidoPor", NOMBRE_CLASE, "idPedido", pedido.getIdPedido(),
                 "estado", nuevoEstado.name()));
@@ -321,10 +325,7 @@ public class ServicioPedidosJpa implements ProveedorServicio {
     /** "No concretado": borra un pedido en proceso y devuelve a la base de datos el stock que habia descontado. */
     private Respuesta cancelarPedido(String id, Map<String, Object> parametros) {
         Pedido pedido = buscarPedido(parametros);
-        if (!PENDIENTE.equals(pedido.getEstado().name())) {
-            return Respuesta.error(id, EstadoRespuesta.CONFLICTO, "Solo se pueden eliminar pedidos en proceso. El pedido #"
-                    + pedido.getIdPedido() + " está " + pedido.getEstado());
-        }
+        pedido.marcarNoConcretado();
         List<PedidoDetalle> detalles = pedidoDetalleRepository.findByIdPedido(pedido.getIdPedido());
         int unidades = 0;
         for (PedidoDetalle d : detalles) {

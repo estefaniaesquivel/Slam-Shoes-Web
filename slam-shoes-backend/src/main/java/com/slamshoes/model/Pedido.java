@@ -12,15 +12,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.slamshoes.exception.TransicionEstadoInvalidaException;
+import com.slamshoes.model.enums.EstadoPedido;
 
 @Entity
 @Table(name = "pedidos")
 public class Pedido {
-
-    public enum EstadoPedido {
-        PENDIENTE,
-        CONCRETADO
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +32,7 @@ public class Pedido {
     // RAZON: Antes era un String libre ("PENDIENTE", "CONCRETADO") con valores mágicos repetidos en varias clases.
     // Ahora es EstadoPedido; @Enumerated(STRING) guarda el mismo texto de siempre, así la base de datos no cambia.
     @Enumerated(EnumType.STRING)
-    private EstadoPedido estado;
+    private EstadoPedido estado = EstadoPedido.PENDIENTE;
 
     @Column(name = "direccion_envio")
     private String direccionEnvio;
@@ -59,23 +55,33 @@ public class Pedido {
     public Double getTotal() { return total; }
     public void setTotal(Double total) { this.total = total; }
 
+    /*REFACTOR: Remove Setting Method
+    RAZON: Se eliminó setEstado para impedir cambios arbitrarios desde otras clases. El estado inicia como PENDIENTE y solo se modifica mediante concretar(), reabrir() o marcarNoConcretado().
+    */
     public EstadoPedido getEstado() { return estado; }
-    public void setEstado(EstadoPedido estado) { this.estado = estado; }
 
-    public void transicionarA(EstadoPedido nuevoEstado) {
-        if (nuevoEstado == null) {
-            throw new TransicionEstadoInvalidaException("El estado de destino del pedido no es válido");
-        }
+    public void concretar() {
+        exigirEstado(EstadoPedido.PENDIENTE,
+                "El pedido #" + idPedido + " no está en proceso (estado actual: " + estado + ")");
+        estado = EstadoPedido.CONCRETADO;
+    }
 
-        EstadoPedido esperado = nuevoEstado == EstadoPedido.CONCRETADO
-                ? EstadoPedido.PENDIENTE
-                : EstadoPedido.CONCRETADO;
+    public void reabrir() {
+        exigirEstado(EstadoPedido.CONCRETADO,
+                "El pedido #" + idPedido + " no está concretado (estado actual: " + estado + ")");
+        estado = EstadoPedido.PENDIENTE;
+    }
+
+    public void marcarNoConcretado() {
+        exigirEstado(EstadoPedido.PENDIENTE,
+                "Solo se pueden eliminar pedidos en proceso. El pedido #" + idPedido + " está " + estado);
+        estado = EstadoPedido.NO_CONCRETADO;
+    }
+
+    private void exigirEstado(EstadoPedido esperado, String mensaje) {
         if (estado != esperado) {
-            String estadoEsperado = esperado == EstadoPedido.PENDIENTE ? "en proceso" : "concretado";
-            throw new TransicionEstadoInvalidaException("El pedido #" + idPedido + " no está " + estadoEsperado
-                    + " (estado actual: " + estado + ")");
+            throw new TransicionEstadoInvalidaException(mensaje);
         }
-        estado = nuevoEstado;
     }
 
     public String getDireccionEnvio() { return direccionEnvio; }
