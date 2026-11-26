@@ -342,6 +342,9 @@ public class PedidoService {
         return resultado;
     }
 
+    /*REFACTOR: Replace Error Code with Exception
+    RAZON: Antes un pedido inexistente provocaba IllegalArgumentException y se respondía como HTTP 400. Ahora se lanza RecursoNoEncontradoException para que GlobalExceptionHandler responda HTTP 404.
+    */
     private Pedido buscarPedido(Long idPedido) {
         return pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el pedido #" + idPedido));
