@@ -1,17 +1,20 @@
 package com.slamshoes.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-// Una fila = campos de pedidos + campos de pedido_detalle
+import com.slamshoes.dto.PedidoClienteDTO.LineaPedidoDTO;
+import com.slamshoes.model.enums.EstadoPedido;
+
+// Una fila del panel del administrador = un pedido con el nombre del cliente y todas sus líneas.
+// Lo arma PedidoService.listarAdmin.
 public record PedidoFilaDTO(
         Long idPedido,
-        Long idUsuario,
         LocalDateTime fecha,
         Double total,
-        String estado,
+        EstadoPedido estado,
         String direccionEnvio,
         String metodoPago,
-        Long idDetalle,
-        Long idVariante,
-        Integer cantidad,
-        Double precioUnitario) {}
+        Long idUsuario,
+        String nombreCliente,
+        List<LineaPedidoDTO> lineas) {}
