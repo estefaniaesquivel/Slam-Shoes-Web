@@ -70,6 +70,48 @@ public class Pedido {
         return p;
     }
 
+    // REFACTOR: Move Method
+    // RAZÓN: Antes la regla "solo se concreta un pedido en proceso" estaba en ServicioPedidosJpa.cambiarEstado,
+    // comparando cadenas desde afuera. Ahora la conoce el propio Pedido, que es el dueño del dato.
+    /**
+     * Pasa el pedido PENDIENTE a CONCRETADO
+     * 
+     * @throws TransicionEstadoInvalidaException si el pedido no está en proceso
+     */
+    public void concretar() {
+        if (estado != EstadoPedido.PENDIENTE) {
+            throw new TransicionEstadoInvalidaException(
+                "El pedido #" + idPedido + " no está en proceso (estado actual: " + estado + ")");
+        }
+        estado = EstadoPedido.CONCRETADO;
+    }
+
+    /**
+     * Regresa el pedido de CONCRETADO a PENDIENTE (corrige un error de dedo).
+     * 
+     * @throws TransicionEstadoInvalidaException si el pedido no está concretado
+     */
+    public void reabrir() {
+        if (estado != EstadoPedido.CONCRETADO) {
+            throw new TransicionEstadoInvalidaException(
+                "El pedido #" + idPedido + " no está concretado (estado actual: " + estado + ")");
+        }
+        estado = EstadoPedido.PENDIENTE;
+    }
+
+    /**
+     * Marca el pedido como NO_CONCRETADO. Sólo es válido si estaba en proceso, después el servicio lo elimina y regresa el stock.
+     * 
+     * @throws TransicionEstadoInvalidaException si el pedido no está en proceso
+     */
+    public void marcarNoConcretado() {
+        if (estado != EstadoPedido.PENDIENTE) {
+            throw new TransicionEstadoInvalidaException(
+                "Solo se puede eliminar pedidos en proceso. El pedido #" + idPedido + " está " + estado);
+        }
+        estado = EstadoPedido.NO_CONCRETADO;
+    }
+
     // Getters y Setters
     public Long getIdPedido() { return idPedido; }
     public void setIdPedido(Long idPedido) { this.idPedido = idPedido; }
@@ -83,34 +125,10 @@ public class Pedido {
     public Double getTotal() { return total; }
     public void setTotal(Double total) { this.total = total; }
 
-    /*REFACTOR: Remove Setting Method
-    RAZON: Se eliminó setEstado para impedir cambios arbitrarios desde otras clases. El estado inicia como PENDIENTE y solo se modifica mediante concretar(), reabrir() o marcarNoConcretado().
-    */
+    // REFACTOR: Remove Setting Method
+    // RAZON: Se eliminó setEstado para impedir cambios arbitrarios desde otras clases.
+    // El estado inicia como PENDIENTE y solo se modifica mediante concretar(), reabrir() o marcarNoConcretado().
     public EstadoPedido getEstado() { return estado; }
-
-    public void concretar() {
-        exigirEstado(EstadoPedido.PENDIENTE,
-                "El pedido #" + idPedido + " no está en proceso (estado actual: " + estado + ")");
-        estado = EstadoPedido.CONCRETADO;
-    }
-
-    public void reabrir() {
-        exigirEstado(EstadoPedido.CONCRETADO,
-                "El pedido #" + idPedido + " no está concretado (estado actual: " + estado + ")");
-        estado = EstadoPedido.PENDIENTE;
-    }
-
-    public void marcarNoConcretado() {
-        exigirEstado(EstadoPedido.PENDIENTE,
-                "Solo se pueden eliminar pedidos en proceso. El pedido #" + idPedido + " está " + estado);
-        estado = EstadoPedido.NO_CONCRETADO;
-    }
-
-    private void exigirEstado(EstadoPedido esperado, String mensaje) {
-        if (estado != esperado) {
-            throw new TransicionEstadoInvalidaException(mensaje);
-        }
-    }
 
     public String getDireccionEnvio() { return direccionEnvio; }
     public void setDireccionEnvio(String direccionEnvio) { this.direccionEnvio = direccionEnvio; }
