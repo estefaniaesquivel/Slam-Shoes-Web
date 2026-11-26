@@ -15,6 +15,9 @@ import com.slamshoes.exception.StockInsuficienteException;
 import com.slamshoes.exception.TransicionEstadoInvalidaException;
 import com.slamshoes.exception.ValidacionException;
 
+/*REFACTOR: Replace Error Code with Exception
+RAZON: Antes PedidoController y AdminPedidoController traducían los estados CONFLICTO y PARAMETROS_INVALIDOS del Broker a HTTP. Ahora las excepciones tipadas de los servicios se convierten aquí a HTTP 409/400 con el formato {"error": mensaje}.
+*/
 // REFACTOR: Extract Class
 // RAZON: Antes cada controlador Admin* repetia los metodos privados error(String) y sinLlave() y armaba a mano los ResponseEntity 400/404/409/500/502. Ahora se centralizan en este @RestControllerAdvice.
 /**
