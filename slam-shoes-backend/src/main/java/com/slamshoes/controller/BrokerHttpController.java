@@ -66,6 +66,10 @@ public class BrokerHttpController {
 
     /** Registro dinámico de un proveedor. */
     @PostMapping("/broker/register")
+    // REFACTOR: Split Phase
+    // RAZON: el servidor de sockets mezclaba leer la linea, decidir y escribir la respuesta en un solo metodo. El
+    // controlador solo traduce: fase 1 convierte el cuerpo JSON en mapa (400 si esta mal formado) y fase 2 delega
+    // la decision en {@code NucleoBroker.registrar}, cuyo Acuse se convierte en codigo HTTP.
     public ResponseEntity<String> registrar(@RequestHeader(value = RutasBroker.CABECERA_TOKEN, required = false) String token,
                                             @RequestBody(required = false) String cuerpo,
                                             HttpServletRequest peticion) {
@@ -81,6 +85,9 @@ public class BrokerHttpController {
 
     /** Baja de un proveedor. */
     @PostMapping("/broker/unregister")
+    // REFACTOR: Split Phase
+    // RAZON: igual que el registro: el controlador solo lee el JSON y traduce el Acuse a HTTP; quien decide si la
+    // baja procede es NucleoBroker.
     public ResponseEntity<String> darDeBaja(@RequestHeader(value = RutasBroker.CABECERA_TOKEN, required = false) String token,
                                             @RequestBody(required = false) String cuerpo,
                                             HttpServletRequest peticion) {
@@ -96,6 +103,10 @@ public class BrokerHttpController {
 
     /** Recibe una Solicitud completa y devuelve SIEMPRE una Respuesta (HTTP 200; el resultado va en "estado"). */
     @PostMapping("/broker/solicitar")
+    // REFACTOR: Change Function Declaration
+    // RAZON: antes el tipo SOLICITUD llegaba por el mismo socket que los demas mensajes y el switch devolvia un
+    // String. Ahora es un metodo con su ruta ({@code POST /api/broker/solicitar}) que devuelve siempre HTTP 200
+    // con una Respuesta, y el campo estado indica el resultado (contrato que ya usaba BrokerGateway).
     public ResponseEntity<String> solicitar(@RequestBody(required = false) String cuerpo, HttpServletRequest peticion) {
         Respuesta respuesta;
         try {
@@ -119,6 +130,10 @@ public class BrokerHttpController {
         return reenviar(servicio, peticion);
     }
 
+    // REFACTOR: Extract Function
+    // RAZON: las rutas {@code /gateway/{servicio}} y {@code /gateway/{servicio}/**} hacen lo mismo (calcular el
+    // resto de la ruta, leer el cuerpo y reenviar); se extrajo a un metodo privado para no duplicar ese codigo en
+    // los dos manejadores.
     private ResponseEntity<String> reenviar(String servicio, HttpServletRequest peticion) {
         String uri = peticion.getRequestURI();
         String prefijo = RutasBroker.PROXY + "/" + servicio;
@@ -141,6 +156,9 @@ public class BrokerHttpController {
                 .body(respuesta.cuerpo());
     }
 
+    // REFACTOR: Extract Function
+    // RAZON: armar ResponseEntity con codigo y Content-Type JSON se repetia en cada endpoint; un metodo unico
+    // mantiene el mismo formato.
     private static ResponseEntity<String> json(int codigo, String cuerpo) {
         return ResponseEntity.status(codigo).header("Content-Type", JSON).body(cuerpo);
     }

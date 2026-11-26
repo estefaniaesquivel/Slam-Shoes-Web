@@ -53,6 +53,11 @@ public class ProveedorHttp implements ProveedorServicio {
      * @param reintentos reintentos limitados tras un fallo de red o un 502/503/504
      * @param token      secreto compartido que se envía en la cabecera X-Broker-Token (null = no se envía)
      */
+    // REFACTOR: Introduce Parameter Object
+    // RAZON: el constructor anterior ({@code ProveedorRemoto}) recibia nombre, host, puerto y operaciones como
+    // parametros sueltos. Ahora recibe el {@link RegistroProveedor} ya validado, que agrupa esos datos (y la url y
+    // la ruta base), por lo que la lista de parametros es mas corta y no se pueden combinar valores
+    // inconsistentes.
     public ProveedorHttp(RegistroProveedor registro, int msConexion, int msLectura, int reintentos, String token) {
         Objects.requireNonNull(registro);
         this.nombreServicio = registro.servicio();
@@ -66,6 +71,11 @@ public class ProveedorHttp implements ProveedorServicio {
     }
 
     @Override
+    // REFACTOR: Decompose Conditional
+    // RAZON: en la version por sockets el exito o fallo era 'se leyo una linea o no'. Con HTTP hay que distinguir
+    // codigo 2xx, codigos transitorios (reintentar), errores definitivos 4xx (no reintentar, mensaje claro) y
+    // cuerpo ilegible. Cada rama quedo separada y con nombre, y solo el fallo de red o 502/503/504/429 incrementa
+    // los fallos consecutivos que retiran al proveedor.
     public Respuesta ejecutar(Solicitud solicitud) {
         String json = Marshalling.marshalSolicitud(solicitud);                  // marshalling
         URI destino = URI.create(url + RutasBroker.rutaProveedor(nombreServicio));
@@ -171,6 +181,10 @@ public class ProveedorHttp implements ProveedorServicio {
         fallosConsecutivos.incrementAndGet();
     }
 
+    // REFACTOR: Change Function Declaration
+    // RAZON: antes {@code mismoDestino(String host, int puerto)} comparaba dos valores; ahora {@code
+    // mismoDestino(URI)} compara un solo objeto destino. El Broker lo usa para reconocer el latido del mismo
+    // proveedor y distinguirlo de uno que intenta robarle el servicio.
     public boolean mismoDestino(URI otraUrl) {
         return url.equals(otraUrl);
     }

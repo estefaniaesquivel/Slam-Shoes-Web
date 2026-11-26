@@ -54,6 +54,10 @@ public class ProveedorHttpController {
 
     /** Recibe la Solicitud (JSON) del Broker y devuelve la Respuesta (JSON). */
     @PostMapping("/{servicio}")
+    // REFACTOR: Replace Nested Conditional with Guard Clauses
+    // RAZON: la comprobacion del token se resuelve con un retorno temprano (401 con una Respuesta NO_AUTORIZADO) y
+    // el camino normal (atender y responder 200) queda sin anidar. El proveedor por sockets no tenia ninguna
+    // comprobacion.
     public ResponseEntity<String> atender(@PathVariable String servicio,
                                           @RequestHeader(value = RutasBroker.CABECERA_TOKEN, required = false) String token,
                                           @RequestBody(required = false) String cuerpo) {

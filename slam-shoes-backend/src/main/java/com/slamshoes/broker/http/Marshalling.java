@@ -26,6 +26,11 @@ import com.slamshoes.broker.Solicitud;
  * RAZÓN: con sockets crudos el campo "tipo" era el único modo de saber qué clase de mensaje llegaba por
  * la misma conexión. En HTTP lo dice la URL (/register, /solicitar...), así que el campo sobraba y
  * obligaba a esta clase a conocer el vocabulario del protocolo de sockets (Protocolo).
+ * 
+ * REFACTOR: Move Function (la clase completa pasa de broker.red a broker.http)
+ * RAZON: el archivo estaba en el paquete {@code broker.red}, que era el 'paquete de sockets'. Esta clase no
+ * depende de ninguna red: se movio a {@code broker.http} junto al resto del transporte actual (el unico cambio de
+ * comportamiento es el campo tipo, ver el bloque anterior), para poder borrar el paquete {@code red} completo.
  */
 public final class Marshalling {
 

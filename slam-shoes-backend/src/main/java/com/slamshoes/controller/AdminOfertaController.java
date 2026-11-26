@@ -18,6 +18,14 @@ import com.slamshoes.dto.OfertaAdminDTO;
 import com.slamshoes.model.Oferta;
 import com.slamshoes.service.AdminCatalogoService;
 
+// REFACTOR: Move Method
+// RAZON: Antes el controlador inyectaba OfertaRepository y ProductoRepository (2 @Autowired) y hacía el CRUD directo
+// contra los repositorios, con validar() y aplicar() propios. Ahora delega en AdminCatalogoService (listarOfertas,
+// crearOferta, actualizarOferta, eliminarOferta), donde viven validarOferta y aplicarOferta.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes validar(OfertaAdminDTO) devolvía un String con el problema (o null) y error(String) armaba el 400; la
+// ausencia de la oferta se resolvía con ResponseEntity.notFound(). Ahora el servicio lanza ValidacionException o
+// RecursoNoEncontradoException y GlobalExceptionHandler responde 400/404.
 /**
  * Controlador REST para administrar las ofertas y descuentos aplicados a productos.
  */
@@ -28,6 +36,10 @@ public class AdminOfertaController {
 
     private final AdminCatalogoService catalogoService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las dependencias eran campos @Autowired privados, inyectados por reflexión y sin forma de crear el
+    // controlador fuera de Spring. Ahora es un campo final asignado solo en el constructor, y las pruebas hacen
+    // new AdminOfertaController(catalogoService) sin levantar contexto.
     /**
      * Inicializa el controlador con el servicio administrativo de catálogo.
      *

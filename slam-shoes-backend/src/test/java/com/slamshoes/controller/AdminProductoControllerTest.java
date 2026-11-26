@@ -30,6 +30,13 @@ import com.slamshoes.exception.ConflictoEliminacionException;
 import com.slamshoes.exception.RecursoNoEncontradoException;
 import com.slamshoes.service.IProductoAdminService;
 
+// REFACTOR: Extract Interface
+// RAZON: Antes AdminProductoController dependía de 9 beans concretos y no se podía probar sin ellos. Ahora depende de
+// IProductoAdminService, que esta clase sustituye por un @Mock y monta con MockMvc standalone, verificando los códigos
+// HTTP 200/201/204/404/409 de la administración de productos (RF-10, RF-11).
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Los 404 y 409 ya no los arma el controlador: el servicio simulado lanza RecursoNoEncontradoException o
+// ConflictoEliminacionException y GlobalExceptionHandler produce la respuesta (RF-11).
 @ExtendWith(MockitoExtension.class)
 class AdminProductoControllerTest {
 
@@ -45,6 +52,9 @@ class AdminProductoControllerTest {
                 .build();
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes detalle() devolvía ResponseEntity.notFound() sin cuerpo. Ahora RecursoNoEncontradoException produce
+    // HTTP 404 con {"error": "El producto no existe"} (RF-10, RF-11).
     @Test
     void detalleRetorna200Y404CuandoNoExiste() throws Exception {
         ProductoAdminDetalleDTO dto = new ProductoAdminDetalleDTO(

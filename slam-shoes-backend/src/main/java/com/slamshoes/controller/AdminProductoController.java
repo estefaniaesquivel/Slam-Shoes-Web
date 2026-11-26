@@ -22,6 +22,19 @@ import com.slamshoes.dto.ProductoEdicionDTO;
 import com.slamshoes.dto.ProductoNuevoDTO;
 import com.slamshoes.service.IProductoAdminService;
 
+// REFACTOR: Move Method
+// RAZON: Antes el controlador (305 líneas) contenía la lógica de negocio: detalle() armaba el DTO consultando 5
+// repositorios, validarComunes(...) recibía 8 parámetros, y además tenía validarWebp, aCarpeta, rutaDesdeUrl (duplicado
+// de SupabaseStorageService) y el record Resueltos. Ahora todo eso vive en ProductoAdminService y cada endpoint es una
+// sola llamada al servicio; la clase queda en 95 líneas.
+// REFACTOR: Extract Interface
+// RAZON: Antes dependía de 9 campos @Autowired (7 repositorios, ProductoAdminService y SupabaseStorageService
+// concretos), lo que impedía probarlo de forma aislada. Ahora depende solo de la interfaz IProductoAdminService, que
+// AdminProductoControllerTest sustituye por un mock.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes crear/editar devolvían ResponseEntity<?> y armaban a mano los 400/404/500/502 con error() y sinLlave(),
+// y capturaban IllegalArgumentException. Ahora el servicio lanza ValidacionException, RecursoNoEncontradoException,
+// ConflictoEliminacionException, StorageNoConfiguradoException o StorageException y GlobalExceptionHandler responde.
 /**
  * Controlador REST para la creación, edición, consulta de detalle y baja de productos.
  */
@@ -32,6 +45,9 @@ public class AdminProductoController {
 
     private final IProductoAdminService productoAdminService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las 9 dependencias eran campos @Autowired privados, inyectados por reflexión. Ahora es un único campo
+    // final asignado por constructor, y las pruebas hacen new AdminProductoController(productoAdminService).
     /**
      * Inicializa el controlador con el servicio de administración de productos.
      *

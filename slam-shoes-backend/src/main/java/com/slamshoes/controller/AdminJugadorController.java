@@ -20,6 +20,15 @@ import com.slamshoes.dto.NombreImagenAdminDTO;
 import com.slamshoes.model.Jugador;
 import com.slamshoes.service.AdminCatalogoService;
 
+// REFACTOR: Move Method
+// RAZON: Antes el controlador inyectaba JugadorRepository, AdminCatalogoService y SupabaseStorageService (3 @Autowired) y
+// repetía, igual que AdminMarcaController, la validación, subida WebP y rollback de imagen en 121 líneas. Ahora cada
+// endpoint delega en AdminCatalogoService (listarJugadores, crearJugador, actualizarJugador, eliminarJugador) y la
+// clase queda en 92 líneas.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes los métodos devolvían ResponseEntity<?> y armaban a mano los 400/404/500/502 con error() y sinLlave().
+// Ahora el servicio lanza ValidacionException, RecursoNoEncontradoException, StorageNoConfiguradoException o
+// StorageException y GlobalExceptionHandler produce la respuesta HTTP.
 /**
  * Controlador REST para la administración de jugadores del catálogo.
  */
@@ -30,6 +39,10 @@ public class AdminJugadorController {
 
     private final AdminCatalogoService catalogoService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las dependencias eran campos @Autowired privados, inyectados por reflexión y sin forma de crear el
+    // controlador fuera de Spring. Ahora es un campo final asignado solo en el constructor, y las pruebas hacen
+    // new AdminJugadorController(catalogoService) sin levantar contexto.
     /**
      * Inicializa el controlador con el servicio administrativo de catálogo.
      *

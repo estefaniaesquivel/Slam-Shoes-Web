@@ -39,6 +39,13 @@ import com.slamshoes.repository.NovedadRepository;
 import com.slamshoes.repository.OfertaRepository;
 import com.slamshoes.repository.ProductoRepository;
 
+// REFACTOR: Move Method
+// RAZON: Antes la validacion, la subida de imagen y el borrado de banners, novedades, ofertas, jugadores, marcas y colecciones
+// vivian dentro de los controladores Admin*, imposibles de probar sin levantar la capa web. Al moverlas a AdminCatalogoService estas pruebas
+// usan Mockito sobre repositorios y almacenamiento falso, sin Spring (RF-10).
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes los errores se devolvian como String o ResponseEntity con el mensaje; ahora los casos de error se verifican
+// con assertThatThrownBy(...) sobre ValidacionException, RecursoNoEncontradoException y ConflictoEliminacionException (RF-10).
 @ExtendWith(MockitoExtension.class)
 class AdminCatalogoServiceTest {
 
@@ -82,6 +89,8 @@ class AdminCatalogoServiceTest {
         verify(productoRepository).save(p);
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes el controlador devolvia el error con ResponseEntity/error(String); ahora guardarColeccion lanza ValidacionException ante un nombre duplicado y la prueba lo exige.
     @Test
     void guardarColeccionRechazaNombreDuplicado() {
         Coleccion existente = new Coleccion();
@@ -92,6 +101,8 @@ class AdminCatalogoServiceTest {
                 .isInstanceOf(ValidacionException.class);
     }
 
+    // REFACTOR: Move Method
+    // RAZON: La regla de desvincular productos y borrar la imagen ahora vive en AdminCatalogoService.eliminarColeccion, por eso se prueba aqui y no en el controlador.
     @Test
     void eliminarColeccionDesvinculaProductosYBorraImagen() {
         Coleccion c = new Coleccion();
@@ -111,6 +122,8 @@ class AdminCatalogoServiceTest {
         verify(storageService).eliminarPorUrl("https://cdn/col.webp");
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Ahora un id inexistente lanza RecursoNoEncontradoException (404 en GlobalExceptionHandler) en lugar de responder con un mensaje de error armado en el controlador.
     @Test
     void eliminarJugadorYMarcaInexistentesLanzanRecursoNoEncontrado() {
         when(jugadorRepository.findById(99L)).thenReturn(Optional.empty());

@@ -38,6 +38,15 @@ import com.slamshoes.repository.NovedadRepository;
 import com.slamshoes.repository.OfertaRepository;
 import com.slamshoes.repository.ProductoRepository;
 
+// REFACTOR: Move Method
+// RAZON: Antes este servicio (93 líneas) solo tenía guardarColeccion, eliminarJugador y eliminarMarca, y la lógica de
+// banners, colecciones, jugadores, marcas, novedades y ofertas estaba repartida en 6 controladores Admin*. Ahora
+// concentra todo ese CRUD (638 líneas) con listar/crear/actualizar/eliminar por entidad, y los controladores solo
+// delegan. Es el destino de las consultas a repositorios y a Storage que antes estaban en la capa web.
+// REFACTOR: Replace Error Code with Exception
+// RAZON: Antes los errores eran IllegalArgumentException o Strings que cada controlador traducía a mano. Ahora el
+// servicio lanza ValidacionException, RecursoNoEncontradoException, StorageNoConfiguradoException y StorageException,
+// que GlobalExceptionHandler convierte en 400/404/500/502.
 /**
  * Servicio centralizado para operaciones administrativas de catálogo:
  * colecciones, banners, jugadores, marcas, novedades y ofertas.
@@ -54,6 +63,11 @@ public class AdminCatalogoService {
     private final OfertaRepository ofertaRepository;
     private final IStorageService storageService;
 
+    // REFACTOR: Remove Setting Method
+    // RAZON: Antes las 4 dependencias eran campos @Autowired privados, imposibles de crear sin Spring. Ahora son 8 campos
+    // final (incluye BannerRepository, NovedadRepository, OfertaRepository e IStorageService) asignados solo por
+    // constructor, y AdminCatalogoServiceTest los sustituye por mocks. Además depende de la interfaz IStorageService
+    // (Extract Interface) y no de la clase concreta.
     /**
      * Inicializa el servicio con los repositorios de catálogo y almacenamiento.
      *
@@ -158,6 +172,10 @@ public class AdminCatalogoService {
         }
     }
 
+    // REFACTOR: Move Method
+    // RAZON: Antes no existía la operación de borrado de colecciones (ni endpoint DELETE) y el patrón "desvincular
+    // productos y borrar imagen" estaba solo en jugadores y marcas, con la limpieza de Storage hecha por el controlador.
+    // Ahora eliminarColeccion sigue el mismo patrón dentro del servicio y lanza RecursoNoEncontradoException si no existe.
     /**
      * Elimina una colección desvinculando sus productos sin eliminarlos.
      *
@@ -175,6 +193,10 @@ public class AdminCatalogoService {
         storageService.eliminarPorUrl(c.getImagenUrl());
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes las reglas de nombre obligatorio, nombre duplicado, productos inexistentes y colección inexistente
+    // lanzaban IllegalArgumentException genéricas que el controlador capturaba. Ahora lanzan ValidacionException y
+    // RecursoNoEncontradoException, y el nombre vacío usa el método extraído validarNombre.
     /**
      * Crea ({@code id == null}) o actualiza una colección dejando asignados exactamente los productos indicados.
      *
@@ -236,6 +258,10 @@ public class AdminCatalogoService {
         return bannerRepository.findAll(Sort.by("orden").ascending().and(Sort.by("idBanner").ascending()));
     }
 
+    // REFACTOR: Move Method
+    // RAZON: Antes AdminBannerController.crear validaba título y WebP, subía la imagen, calculaba el orden siguiente,
+    // guardaba y compensaba (borraba la imagen) si fallaba, todo dentro del controlador. Ahora ese flujo vive aquí,
+    // apoyado en validarNombre y subirImagenObligatoria, y el rollback de la imagen sigue en el catch.
     /**
      * Crea un banner subiendo su imagen WebP y calculando el orden siguiente si no se especifica.
      *
@@ -304,6 +330,9 @@ public class AdminCatalogoService {
         storageService.eliminarPorUrl(b.getImagenUrl());
     }
 
+    // REFACTOR: Move Method
+    // RAZON: Antes este método era el privado aplicar(Banner, BannerAdminDTO) dentro de AdminBannerController. Ahora está
+    // en el servicio que persiste el banner y lo reutilizan crearBanner y actualizarBanner.
     private void aplicarBanner(Banner b, BannerAdminDTO d) {
         b.setTitulo(d.titulo().trim());
         String enlace = d.enlaceDestino() == null ? "" : d.enlaceDestino().trim();
@@ -372,6 +401,11 @@ public class AdminCatalogoService {
         }
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes jugadorRepository.findById(...) lanzaba IllegalArgumentException("El jugador no existe") y el controlador
+    // la capturaba para armar el 404, y era el controlador quien llamaba a storage.eliminarPorUrl. Ahora lanza
+    // RecursoNoEncontradoException (404 vía GlobalExceptionHandler) y la limpieza de la imagen ocurre dentro del servicio.
+    // Se conserva la desvinculación de productos; no lanza ConflictoEliminacionException.
     /**
      * Elimina un jugador sin borrar sus productos asociados y limpia su imagen.
      *
@@ -452,6 +486,11 @@ public class AdminCatalogoService {
         }
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes marcaRepository.findById(...) lanzaba IllegalArgumentException("La marca no existe") y el controlador
+    // la capturaba para armar el 404, y era el controlador quien llamaba a storage.eliminarPorUrl. Ahora lanza
+    // RecursoNoEncontradoException (404 vía GlobalExceptionHandler) y la limpieza del logotipo ocurre dentro del servicio.
+    // Se conserva la desvinculación de productos; no lanza ConflictoEliminacionException.
     /**
      * Elimina una marca sin borrar sus productos asociados y limpia su logotipo.
      *
@@ -586,6 +625,10 @@ public class AdminCatalogoService {
         ofertaRepository.deleteById(id);
     }
 
+    // REFACTOR: Replace Error Code with Exception
+    // RAZON: Antes AdminOfertaController.validar(OfertaAdminDTO) devolvía un String con el primer problema (o null) y quien
+    // lo llamaba tenía que revisarlo. Ahora validarOferta lanza ValidacionException en cuanto encuentra el problema y
+    // delega la parte de fechas en validarRangoFechas.
     private void validarOferta(OfertaAdminDTO d) {
         validarNombre(d.nombre(), "Escribe el nombre de la oferta");
         if (d.porcentajeDescuento() == null || d.porcentajeDescuento() <= 0 || d.porcentajeDescuento() >= 100) {
@@ -601,12 +644,18 @@ public class AdminCatalogoService {
         o.setFechaFin(d.fechaFin());
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes la comprobación "texto nulo o en blanco" estaba copiada en cada controlador (título del banner, nombre de
+    // colección, de jugador, de marca, de oferta). Ahora es un solo método reutilizable que lanza ValidacionException.
     private void validarNombre(String valor, String mensaje) {
         if (valor == null || valor.isBlank()) {
             throw new ValidacionException(mensaje);
         }
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes las dos reglas de fechas ("indica inicio y fin" y "fin posterior a inicio") estaban duplicadas en
+    // AdminNovedadController.validar y AdminOfertaController.validar. Ahora un único método las aplica a novedades y ofertas.
     private void validarRangoFechas(LocalDateTime inicio, LocalDateTime fin) {
         if (inicio == null || fin == null) {
             throw new ValidacionException("Indica la fecha de inicio y la fecha de fin");
@@ -616,6 +665,11 @@ public class AdminCatalogoService {
         }
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes cada controlador (banners, colecciones, jugadores, marcas) repetía el mismo bloque: validar WebP, comprobar
+    // la llave de Supabase, subir y devolver un 502 si fallaba. Ahora un solo método lo hace y lanza ValidacionException,
+    // StorageNoConfiguradoException o StorageException (Replace Error Code with Exception); restaura la bandera de
+    // interrupción del hilo si corresponde.
     private String subirImagenObligatoria(String carpeta, String nombreBase, MultipartFile imagen, String mensajeFormato) {
         if (!SupabaseStorageService.esWebp(imagen)) {
             throw new ValidacionException(mensajeFormato);
@@ -631,6 +685,10 @@ public class AdminCatalogoService {
         }
     }
 
+    // REFACTOR: Extract Method
+    // RAZON: Antes las actualizaciones repetían "si hay imagen nueva, validarla y subirla; si no, conservar la actual"
+    // (hayImagenNueva) en cada controlador. Ahora este método devuelve null cuando no hay imagen y, si la hay, reutiliza
+    // subirImagenObligatoria.
     private String subirImagenOpcional(String carpeta, String nombreBase, MultipartFile imagen, String mensajeFormato) {
         if (imagen == null || imagen.isEmpty()) return null;
         return subirImagenObligatoria(carpeta, nombreBase, imagen, mensajeFormato);
