@@ -171,7 +171,7 @@ public class ServicioPedidosJpa implements ProveedorServicio {
         pedido.setIdUsuario(idUsuario);
         pedido.setFecha(LocalDateTime.now());
         pedido.setTotal(Math.round(total * 100.0) / 100.0);
-        pedido.setEstado("PENDIENTE");
+        pedido.setEstado(Pedido.EstadoPedido.PENDIENTE);
         pedido.setDireccionEnvio(direccion);
         pedido.setMetodoPago(metodoPago);
         pedido = pedidoRepository.save(pedido);
@@ -288,24 +288,35 @@ public class ServicioPedidosJpa implements ProveedorServicio {
         String estado = leerEstado(parametros);
         // En proceso: los mas antiguos primero (se atienden en orden); concretados: los mas recientes primero
         Sort orden = Sort.by(CONCRETADO.equals(estado) ? Sort.Direction.DESC : Sort.Direction.ASC, "fecha");
-        List<Map<String, Object>> pedidos = armarPedidos(pedidoRepository.findByEstado(estado, orden), true);
+        List<Pedido> pedidosFiltrados = pedidoRepository.findAll(orden).stream()
+                .filter(p -> p.getEstado() != null && p.getEstado().name().equals(estado))
+                .toList();
+        List<Map<String, Object>> pedidos = armarPedidos(pedidosFiltrados, true);
         return mapa("atendidoPor", NOMBRE_CLASE, "estado", estado, "totalPedidos", pedidos.size(), "pedidos", pedidos);
     }
 
     private Map<String, Object> contarPedidos() {
-        return mapa("atendidoPor", NOMBRE_CLASE, "enProceso", pedidoRepository.countByEstado(PENDIENTE),
-                "concretados", pedidoRepository.countByEstado(CONCRETADO));
+        List<Pedido> pedidos = pedidoRepository.findAll();
+        long enProceso = pedidos.stream()
+                .filter(p -> p.getEstado() == Pedido.EstadoPedido.PENDIENTE)
+                .count();
+        long concretados = pedidos.stream()
+                .filter(p -> p.getEstado() == Pedido.EstadoPedido.CONCRETADO)
+                .count();
+        return mapa("atendidoPor", NOMBRE_CLASE, "enProceso", enProceso,
+                "concretados", concretados);
     }
 
     /** Cambia el estado de un pedido solo si esta en el estado esperado (si no, CONFLICTO). */
     private Respuesta cambiarEstado(String id, Map<String, Object> parametros, String esperado, String nuevo) {
         Pedido pedido = buscarPedido(parametros);
-        if (!esperado.equals(pedido.getEstado())) {
+        String estadoActual = pedido.getEstado().name();
+        if (!esperado.equals(estadoActual)) {
             return Respuesta.error(id, EstadoRespuesta.CONFLICTO, "El pedido #" + pedido.getIdPedido()
                     + " no está " + (PENDIENTE.equals(esperado) ? "en proceso" : "concretado")
-                    + " (estado actual: " + pedido.getEstado() + ")");
+                    + " (estado actual: " + estadoActual + ")");
         }
-        pedido.setEstado(nuevo);
+        pedido.setEstado(Pedido.EstadoPedido.valueOf(nuevo));
         pedidoRepository.save(pedido);
         return Respuesta.exito(id, mapa("atendidoPor", NOMBRE_CLASE, "idPedido", pedido.getIdPedido(), "estado", nuevo));
     }
@@ -313,7 +324,7 @@ public class ServicioPedidosJpa implements ProveedorServicio {
     /** "No concretado": borra un pedido en proceso y devuelve a la base de datos el stock que habia descontado. */
     private Respuesta cancelarPedido(String id, Map<String, Object> parametros) {
         Pedido pedido = buscarPedido(parametros);
-        if (!PENDIENTE.equals(pedido.getEstado())) {
+        if (!PENDIENTE.equals(pedido.getEstado().name())) {
             return Respuesta.error(id, EstadoRespuesta.CONFLICTO, "Solo se pueden eliminar pedidos en proceso. El pedido #"
                     + pedido.getIdPedido() + " está " + pedido.getEstado());
         }
