@@ -14,6 +14,10 @@ import jakarta.persistence.Table;
 import com.slamshoes.exception.TransicionEstadoInvalidaException;
 import com.slamshoes.model.enums.EstadoPedido;
 
+/**
+ * Pedido de un cliente (RF-16, RF-17, RF-27 a RF-30). Controla por sí mismo sus cambios de estado
+ * ({@Link #concretar()}, {@Link #reabrir()}, {@Link #marcarNoConcretado()}).
+ */
 @Entity
 @Table(name = "pedidos")
 public class Pedido {
@@ -28,8 +32,9 @@ public class Pedido {
 
     private LocalDateTime fecha;
     private Double total;
+    
     // REFACTOR: Replace Type Code with Class (enum)
-    // RAZON: Antes era un String libre ("PENDIENTE", "CONCRETADO") con valores mágicos repetidos en varias clases.
+    // RAZÓN: Antes era un String libre ("PENDIENTE", "CONCRETADO") con valores mágicos repetidos en varias clases.
     // Ahora es EstadoPedido; @Enumerated(STRING) guarda el mismo texto de siempre, así la base de datos no cambia.
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
@@ -41,6 +46,29 @@ public class Pedido {
     private String metodoPago;
 
     public Pedido() {}
+
+    // REFACTOR: Replace Constructor with Factory Method
+    // RAZÓN: Antes quien creaba un Pedido tenía que acordarse de llamar setEstado("PENDIENTE") y setFecha(now),
+    // olvidaro dejaba un pedido sin estado. Ahora este método con nombre deja siempre el estado en PENDIENTE.
+    /**
+     * Crea un pedido nuevo en estado ({@Link EstadoPedido#PENDIENTE}) con la fecha actual.
+     * 
+     * @param idUsuario      cliente que compra
+     * @param total          total ya calculado (con ofertas)
+     * @param direccionEnvio dirección de entrega
+     * @param metodoPago     método de pago, o {@code null} si no se indicó
+     * @return pedido listo para guardar
+     */
+    public static Pedido crearPedido(Long idUsuario, Double total, String direccionEnvio, String metodoPago) {
+        Pedido p = new Pedido();
+        p.idUsuario = idUsuario;
+        p.fecha = LocalDateTime.now();
+        p.total = total;
+        p.estado = EstadoPedido.PENDIENTE;
+        p.direccionEnvio = direccionEnvio;
+        p.metodoPago = metodoPago;
+        return p;
+    }
 
     // Getters y Setters
     public Long getIdPedido() { return idPedido; }
