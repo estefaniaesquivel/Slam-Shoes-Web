@@ -5,14 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.slamshoes.broker.EstadoRespuesta;
+import com.slamshoes.broker.ProveedorServicio;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
+import com.slamshoes.exception.StockInsuficienteException;
 
 /** Pruebas del lado proveedor: lo que pasa cuando llega {@code POST /api/proveedor/{servicio}} (sin red). */
 class ExposicionProveedoresTest {
@@ -67,6 +70,35 @@ class ExposicionProveedoresTest {
         Respuesta r = expo.atender("catalogo", json("explotar"));
         assertEquals(EstadoRespuesta.ERROR_PROVEEDOR, r.getEstado());
         assertTrue(r.getMensajeError().contains("IllegalStateException"));
+    }
+
+    @Test
+    @DisplayName("El stock insuficiente conserva el estado CONFLICTO al cruzar el proveedor HTTP")
+    void stockInsuficienteConservaConflicto() {
+        ProveedorServicio pedidos = new ProveedorServicio() {
+            @Override
+            public Respuesta ejecutar(Solicitud solicitud) {
+                throw new StockInsuficienteException("Stock insuficiente");
+            }
+
+            @Override
+            public String getNombreServicio() {
+                return "pedidos";
+            }
+
+            @Override
+            public Set<String> getOperacionesSoportadas() {
+                return Set.of("crearPedido");
+            }
+        };
+        ExposicionProveedores exposicionPedidos = new ExposicionProveedores(List.of(pedidos), null);
+        Solicitud solicitud = new Solicitud("pedidos", "crearPedido", null);
+
+        Respuesta respuesta = exposicionPedidos.atender(
+                "pedidos", Marshalling.marshalSolicitud(solicitud));
+
+        assertEquals(EstadoRespuesta.CONFLICTO, respuesta.getEstado());
+        assertEquals("Stock insuficiente", respuesta.getMensajeError());
     }
 
     @Test

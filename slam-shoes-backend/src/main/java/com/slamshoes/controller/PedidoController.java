@@ -64,7 +64,7 @@ public class PedidoController {
             params.put("items", items);
         }
 
-        Respuesta respuesta = gateway.enviar("pedidos", "crearPedido", params);
+        Respuesta respuesta = gateway.crearPedido(params);
         if (!respuesta.isExitosa()) {
             return RespuestaHttp.error(respuesta);
         }

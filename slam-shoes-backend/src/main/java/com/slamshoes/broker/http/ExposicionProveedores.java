@@ -13,6 +13,7 @@ import com.slamshoes.broker.EstadoRespuesta;
 import com.slamshoes.broker.ProveedorServicio;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
+import com.slamshoes.exception.StockInsuficienteException;
 
 /**
  * Lado PROVEEDOR de la comunicación HTTP: recibe la solicitud que el Broker reenvía a
@@ -133,6 +134,9 @@ public class ExposicionProveedores {
                         "El proveedor devolvio una respuesta con otro idSolicitud");
             }
             return respuesta;
+        } catch (StockInsuficienteException e) {
+            Consola.proveedor(servicio, "Conflicto en " + solicitud.getOperacion() + ": " + e.getMessage());
+            return Respuesta.error(id, EstadoRespuesta.CONFLICTO, e.getMessage());
         } catch (Exception e) {
             Consola.proveedor(servicio, "EXCEPCION en " + solicitud.getOperacion() + ": " + e);
             return Respuesta.error(id, EstadoRespuesta.ERROR_PROVEEDOR,

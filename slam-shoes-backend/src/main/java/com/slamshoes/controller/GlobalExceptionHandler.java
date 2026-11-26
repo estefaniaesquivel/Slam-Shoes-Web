@@ -11,6 +11,7 @@ import com.slamshoes.exception.PedidoVacioException;
 import com.slamshoes.exception.RecursoNoEncontradoException;
 import com.slamshoes.exception.StorageException;
 import com.slamshoes.exception.StorageNoConfiguradoException;
+import com.slamshoes.exception.StockInsuficienteException;
 import com.slamshoes.exception.ValidacionException;
 
 // REFACTOR: Extract Class
@@ -62,6 +63,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ConflictoEliminacionException.class)
     public ResponseEntity<Map<String, String>> manejarConflicto(ConflictoEliminacionException ex) {
+        return ResponseEntity.status(409).body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
+     * Responde HTTP 409 cuando no hay existencias suficientes para completar un pedido.
+     *
+     * @param ex excepción de stock insuficiente
+     * @return respuesta con código 409 y cuerpo {@code {"error": mensaje}}
+     */
+    @ExceptionHandler(StockInsuficienteException.class)
+    public ResponseEntity<Map<String, String>> manejarStockInsuficiente(StockInsuficienteException ex) {
         return ResponseEntity.status(409).body(Map.of("error", ex.getMessage()));
     }
 

@@ -19,6 +19,7 @@ import com.slamshoes.broker.ProveedorServicio;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
 import com.slamshoes.exception.PedidoVacioException;
+import com.slamshoes.exception.StockInsuficienteException;
 import com.slamshoes.model.Pedido;
 import com.slamshoes.model.PedidoDetalle;
 import com.slamshoes.model.Producto;
@@ -153,7 +154,7 @@ public class ServicioPedidosJpa implements ProveedorServicio {
             }
             int stock = variante.getStock() == null ? 0 : variante.getStock();
             if (stock < linea.getValue()) {
-                return Respuesta.error(id, EstadoRespuesta.CONFLICTO,
+                throw new StockInsuficienteException(
                         "Sin stock suficiente de \"" + producto.getNombre() + "\" talla " + variante.getTalla()
                                 + " (disponibles: " + stock + ")");
             }

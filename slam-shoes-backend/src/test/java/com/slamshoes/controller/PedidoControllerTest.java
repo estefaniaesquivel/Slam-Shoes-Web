@@ -1,6 +1,8 @@
 package com.slamshoes.controller;
 
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -14,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.slamshoes.exception.StockInsuficienteException;
 import com.slamshoes.service.BrokerGateway;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,5 +49,17 @@ class PedidoControllerTest {
                 .andExpect(jsonPath("$.error").value("El pedido no tiene productos"));
 
         verifyNoInteractions(gateway);
+    }
+
+    @Test
+    void stockInsuficienteRetorna409ConMensajeDeError() throws Exception {
+        when(gateway.crearPedido(anyMap()))
+                .thenThrow(new StockInsuficienteException("Sin stock suficiente de \"Runner\" talla 27 (disponibles: 0)"));
+
+        mockMvc.perform(post("/api/pedidos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idUsuario\":1,\"direccionEnvio\":\"Calle 1\",\"items\":[{\"idVariante\":2,\"cantidad\":1}]}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Sin stock suficiente de \"Runner\" talla 27 (disponibles: 0)"));
     }
 }

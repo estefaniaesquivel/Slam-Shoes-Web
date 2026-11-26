@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.slamshoes.broker.Broker;
+import com.slamshoes.broker.EstadoRespuesta;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
 import com.slamshoes.broker.http.ClienteHttp;
+import com.slamshoes.exception.StockInsuficienteException;
 
 /**
  * UNICA puerta de la aplicacion web hacia el Broker. Los controladores ya no conocen repositorios
@@ -35,6 +37,20 @@ public class BrokerGateway {
     /** Envia una solicitud nueva (con identificador propio) y devuelve siempre una respuesta. */
     public Respuesta enviar(String servicio, String operacion, Map<String, Object> parametros) {
         return enviar(new Solicitud(servicio, operacion, parametros));
+    }
+
+    /**
+     * Crea un pedido y restaura el tipo de error de stock que viaja como conflicto por el Broker.
+     */
+    public Respuesta crearPedido(Map<String, Object> parametros) {
+        Respuesta respuesta = enviar("pedidos", "crearPedido", parametros);
+        if (respuesta.getEstado() == EstadoRespuesta.CONFLICTO) {
+            String mensaje = respuesta.getMensajeError() == null
+                    ? "No se pudo completar el pedido por falta de stock"
+                    : respuesta.getMensajeError();
+            throw new StockInsuficienteException(mensaje);
+        }
+        return respuesta;
     }
 
     /** Envia una solicitud ya construida (por ejemplo, con el idSolicitud que eligio el navegador). */
