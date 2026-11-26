@@ -18,6 +18,7 @@ import com.slamshoes.broker.EstadoRespuesta;
 import com.slamshoes.broker.ProveedorServicio;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.broker.Solicitud;
+import com.slamshoes.exception.PedidoVacioException;
 import com.slamshoes.model.Pedido;
 import com.slamshoes.model.PedidoDetalle;
 import com.slamshoes.model.Producto;
@@ -201,11 +202,11 @@ public class ServicioPedidosJpa implements ProveedorServicio {
                 "lineas", variantes.size(), "unidades", totalUnidades, "direccionEnvio", direccion));
     }
 
-    /** Valida "items" y agrupa por talla. Lanza IllegalArgumentException si algo no es valido. */
+    /** Valida "items" y agrupa por talla. Lanza excepciones de argumentos específicos si algo no es válido. */
     private Map<Long, Integer> leerItems(Map<String, Object> parametros) {
         Object crudo = parametros.get("items");
         if (!(crudo instanceof List<?> items) || items.isEmpty()) {
-            throw new IllegalArgumentException("El pedido no tiene productos");
+            throw new PedidoVacioException("El pedido no tiene productos");
         }
         Map<Long, Integer> cantidades = new LinkedHashMap<>();
         for (Object item : items) {

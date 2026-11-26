@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.slamshoes.exception.ConflictoEliminacionException;
+import com.slamshoes.exception.PedidoVacioException;
 import com.slamshoes.exception.RecursoNoEncontradoException;
 import com.slamshoes.exception.StorageException;
 import com.slamshoes.exception.StorageNoConfiguradoException;
@@ -28,6 +29,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ValidacionException.class)
     public ResponseEntity<Map<String, String>> manejarValidacion(ValidacionException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
+     * Responde HTTP 400 cuando se intenta crear un pedido sin productos.
+     *
+     * @param ex excepción de pedido vacío
+     * @return respuesta con código 400 y cuerpo {@code {"error": mensaje}}
+     */
+    @ExceptionHandler(PedidoVacioException.class)
+    public ResponseEntity<Map<String, String>> manejarPedidoVacio(PedidoVacioException ex) {
         return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
     }
 

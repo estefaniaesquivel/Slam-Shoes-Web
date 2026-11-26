@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.slamshoes.broker.Respuesta;
 import com.slamshoes.dto.ItemPedidoDTO;
 import com.slamshoes.dto.PedidoRequestDTO;
+import com.slamshoes.exception.PedidoVacioException;
 import com.slamshoes.service.BrokerGateway;
 
 /**
@@ -42,6 +43,10 @@ public class PedidoController {
     // Confirmar compra -> pedidos.crearPedido
     @PostMapping
     public ResponseEntity<?> crearPedido(@RequestBody PedidoRequestDTO req) {
+        if (req != null && (req.items() == null || req.items().isEmpty())) {
+            throw new PedidoVacioException("El pedido no tiene productos");
+        }
+
         Map<String, Object> params = new LinkedHashMap<>();
         if (req != null) {
             params.put("idUsuario", req.idUsuario());
